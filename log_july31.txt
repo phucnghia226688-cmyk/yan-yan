@@ -1,0 +1,28 @@
+01:50:39 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: Khả Yến (Tập mông vừa đủ) - Trừ 1 buổi (còn 9/25 buổi)
+01:51:25 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: Lê Thị Thu Nga (Tập mông đùi chủ yếu mông) - Trừ 1 buổi (còn 5/7 buổi)
+02:57:20 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: VY HUỲNH (Thân trên) - Trừ 1 buổi (còn 3/12 buổi)
+05:15:44 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: CẨM TUYỀN (Back & Biceps (Lưng/Tay trước)) - Trừ 1 buổi (còn 16/16 buổi)
+07:25:21 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: KIM KHUYÊN (Thân trên (upper2)) - Trừ 1 buổi (còn 3/16 buổi)
+08:06:27 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: CHỊ H.NGỌC(BẠN KHUYÊN) (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 11/12 buổi)
+08:09:14 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: DIỄM QUỲNH 2K2 (Leg Day (Tập Chân)) - Trừ 1 buổi (còn 36/36 buổi)
+09:59:21 31/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: Nguyễn Văn Mập (Gói 20 buổi - 20 buổi)
+12:22:27 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: Nguyễn Thị Ngọc Hân (Thân trên cơ bản) - Trừ 1 buổi (còn 23/25 buổi)
+14:30:16 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: Nguyễn Phúc Lợi (Tập thân trên ) - Trừ 1 buổi (còn 22/25 buổi)
+14:45:38 31/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Số buổi (20 → 555)
+14:47:49 31/7/2026 - UPDATE_PAYMENT - Đã chỉnh sửa số tiền từ 2.500.000 ₫ thành 900.000.000.000.000.000.000.000.000 ₫
+14:49:16 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: Thông (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 65/55 buổi)
+14:50:10 31/7/2026 - UPDATE_PAYMENT - Đã chỉnh sửa số tiền từ 5.000.000 ₫ thành 5.500.000 ₫
+14:50:13 31/7/2026 - UPDATE_PAYMENT - Đã chỉnh sửa số tiền từ 12.000.000 ₫ thành 17.000.000 ₫
+15:03:44 31/7/2026 - DELETE_PAYMENT - 💸 Đã xóa lịch sử thanh toán: CHỊ H.NGỌC(BẠN KHUYÊN) (12.000.000 ₫)
+15:04:19 31/7/2026 - DELETE_PAYMENT - 💸 Đã xóa lịch sử thanh toán: CHỊ H.NGỌC(BẠN KHUYÊN) (12.000.000 ₫)
+15:09:10 31/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: My cherry (25b - 25 buổi)
+16:09:57 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: THIÊN KIM (Buổi 3 - Tập định kỳ) - Trừ 1 buổi (còn 14/16 buổi)
+16:11:05 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: TỐ NHƯ (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 2/12 buổi)
+16:11:21 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: YẾN (Buổi 3 - Tập định kỳ) - Trừ 1 buổi (còn 5/12 buổi)
+16:11:32 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: DIỄM MY (Leg Day (Tập Chân)) - Trừ 1 buổi (còn 3/16 buổi)
+16:16:05 31/7/2026 - UPDATE_PAYMENT - Đã chỉnh sửa số tiền từ 2.700.000 ₫ thành 2.800.000 ₫
+16:18:31 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: LÊ NHI (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 6/12 buổi)
+16:22:18 31/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Số buổi (6 → 11)
+16:24:15 31/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Số buổi (11 → 9)
+16:46:44 31/7/2026 - UPDATE_PAYMENT - Đã chỉnh sửa số tiền từ 12.000.000 ₫ thành 0 ₫
+16:47:04 31/7/2026 - DELETE_PAYMENT - 💸 Đã xóa lịch sử thanh toán: CHỊ H.NGỌC(BẠN KHUYÊN) (0 ₫)

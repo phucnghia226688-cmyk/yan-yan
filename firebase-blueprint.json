@@ -1,0 +1,36 @@
+{
+  "entities": {
+    "clients": {
+      "title": "Hội viên",
+      "description": "Danh sách hội viên phòng gym"
+    },
+    "programs": {
+      "title": "Giáo án tập luyện",
+      "description": "Giáo án và các buổi tập"
+    },
+    "checkIns": {
+      "title": "Lịch sử check-in",
+      "description": "Nhật ký điểm danh học viên"
+    },
+    "payments": {
+      "title": "Doanh thu thanh toán",
+      "description": "Lịch sử đóng tiền gói tập"
+    },
+    "expenses": {
+      "title": "Chi phí phòng gym",
+      "description": "Danh sách khoản chi phòng gym"
+    },
+    "appointments": {
+      "title": "Lịch hẹn tập",
+      "description": "Lịch hẹn PT và hội viên"
+    },
+    "auditLogs": {
+      "title": "Lịch sử thao tác",
+      "description": "Nhật ký hệ thống"
+    },
+    "pdfDocuments": {
+      "title": "Tài liệu PDF",
+      "description": "Tài liệu đính kèm"
+    }
+  }
+}

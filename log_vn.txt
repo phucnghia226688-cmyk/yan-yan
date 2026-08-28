@@ -1,0 +1,208 @@
+19:57:56 25/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: CHỊ KIỀU (Gói 12 buổi - 12 buổi)
+19:58:38 25/7/2026 - CHECK_IN - Check-in bù ngày cũ: CHỊ KIỀU (UP) - Trừ 1 buổi (còn 11/12 buổi)
+19:59:02 25/7/2026 - CHECK_IN - Check-in bù ngày cũ: CHỊ KIỀU (LOW 2) - Trừ 1 buổi (còn 10/12 buổi)
+21:23:57 25/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: CẨM TUYỀN (Gói 12 buổi - 3 buổi)
+21:24:38 25/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên CẨM TUYỀN
+21:24:57 25/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên CẨM TUYỀN
+21:27:28 25/7/2026 - CHECK_IN - Check-in bù ngày cũ: CẨM TUYỀN (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 3/16 buổi)
+21:29:38 25/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên CẨM TUYỀN
+21:39:05 25/7/2026 - UPDATE_CLIENT - ⚙️ Điều chỉnh HĐ (Gói 12 buổi): BD: 2026-07-25 -> KT: 2026-10-01 (Còn 3/16b) - TT: EXPIRING
+21:39:17 25/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên CẨM TUYỀN
+21:39:38 25/7/2026 - UPDATE_CLIENT - ⚙️ Điều chỉnh HĐ (Gói 16 buổi): BD: 2026-07-25 -> KT: 2026-10-01 (Còn 16/16b) - TT: EXPIRING
+21:39:45 25/7/2026 - UPDATE_CLIENT - ⚙️ Điều chỉnh HĐ (Gói 16 buổi): BD: 2026-07-25 -> KT: 2026-10-01 (Còn 4/16b) - TT: ACTIVE
+21:40:56 25/7/2026 - UPDATE_CLIENT - ⚙️ Điều chỉnh HĐ (Gói 16 buổi): BD: 2026-07-25 -> KT: 2026-10-01 (Còn 4/16b) - TT: ACTIVE
+21:41:27 25/7/2026 - CHECK_IN - Check-in bù ngày cũ: CẨM TUYỀN (Low2) - Trừ 1 buổi (còn 3/16 buổi)
+21:44:10 25/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: LÊ NHI (Gói 12 buổi - 8 buổi)
+21:46:36 25/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: BẢO TIÊN (Gói 12 buổi - 10 buổi)
+21:49:35 25/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: THIÊN KIM (Gói 12 buổi - 4 buổi)
+21:50:30 25/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: TỐ NHƯ (Gói 12 buổi - 4 buổi)
+21:51:21 25/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: DIỄM THÚY (Gói 16 buổi - 13 buổi)
+21:52:35 25/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: CHỊ XUYẾN (Gói 12 buổi - 3 buổi)
+21:53:14 25/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: VY HUỲNH (Gói 12 buổi - 5 buổi)
+21:55:04 25/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: CHỊ NGỌC (Gói 12 buổi - 1 buổi)
+21:56:25 25/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: THANH TRƯƠNG (Gói 12 buổi - 1 buổi)
+21:57:19 25/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: TÚ UYÊN (Gói 12 buổi - 5 buổi)
+21:58:41 25/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: MỸ MỸ (Gói 12 buổi - 6 buổi)
+21:59:47 25/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: DIỄM QUỲNH 2K2 (Gói 12 buổi - 3 buổi)
+22:01:14 25/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: DIỄM QUỲNH 2K5 (Gói 12 buổi - 6 buổi)
+22:02:09 25/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: KIM KHUYÊN (Gói 16 buổi - 5 buổi)
+22:02:58 25/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: YẾNN (Gói 12 buổi - 8 buổi)
+22:04:56 25/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: PHƯƠNG THẢO (Gói 12 buổi - 12 buổi)
+22:05:50 25/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: DIỄM MY (Gói 16 buổi - 4 buổi)
+22:06:56 25/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: NHÓM ÁNH VY (Gói 12 buổi - 1 buổi)
+22:07:55 25/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: NHÓM CHỊ CHI,PANH (Gói 12 buổi - 6 buổi)
+12:36:28 26/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: NGHĨA TEST (Gói 12 buổi - 12 buổi)
+12:51:43 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: THIÊN KIM (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 3/4 buổi)
+12:52:01 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: DIỄM MY (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 3/4 buổi)
+12:52:06 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: NHÓM ÁNH VY (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 0/1 buổi)
+12:54:27 26/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên BẢO TIÊN
+12:54:53 26/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên CHỊ XUYẾN
+12:55:38 26/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên TÚ UYÊN
+13:02:18 26/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên NHÓM ÁNH VY
+13:02:37 26/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên NHÓM CHỊ CHI,PANH
+13:57:41 26/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: Chị Thảo ( A toàn ) (Gói 12 buổi - 10 buổi)
+13:58:02 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: Chị Thảo ( A toàn ) (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 9/10 buổi)
+14:35:13 26/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên PHƯƠNG THẢO
+14:35:26 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: PHƯƠNG THẢO (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 11/12 buổi)
+14:37:47 26/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên DIỄM MY
+14:38:17 26/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên YẾNN
+14:38:50 26/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên KIM KHUYÊN
+14:39:11 26/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên DIỄM QUỲNH 2K5
+14:39:28 26/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên NHÓM CHỊ CHI,PANH
+14:39:45 26/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên TÚ UYÊN
+14:39:59 26/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên MỸ MỸ
+14:40:16 26/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên VY HUỲNH
+14:40:30 26/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên TỐ NHƯ
+14:40:43 26/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên LÊ NHI
+14:41:27 26/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên CHỊ XUYẾN
+14:41:38 26/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên THANH TRƯƠNG
+14:41:49 26/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên DIỄM QUỲNH 2K2
+14:42:02 26/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên THIÊN KIM
+14:42:11 26/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin học viên CHỊ NGỌC
+15:19:31 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: Chị Thảo ( A toàn ) (Buổi 1/10 - Tập định kỳ) - Trừ 1 buổi (còn 8/10 buổi)
+15:37:34 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: DIỄM THÚY (Buổi 2/13 - Tập định kỳ) - Trừ 1 buổi (còn 12/13 buổi)
+15:37:44 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: DIỄM THÚY (Buổi 2/13 - Tập định kỳ) - Trừ 1 buổi (còn 12/13 buổi)
+15:41:28 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: Chị Thảo ( A toàn ) (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 9/10 buổi)
+15:43:10 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: Chị Thảo ( A toàn ) (Buổi 1/10 - Tập định kỳ) - Trừ 1 buổi (còn 8/10 buổi)
+15:50:04 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: Chị Thảo ( A toàn ) (Buổi 1/10 - Tập định kỳ) - Trừ 1 buổi (còn 8/10 buổi)
+15:52:12 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: Chị Thảo ( A toàn ) (Buổi 1/10 - Tập định kỳ) - Trừ 1 buổi (còn 8/10 buổi)
+15:53:11 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: Chị Thảo ( A toàn ) (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 8/10 buổi)
+16:01:38 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: Chị Thảo ( A toàn ) (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 8/10 buổi)
+16:01:56 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: Chị Thảo ( A toàn ) (Buổi 1/10 - Tập định kỳ) - Trừ 1 buổi (còn 8/10 buổi)
+16:12:03 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: Chị Thảo ( A toàn ) (Buổi 1/10 - Tập định kỳ) - Trừ 1 buổi (còn 8/10 buổi)
+16:15:37 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: Chị Thảo ( A toàn ) (Buổi 1/10 - Tập định kỳ) - Trừ 1 buổi (còn 8/10 buổi)
+16:17:41 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: Chị Thảo ( A toàn ) (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 8/10 buổi)
+16:20:38 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: Chị Thảo ( A toàn ) (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 8/10 buổi)
+16:46:07 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: Chị Thảo ( A toàn ) (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 9/10 buổi)
+18:09:10 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: Chị Thảo ( A toàn ) (Buổi 1/10 - Tập định kỳ) - Trừ 1 buổi (còn 8/10 buổi)
+18:10:33 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: DIỄM THÚY (Upper) - Trừ 1 buổi (còn 12/13 buổi)
+18:19:09 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: Chị Thảo ( A toàn ) (Buổi 1/10 - Tập định kỳ) - Trừ 1 buổi (còn 8/10 buổi)
+18:23:10 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: Chị Thảo ( A toàn ) (Buổi 1/10 - Tập định kỳ) - Trừ 1 buổi (còn 8/10 buổi)
+18:23:56 26/7/2026 - CHECK_IN - Check-in bù ngày cũ: DIỄM THÚY (Buổi 2/13 - Tập định kỳ) - Trừ 1 buổi (còn 12/13 buổi)
+09:08:15 27/7/2026 - DELETE_APPOINTMENT - 📅 Đã xóa lịch hẹn tập với Chị Thảo ( A toàn )
+09:10:07 27/7/2026 - CHECK_IN - Check-in bù ngày cũ: VY HUỲNH (Buổi 1 - Tập định kỳ) - Trừ 1 buổi (còn 4/12 buổi)
+09:12:11 27/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin hồ sơ
+10:00:09 27/7/2026 - CHECK_IN - Check-in bù ngày cũ: CẨM TUYỀN (Buổi 3 - Tập định kỳ) - Trừ 1 buổi (còn 2/16 buổi)
+10:00:51 27/7/2026 - CHECK_IN - Check-in bù ngày cũ: CẨM TUYỀN (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 1/16 buổi)
+10:02:47 27/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Số buổi (1 → 2)
+10:04:18 27/7/2026 - UPDATE_CLIENT - ⚙️ Điều chỉnh HĐ (Gói 16 buổi): BD: 2026-07-25 -> KT: 2026-10-01 (Còn 2/16b) - TT: EXPIRING
+10:05:06 27/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Số buổi (2 → 3)
+10:05:26 27/7/2026 - CHECK_IN - Check-in bù ngày cũ: CẨM TUYỀN (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 2/16 buổi)
+15:02:04 27/7/2026 - CHECK_IN - Check-in bù ngày cũ: THIÊN KIM (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 2/12 buổi)
+15:02:33 27/7/2026 - CHECK_IN - Check-in bù ngày cũ: DIỄM QUỲNH 2K2 (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 2/12 buổi)
+17:50:46 27/7/2026 - CHECK_IN - Check-in bù ngày cũ: CHỊ XUYẾN (Lower 1 ) - Trừ 1 buổi (còn 2/11 buổi)
+18:51:49 27/7/2026 - CHECK_IN - Check-in bù ngày cũ: YẾNN (upper) - Trừ 1 buổi (còn 7/12 buổi)
+20:05:32 27/7/2026 - CHECK_IN - Check-in bù ngày cũ: NHÓM CHỊ CHI,PANH (Buổi 1 - Low 1) - Trừ 1 buổi (còn 5/12 buổi)
+07:11:58 28/7/2026 - CHECK_IN - Check-in bù ngày cũ: CHỊ NGỌC (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 0/12 buổi)
+07:56:08 28/7/2026 - CHECK_IN - Check-in bù ngày cũ: DIỄM THÚY (Buổi 3/13 - Tập định kỳ) - Trừ 1 buổi (còn 11/13 buổi)
+07:58:43 28/7/2026 - CHECK_IN - Check-in bù ngày cũ: DIỄM THÚY (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 11/13 buổi)
+08:44:59 28/7/2026 - CHECK_IN - Check-in bù ngày cũ: THANH TRƯƠNG (Buổi 1 - Tập định kỳ) - Trừ 1 buổi (còn 0/12 buổi)
+08:45:32 28/7/2026 - CHECK_IN - Check-in bù ngày cũ: THANH TRƯƠNG (Buổi 1 - Tập định kỳ) - Trừ 1 buổi (còn 0/12 buổi)
+09:45:12 28/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Tổng buổi (24 → 12)
+09:47:37 28/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Tổng buổi (23 → 14)
+09:48:43 28/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin hồ sơ
+09:52:38 28/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Tổng buổi (14 → 12)
+11:47:05 28/7/2026 - CHECK_IN - Check-in bù ngày cũ: PHƯƠNG THẢO (Buổi 2 - Tập định kỳ) - Trừ 1 buổi (còn 10/12 buổi)
+14:34:02 28/7/2026 - CHECK_IN - Check-in bù ngày cũ: KIM KHUYÊN (Leg Day (Tập Chân)) - Trừ 1 buổi (còn 4/16 buổi)
+17:53:29 28/7/2026 - CHECK_IN - Check-in bù ngày cũ: BẢO TIÊN (Buổi 1 - Lower 1) - Trừ 1 buổi (còn 9/10 buổi)
+19:08:57 28/7/2026 - CHECK_IN - Check-in bù ngày cũ: DIỄM MY (Low 1) - Trừ 1 buổi (còn 5/16 buổi)
+19:46:32 28/7/2026 - CHECK_IN - Check-in bù ngày cũ: THIÊN KIM (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 16/14 buổi)
+20:11:42 28/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Tên (THANH TRƯƠNG → TRƯƠNG THANH )
+21:23:02 28/7/2026 - CHECK_IN - Check-in bù ngày cũ: TRƯƠNG THANH  (Buổi 1 - Low 1) - Trừ 1 buổi (còn 12/12 buổi)
+22:19:56 28/7/2026 - CHECK_IN - Check-in bù ngày cũ: TỐ NHƯ (upper) - Trừ 1 buổi (còn 3/12 buổi)
+22:20:24 28/7/2026 - CHECK_IN - Check-in bù ngày cũ: MỸ MỸ (low) - Trừ 1 buổi (còn 5/12 buổi)
+22:20:45 28/7/2026 - CHECK_IN - Check-in bù ngày cũ: PHƯƠNG THẢO (up) - Trừ 1 buổi (còn 10/12 buổi)
+22:22:00 28/7/2026 - CHECK_IN - Check-in bù ngày cũ: LÊ NHI (low) - Trừ 1 buổi (còn 7/12 buổi)
+08:54:58 29/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: Thông (Gói 12 buổi - 12 buổi)
+08:56:40 29/7/2026 - CHECK_IN - Check-in bù ngày cũ: Thông (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 11/12 buổi)
+10:53:44 29/7/2026 - CHECK_IN - Check-in bù ngày cũ: CẨM TUYỀN (Mông lower 1) - Trừ 1 buổi (còn 1/16 buổi)
+10:54:45 29/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Tên (YẾNN → YẾN)
+11:52:17 29/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: test  (Gói 12 buổi - 12 buổi)
+11:56:42 29/7/2026 - CHECK_IN - Check-in bù ngày cũ: test  (Buổi 1/12 - Tập định kỳ) - Trừ 1 buổi (còn 11/12 buổi)
+11:57:54 29/7/2026 - CHECK_IN - Check-in bù ngày cũ: test  (Buổi 1/12 - Tập định kỳ) - Trừ 1 buổi (còn 11/12 buổi)
+12:02:39 29/7/2026 - CHECK_IN - Check-in bù ngày cũ: test  (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 22/12 buổi)
+12:03:04 29/7/2026 - CHECK_IN - Check-in bù ngày cũ: test  (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 21/12 buổi)
+12:03:45 29/7/2026 - CHECK_IN - Check-in bù ngày cũ: test  (Buổi 1/12 - Tập định kỳ) - Trừ 1 buổi (còn 21/12 buổi)
+12:23:26 29/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: Hồ Tôn Quyền (Gói 16 buổi - 16 buổi)
+12:42:45 29/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Gói tập (Gói 16 buổi → Gói 23buổi); Số buổi (16 → 23); Tổng buổi (16 → 23); Lịch thứ ([T4,T6,T2,T3,T5,T7] → [T4,T6,T2,T3,T5])
+14:19:06 29/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: VÕ THỊ KIM PHƯƠNG (GÓI 186 SS - 186 buổi)
+14:20:12 29/7/2026 - CHECK_IN - Check-in bù ngày cũ: DIỄM MY (Buổi 4 - Tập định kỳ) - Trừ 1 buổi (còn 4/16 buổi)
+14:20:46 29/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Số buổi (186 → 79); Mục tiêu tập; Ghi chú PT
+14:24:56 29/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: TRẦN THỊ HOÀNG ANH  (GÓI 24 SS - 5 buổi)
+14:25:52 29/7/2026 - DELETE_APPOINTMENT - 📅 Đã xóa lịch hẹn tập với VÕ THỊ KIM PHƯƠNG
+15:46:25 29/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: Nguyễn Xuân Thoại (Gói 24 buổi - 24 buổi)
+16:52:31 29/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: Nguyễn Gia Hy (Gói 36 buổi - 36 buổi)
+17:22:56 29/7/2026 - CHECK_IN - Check-in bù ngày cũ: DIỄM QUỲNH 2K2 (Buổi 2 - Tập định kỳ) - Trừ 1 buổi (còn 37/36 buổi)
+18:48:54 29/7/2026 - DELETE_APPOINTMENT - 📅 Đã xóa lịch hẹn tập với test 
+18:57:02 29/7/2026 - CHECK_IN - Check-in bù ngày cũ: YẾN (Low) - Trừ 1 buổi (còn 6/12 buổi)
+20:39:13 29/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: Nguyễn Văn Lợi (Gói 25 buổi - 25 buổi)
+20:39:58 29/7/2026 - CHECK_IN - Check-in bù ngày cũ: Nguyễn Văn Lợi (Tập upper) - Trừ 1 buổi (còn 24/25 buổi)
+20:41:34 29/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Tên (Nguyễn Văn Lợi → Nguyễn Phúc Lợi)
+20:45:29 29/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: Khả Yến (Gói 25 buổi - 25 buổi)
+20:46:58 29/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Số buổi (25 → 11)
+20:48:03 29/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Giờ tập (07:30 - 08:30 → 19:30 - 20:30)
+07:07:56 30/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: Lê Thị Thu Nga (25 - 7 buổi)
+07:08:45 30/7/2026 - CHECK_IN - Check-in bù ngày cũ: Lê Thị Thu Nga (Tập Thân Trên) - Trừ 1 buổi (còn 6/7 buổi)
+07:24:14 30/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Số buổi (11 → 7)
+07:24:30 30/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Tổng buổi (13 → 16)
+08:11:31 30/7/2026 - CHECK_IN - Check-in bù ngày cũ: DIỄM THÚY ( (Upper 1)) - Trừ 1 buổi (còn 6/16 buổi)
+08:45:44 30/7/2026 - CHECK_IN - Check-in bù ngày cũ: Khả Yến (Giãn cơn giảm đau lưng) - Trừ 1 buổi (còn 10/25 buổi)
+09:56:07 30/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: Anh Quí (20 - 1 buổi)
+09:56:28 30/7/2026 - CHECK_IN - Check-in bù ngày cũ: Anh Quí (Tập chân Giãn cơ) - Trừ 1 buổi (còn 0/1 buổi)
+11:45:14 30/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: BÙI YẾN NHI (Gói 12 buổi - 12 buổi)
+11:47:25 30/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: PHÙNG THỤY THÙY TRANG (Gói 12 buổi - 12 buổi)
+11:49:33 30/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: THANH THANH (Gói 12 buổi - 12 buổi)
+11:51:06 30/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: NGUYỄN NGỌC MAI ANH (Gói 8 buổi - 8 buổi)
+11:52:03 30/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: BẢO NHI (Gói 12 buổi - 12 buổi)
+11:52:42 30/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Tên (CHỊ NGỌC → CHỊ H.NGỌC(BẠN KHUYÊN))
+11:53:02 30/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: Test 2 (Gói 16 buổi - 16 buổi)
+11:53:14 30/7/2026 - CHECK_IN - Check-in bù ngày cũ: Test 2 (Buổi 1/16 - Tập định kỳ) - Trừ 1 buổi (còn 15/16 buổi)
+11:54:29 30/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: C NGỌC(2B) (Gói 12 buổi - 12 buổi)
+11:56:05 30/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin hồ sơ
+11:58:57 30/7/2026 - CHECK_IN - Check-in bù ngày cũ: THIÊN KIM (Buổi 2 - Tập định kỳ) - Trừ 1 buổi (còn 15/14 buổi)
+11:59:53 30/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Tổng buổi (14 → 16)
+12:59:55 30/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Tên (C NGỌC(2B) → Trượng Mạn Ngọc (2B))
+13:00:16 30/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: SĐT (5 → 0916688062)
+13:00:35 30/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Tên (BẢO NHI → Nguyễn Huỳnh Bảo Nhi); SĐT (7 → 0828227282)
+17:56:00 30/7/2026 - CHECK_IN - Check-in bù ngày cũ: BẢO TIÊN (Upper Body) - Trừ 1 buổi (còn 8/10 buổi)
+17:56:46 30/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Tổng buổi (10 → 12)
+18:15:43 30/7/2026 - UPDATE_CLIENT - ✏️ Cập nhật thông tin hồ sơ
+18:24:44 30/7/2026 - CHECK_IN - Check-in bù ngày cũ: Nguyễn Phúc Lợi (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 23/25 buổi)
+18:36:54 30/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: Nguyễn Thị Ngọc Hân (Gói 25b - 25 buổi)
+19:19:35 30/7/2026 - CHECK_IN - Check-in bù ngày cũ: MỸ MỸ (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 4/12 buổi)
+19:44:47 30/7/2026 - CHECK_IN - Check-in bù ngày cũ: CHỊ KIỀU (Leg Day (Tập Chân)) - Trừ 1 buổi (còn 9/12 buổi)
+19:47:17 30/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Tên (THANH THANH → VĂN VŨ THIÊN THANH); SĐT (6 → 0777048469)
+19:48:16 30/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Tên (Trượng Mạn Ngọc (2B) → Trương Mạng Ngọc (2B))
+19:49:41 30/7/2026 - CHECK_IN - Check-in bù ngày cũ: Chị Thảo ( A toàn ) (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 7/10 buổi)
+20:39:55 30/7/2026 - CHECK_IN - Check-in bù ngày cũ: Nguyễn Thị Ngọc Hân (Làm quen tập mông đùi) - Trừ 1 buổi (còn 24/25 buổi)
+22:13:50 30/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: test (Khách Tháng (1 Tháng) - 0 buổi)
+22:16:36 30/7/2026 - CHECK_IN - Check-in bù ngày cũ: PHƯƠNG THẢO (Buổi 3 - Tập định kỳ) - Trừ 1 buổi (còn 9/12 buổi)
+22:17:31 30/7/2026 - CHECK_IN - Check-in bù ngày cũ: TRƯƠNG THANH  (Upper) - Trừ 1 buổi (còn 11/12 buổi)
+08:50:39 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: Khả Yến (Tập mông vừa đủ) - Trừ 1 buổi (còn 9/25 buổi)
+08:51:25 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: Lê Thị Thu Nga (Tập mông đùi chủ yếu mông) - Trừ 1 buổi (còn 5/7 buổi)
+09:57:20 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: VY HUỲNH (Thân trên) - Trừ 1 buổi (còn 3/12 buổi)
+12:15:44 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: CẨM TUYỀN (Back & Biceps (Lưng/Tay trước)) - Trừ 1 buổi (còn 16/16 buổi)
+14:25:21 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: KIM KHUYÊN (Thân trên (upper2)) - Trừ 1 buổi (còn 3/16 buổi)
+15:06:27 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: CHỊ H.NGỌC(BẠN KHUYÊN) (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 11/12 buổi)
+15:09:14 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: DIỄM QUỲNH 2K2 (Leg Day (Tập Chân)) - Trừ 1 buổi (còn 36/36 buổi)
+16:59:21 31/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: Nguyễn Văn Mập (Gói 20 buổi - 20 buổi)
+19:22:27 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: Nguyễn Thị Ngọc Hân (Thân trên cơ bản) - Trừ 1 buổi (còn 23/25 buổi)
+21:30:16 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: Nguyễn Phúc Lợi (Tập thân trên ) - Trừ 1 buổi (còn 22/25 buổi)
+21:45:38 31/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Số buổi (20 → 555)
+21:47:49 31/7/2026 - UPDATE_PAYMENT - Đã chỉnh sửa số tiền từ 2.500.000 ₫ thành 900.000.000.000.000.000.000.000.000 ₫
+21:49:16 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: Thông (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 65/55 buổi)
+21:50:10 31/7/2026 - UPDATE_PAYMENT - Đã chỉnh sửa số tiền từ 5.000.000 ₫ thành 5.500.000 ₫
+21:50:13 31/7/2026 - UPDATE_PAYMENT - Đã chỉnh sửa số tiền từ 12.000.000 ₫ thành 17.000.000 ₫
+22:03:44 31/7/2026 - DELETE_PAYMENT - 💸 Đã xóa lịch sử thanh toán: CHỊ H.NGỌC(BẠN KHUYÊN) (12.000.000 ₫)
+22:04:19 31/7/2026 - DELETE_PAYMENT - 💸 Đã xóa lịch sử thanh toán: CHỊ H.NGỌC(BẠN KHUYÊN) (12.000.000 ₫)
+22:09:10 31/7/2026 - ADD_CLIENT - ✨ Tạo mới hồ sơ học viên: My cherry (25b - 25 buổi)
+23:09:57 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: THIÊN KIM (Buổi 3 - Tập định kỳ) - Trừ 1 buổi (còn 14/16 buổi)
+23:11:05 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: TỐ NHƯ (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 2/12 buổi)
+23:11:21 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: YẾN (Buổi 3 - Tập định kỳ) - Trừ 1 buổi (còn 5/12 buổi)
+23:11:32 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: DIỄM MY (Leg Day (Tập Chân)) - Trừ 1 buổi (còn 3/16 buổi)
+23:16:05 31/7/2026 - UPDATE_PAYMENT - Đã chỉnh sửa số tiền từ 2.700.000 ₫ thành 2.800.000 ₫
+23:18:31 31/7/2026 - CHECK_IN - Check-in bù ngày cũ: LÊ NHI (Buổi tập toàn thân (Full Body)) - Trừ 1 buổi (còn 6/12 buổi)
+23:22:18 31/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Số buổi (6 → 11)
+23:24:15 31/7/2026 - UPDATE_CLIENT - ✏️ Đã sửa: Số buổi (11 → 9)
+23:46:44 31/7/2026 - UPDATE_PAYMENT - Đã chỉnh sửa số tiền từ 12.000.000 ₫ thành 0 ₫
+23:47:04 31/7/2026 - DELETE_PAYMENT - 💸 Đã xóa lịch sử thanh toán: CHỊ H.NGỌC(BẠN KHUYÊN) (0 ₫)

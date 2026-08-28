@@ -1,0 +1,8 @@
+{
+  "name": "Yan Yan",
+  "description": "Hệ thống quản lý phòng gym private dành cho PT: quản lý học viên, check-in, giáo án, doanh thu chi phí và trợ lý AI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
