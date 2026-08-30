@@ -1,4 +1,4 @@
-import { getTodayDateStr } from '../utils/dateUtils';
+import { getTodayDateStr, formatDate } from '../utils/dateUtils';
 import { removeAccents } from '../utils/textUtils';
 import React, { useState } from 'react';
 import { 
@@ -402,7 +402,7 @@ export const ExpensesView: React.FC = () => {
               <tbody className="divide-y divide-slate-100 bg-white">
                 {filteredExpenses.map(e => (
                   <tr key={e.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-3 font-mono text-slate-500 whitespace-nowrap font-medium">{e.date}</td>
+                    <td className="p-3 font-mono text-slate-500 whitespace-nowrap font-medium">{formatDate(e.date)}</td>
                     <td className="p-3">
                       <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold ${
                         e.categoryGroup === 'Phòng gym' ? 'bg-orange-100 text-[#FF4E00]' : 'bg-indigo-100 text-[#4F46E5]'

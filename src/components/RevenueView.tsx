@@ -1,4 +1,4 @@
-import { getTodayDateStr } from '../utils/dateUtils';
+import { getTodayDateStr, formatDate } from '../utils/dateUtils';
 import { removeAccents } from '../utils/textUtils';
 import React, { useState } from 'react';
 import { 
@@ -29,16 +29,14 @@ export const RevenueView: React.FC = () => {
   const [renewalReceiptData, setRenewalReceiptData] = useState<RenewalReceiptData | null>(null);
 
   const handleOpenReceipt = (payment: PaymentRecord) => {
-    const payDateFormatted = new Date(payment.paymentDate).toLocaleDateString('vi-VN', {
-      day: '2-digit', month: '2-digit', year: 'numeric'
-    });
+    const payDateFormatted = formatDate(payment.paymentDate);
     setRenewalReceiptData({
       clientName: payment.clientName,
       packageName: payment.packageName,
       amountPaid: payment.amountVnd,
       addedSessions: payment.sessionsCount,
       totalRemainingSessions: (payment.previousState?.remainingSessions || 0) + payment.sessionsCount,
-      newExpirationDate: payment.newEndDate ? new Date(payment.newEndDate).toLocaleDateString('vi-VN') : '',
+      newExpirationDate: payment.newEndDate ? formatDate(payment.newEndDate) : '',
       createdAt: payDateFormatted
     });
   };
@@ -269,7 +267,7 @@ export const RevenueView: React.FC = () => {
               <tbody className="divide-y divide-slate-100 bg-white">
                 {filteredPayments.map(p => (
                   <tr key={p.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-3 font-mono text-slate-500 whitespace-nowrap font-medium">{p.paymentDate}</td>
+                    <td className="p-3 font-mono text-slate-500 whitespace-nowrap font-medium">{formatDate(p.paymentDate)}</td>
                     <td className="p-3 font-extrabold text-slate-900">{p.clientName}</td>
                     <td className="p-3 font-bold text-[#4F46E5]">{p.packageName}</td>
                     <td className="p-3 text-center font-bold text-slate-700">{p.sessionsCount} buổi</td>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Printer, Copy, Check, X, Building2, User, Edit3, Save, ShieldCheck, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
+import { formatDate } from '../utils/dateUtils';
 
 export interface ContractData {
   clientName: string;
@@ -403,7 +404,7 @@ NỘI DUNG HỢP ĐỒNG:
                 <p><span className="font-bold">Họ và tên:</span> <span className="font-black text-indigo-900 text-sm">{data.clientName || '................................'}</span></p>
                 <p><span className="font-bold">Số điện thoại:</span> {data.phone || '................................'}</p>
                 <p><span className="font-bold">Giới tính:</span> {data.gender || 'Nam'}</p>
-                <p><span className="font-bold">Ngày sinh:</span> {data.dob || 'Chưa cập nhật'}</p>
+                <p><span className="font-bold">Ngày sinh:</span> {formatDate(data.dob)}</p>
                 <p className="sm:col-span-2"><span className="font-bold">Mục tiêu tập luyện:</span> {data.goals || 'Tăng cơ, giảm mỡ, cải thiện thể lực và sức khỏe tổng thể'}</p>
                 {data.healthNotes && (
                   <p className="sm:col-span-2 text-rose-700 font-medium">
@@ -439,7 +440,7 @@ NỘI DUNG HỢP ĐỒNG:
                     </tr>
                     <tr className="border-b border-slate-200 bg-slate-50">
                       <td className="p-2.5 font-bold text-slate-700 border-r border-slate-200">Thời Gian Hiệu Lực HĐ:</td>
-                      <td className="p-2.5 font-extrabold">Từ ngày <span className="underline">{data.startDate}</span> đến hết ngày <span className="underline">{data.endDate}</span></td>
+                      <td className="p-2.5 font-extrabold">Từ ngày <span className="underline">{formatDate(data.startDate)}</span> đến hết ngày <span className="underline">{formatDate(data.endDate)}</span></td>
                     </tr>
                     <tr>
                       <td className="p-2.5 font-bold text-slate-700 border-r border-slate-200">Lịch Tập Dự Kiến:</td>

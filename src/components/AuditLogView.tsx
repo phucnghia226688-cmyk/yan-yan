@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useGym } from '../context/GymContext';
 import { useTenant } from '../context/TenantContext';
 import { SystemAuditLog, AuditActionType, Client } from '../types';
+import { formatDate } from '../utils/dateUtils';
 import { 
   History, 
   RotateCcw, 
@@ -333,7 +334,7 @@ export const AuditLogView: React.FC = () => {
             <div>
               <div className="font-black text-sm">{log.snapshot.client.name} - {log.snapshot.client.phone || 'Không có SĐT'}</div>
               <div className="text-[11px] text-red-700 font-semibold mt-0.5">
-                Gói tập: {log.snapshot.client.packageName} • Còn {log.snapshot.client.remainingSessions} buổi • Hạn HĐ: {log.snapshot.client.endDate || 'Chưa có'}
+                Gói tập: {log.snapshot.client.packageName} • Còn {log.snapshot.client.remainingSessions} buổi • Hạn HĐ: {formatDate(log.snapshot.client.endDate)}
               </div>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { removeAccents } from '../utils/textUtils';
-import { getTodayDateStr, getVNDate, getVNDayOfWeek, getVNDateStr } from '../utils/dateUtils';
+import { getTodayDateStr, getVNDate, getVNDayOfWeek, getVNDateStr, formatDateTime } from '../utils/dateUtils';
 
 import React, { useState, useEffect } from 'react';
 import { 
@@ -316,7 +316,7 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
                     return (
                       <tr key={log.id} className="hover:bg-slate-800/40 transition-colors">
                         <td className="p-3 font-mono text-slate-400 whitespace-nowrap">
-                          {new Date(log.timestamp).toLocaleString('vi-VN')}
+                          {formatDateTime(log.timestamp)}
                         </td>
                         <td className="p-3 font-bold text-white">
                           <div 

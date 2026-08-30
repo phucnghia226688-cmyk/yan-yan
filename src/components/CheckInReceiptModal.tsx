@@ -19,6 +19,7 @@ import {
 import { toBlob, toPng } from 'html-to-image';
 import { DEFAULT_AVATAR_URL } from '../types';
 import { useTenant } from '../context/TenantContext';
+import { formatDate } from '../utils/dateUtils';
 
 export interface CheckInReceiptData {
   clientName: string;
@@ -220,7 +221,7 @@ export const CheckInReceiptModal: React.FC<CheckInReceiptModalProps> = ({
 
                 <div className="py-1">
                   <p className="text-xs font-bold text-amber-950">Hạn sử dụng đến ngày:</p>
-                  <p className="text-2xl font-black tracking-tight text-white drop-shadow-xs">{data.endDate || 'Chưa cập nhật'}</p>
+                  <p className="text-2xl font-black tracking-tight text-white drop-shadow-xs">{data.endDate ? formatDate(data.endDate) : 'Chưa cập nhật'}</p>
                 </div>
 
                 <div className="pt-1 border-t border-white/20 text-[11px] font-bold text-amber-950">

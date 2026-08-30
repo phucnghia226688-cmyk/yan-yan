@@ -1,4 +1,4 @@
-import { getTodayDateStr, getVNDate } from '../utils/dateUtils';
+import { getTodayDateStr, getVNDate, formatDate } from '../utils/dateUtils';
 
 import React, { useState } from 'react';
 import { 
@@ -500,7 +500,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       <img src={client.avatarUrl} alt={client.name} className="w-9 h-9 rounded-full object-cover" />
                       <div>
                         <p className="text-xs font-bold text-slate-900 hover:text-[#4F46E5]">{client.name}</p>
-                        <p className="text-[11px] text-amber-600 font-semibold">🎂 Ngày sinh: {client.dob}</p>
+                        <p className="text-[11px] text-amber-600 font-semibold">🎂 Ngày sinh: {formatDate(client.dob)}</p>
                       </div>
                     </div>
 

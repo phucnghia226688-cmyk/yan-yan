@@ -1,4 +1,4 @@
-import { getTodayDateStr } from '../utils/dateUtils';
+import { getTodayDateStr, formatDate } from '../utils/dateUtils';
 import React, { useState, useEffect } from 'react';
 import { useTenant } from '../context/TenantContext';
 import { 
@@ -670,7 +670,7 @@ export const AdminTenantsView: React.FC = () => {
 
                       {isExpired && (
                         <span className="bg-amber-100 text-amber-800 font-semibold text-xs px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                          <AlertTriangle className="w-3 h-3" /> Hết hạn ngày {tenant.expireDate.split('-').reverse().join('/')}
+                          <AlertTriangle className="w-3 h-3" /> Hết hạn ngày {formatDate(tenant.expireDate)}
                         </span>
                       )}
 
@@ -692,10 +692,10 @@ export const AdminTenantsView: React.FC = () => {
                         🔑 Mật khẩu: <code className="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 font-mono text-slate-800">{tenant.password}</code>
                       </div>
                       <div>
-                        📅 Ngày tạo: <span>{tenant.createdAt.split('-').reverse().join('/')}</span>
+                        📅 Ngày tạo: <span>{formatDate(tenant.createdAt)}</span>
                       </div>
                       <div>
-                        ⏳ Hạn dùng đến: <strong className={isExpired ? 'text-rose-600' : 'text-emerald-700'}>{tenant.expireDate.split('-').reverse().join('/')}</strong>
+                        ⏳ Hạn dùng đến: <strong className={isExpired ? 'text-rose-600' : 'text-emerald-700'}>{formatDate(tenant.expireDate)}</strong>
                       </div>
                       {tenant.notes && (
                         <div className="sm:col-span-3 text-slate-500 italic">
