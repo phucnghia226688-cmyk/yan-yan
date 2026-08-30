@@ -49,9 +49,10 @@ import {
 } from 'lucide-react';
 import { useGym } from '../context/GymContext';
 import { useTenant } from '../context/TenantContext';
-import { Client, BodyMetricEntry, EditHistoryEntry, CheckInLog, DEFAULT_AVATAR_URL } from '../types';
+import { Client, BodyMetricEntry, EditHistoryEntry, CheckInLog, PaymentRecord, DEFAULT_AVATAR_URL } from '../types';
 import { CheckInReceiptModal, CheckInReceiptData } from './CheckInReceiptModal';
 import { RenewalReceiptModal, RenewalReceiptData } from './RenewalReceiptModal';
+import { EditPaymentAmountModal } from './EditPaymentAmountModal';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 interface ClientManagementViewProps {
@@ -413,6 +414,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
   const [cancelCheckInTarget, setCancelCheckInTarget] = useState<{ id: string; clientName: string } | null>(null);
   const [editCheckInTarget, setEditCheckInTarget] = useState<any | null>(null);
   const [editCheckInPlanName, setEditCheckInPlanName] = useState('');
+  const [editingPaymentAmount, setEditingPaymentAmount] = useState<PaymentRecord | null>(null);
 
   // Past Check-in Receipt Modal State
   const [pastReceiptModalData, setPastReceiptModalData] = useState<CheckInReceiptData | null>(null);
@@ -1242,7 +1244,24 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                                     <td className="p-2 pl-3 text-slate-700 font-bold whitespace-nowrap">{parseDateLocal(p.paymentDate).toLocaleDateString('vi-VN')}</td>
                                     <td className="p-2 text-slate-600 max-w-[120px] truncate" title={p.packageName}>{p.packageName}</td>
                                     <td className="p-2 text-right font-black text-emerald-600">
-                                      {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.amountVnd)}
+                                      <div className="flex items-center justify-end gap-1.5">
+                                        <div className="text-right">
+                                          <div>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.amountVnd)}</div>
+                                          {p.isEdited && (
+                                            <span className="inline-block text-[9px] text-amber-600 font-bold italic bg-amber-50 px-1 py-0.2 rounded border border-amber-200/60 mt-0.5 leading-none">
+                                              * đã chỉnh sửa
+                                            </span>
+                                          )}
+                                        </div>
+                                        <button
+                                          type="button"
+                                          onClick={() => setEditingPaymentAmount(p)}
+                                          className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors cursor-pointer"
+                                          title="Chỉnh sửa lại số tiền (Yêu cầu mật khẩu)"
+                                        >
+                                          <Edit3 className="w-3.5 h-3.5" />
+                                        </button>
+                                      </div>
                                     </td>
                                     <td className="p-2 pr-3 text-center">
                                       <button
@@ -4329,6 +4348,13 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
         isOpen={!!renewalReceiptData}
         onClose={() => setRenewalReceiptData(null)}
         receiptData={renewalReceiptData}
+      />
+
+      {/* EDIT PAYMENT AMOUNT MODAL */}
+      <EditPaymentAmountModal
+        isOpen={!!editingPaymentAmount}
+        payment={editingPaymentAmount}
+        onClose={() => setEditingPaymentAmount(null)}
       />
 
     </div>

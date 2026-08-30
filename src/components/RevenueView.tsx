@@ -13,11 +13,13 @@ import {
   X,
   FileSpreadsheet,
   CheckCircle2,
-  Trash2
+  Trash2,
+  Edit3
 } from 'lucide-react';
 import { useGym } from '../context/GymContext';
 import { PaymentRecord } from '../types';
 import { RenewalReceiptModal, RenewalReceiptData } from './RenewalReceiptModal';
+import { EditPaymentAmountModal } from './EditPaymentAmountModal';
 import { ImageIcon } from 'lucide-react';
 
 export const RevenueView: React.FC = () => {
@@ -27,6 +29,7 @@ export const RevenueView: React.FC = () => {
   const [filterPeriod, setFilterPeriod] = useState<'month' | 'year' | 'all'>('month');
   const [isAddPaymentModalOpen, setIsAddPaymentModalOpen] = useState(false);
   const [renewalReceiptData, setRenewalReceiptData] = useState<RenewalReceiptData | null>(null);
+  const [editingPaymentAmount, setEditingPaymentAmount] = useState<PaymentRecord | null>(null);
 
   const handleOpenReceipt = (payment: PaymentRecord) => {
     const payDateFormatted = formatDate(payment.paymentDate);
@@ -272,7 +275,24 @@ export const RevenueView: React.FC = () => {
                     <td className="p-3 font-bold text-[#4F46E5]">{p.packageName}</td>
                     <td className="p-3 text-center font-bold text-slate-700">{p.sessionsCount} buổi</td>
                     <td className="p-3 text-right font-black text-emerald-600 text-sm">
-                      {formatVnd(p.amountVnd)}
+                      <div className="flex items-center justify-end gap-1.5">
+                        <div className="text-right">
+                          <div>{formatVnd(p.amountVnd)}</div>
+                          {p.isEdited && (
+                            <span className="inline-block text-[10px] text-amber-600 font-bold italic bg-amber-50 px-1 py-0.2 rounded border border-amber-200/60 mt-0.5 leading-none">
+                              * đã chỉnh sửa
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setEditingPaymentAmount(p)}
+                          className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors cursor-pointer"
+                          title="Chỉnh sửa lại số tiền (Yêu cầu mật khẩu)"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                     <td className="p-3">
                       <span className="bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-full text-[11px] font-bold">
@@ -441,6 +461,13 @@ export const RevenueView: React.FC = () => {
         isOpen={!!renewalReceiptData}
         onClose={() => setRenewalReceiptData(null)}
         receiptData={renewalReceiptData}
+      />
+
+      {/* EDIT PAYMENT AMOUNT MODAL */}
+      <EditPaymentAmountModal
+        isOpen={!!editingPaymentAmount}
+        payment={editingPaymentAmount}
+        onClose={() => setEditingPaymentAmount(null)}
       />
 
     </div>
