@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Zap, X, Calendar, Dumbbell, UserCheck, FileText } from 'lucide-react';
 import { DEFAULT_AVATAR_URL } from '../types';
+import { SessionBadge } from './SessionBadge';
 
 interface ConfirmCheckInModalProps {
   isOpen: boolean;
@@ -102,15 +103,7 @@ export const ConfirmCheckInModal: React.FC<ConfirmCheckInModalProps> = ({
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Đã chọn học viên:</span>
-                {isMonthly ? (
-                  <span className="text-xs font-black text-amber-900 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-full shadow-2xs">
-                    📅 Khách Tháng
-                  </span>
-                ) : remainingSessions !== undefined && (
-                  <span className="text-xs font-black text-indigo-700 bg-indigo-100 border border-indigo-200 px-2.5 py-0.5 rounded-full">
-                    Còn {remainingSessions} buổi
-                  </span>
-                )}
+                <SessionBadge remainingSessions={remainingSessions} clientType={clientType} size="sm" />
               </div>
               <h4 className="text-lg font-black text-slate-900 truncate mt-0.5">{clientName}</h4>
               {packageName && (

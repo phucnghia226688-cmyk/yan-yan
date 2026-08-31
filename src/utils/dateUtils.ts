@@ -69,7 +69,7 @@ export const formatDate = (dateStr?: string | Date | number | null): string => {
 };
 
 /**
- * Formats date and time to "HH:mm DD/MM/YYYY" or "DD/MM/YYYY HH:mm"
+ * Formats date and time to "HH:mm - DD/MM/YYYY"
  */
 export const formatDateTime = (dateStr?: string | Date | number | null): string => {
   if (!dateStr) return '-';
@@ -81,7 +81,7 @@ export const formatDateTime = (dateStr?: string | Date | number | null): string 
       const matchISO = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})[T\s](\d{1,2}):(\d{1,2})(?::(\d{1,2}))?/);
       if (matchISO) {
         const [, y, m, d, hh, min] = matchISO;
-        return `${hh.padStart(2, '0')}:${min.padStart(2, '0')} ${d.padStart(2, '0')}/${m.padStart(2, '0')}/${y}`;
+        return `${hh.padStart(2, '0')}:${min.padStart(2, '0')} - ${d.padStart(2, '0')}/${m.padStart(2, '0')}/${y}`;
       }
     }
     const d = new Date(dateStr);
@@ -91,7 +91,7 @@ export const formatDateTime = (dateStr?: string | Date | number | null): string 
     const yyyy = d.getFullYear();
     const hh = String(d.getHours()).padStart(2, '0');
     const min = String(d.getMinutes()).padStart(2, '0');
-    return `${hh}:${min} ${dd}/${mm}/${yyyy}`;
+    return `${hh}:${min} - ${dd}/${mm}/${yyyy}`;
   } catch {
     return typeof dateStr === 'string' ? dateStr : '-';
   }

@@ -545,14 +545,35 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setClients(prev => prev.map(c => c.id === clientId ? updatedClient : c));
     saveToCloud('clients', updatedClient);
 
-    // Use custom check-in timestamp if provided (for past check-ins), or current ISO time
+    // Use custom check-in timestamp if provided (for past/back-dated check-ins), or real-time ISO timestamp
     let checkInTimestamp = new Date().toISOString();
-    if (customDate) {
-      // If YYYY-MM-DD string format (10 chars), append local midday time to prevent UTC timezone date shift
-      const dateStringToParse = customDate.length === 10 ? `${customDate}T12:00:00` : customDate;
-      const parsedDate = new Date(dateStringToParse);
-      if (!isNaN(parsedDate.getTime())) {
-        checkInTimestamp = parsedDate.toISOString();
+    if (customDate && customDate.trim()) {
+      const trimmed = customDate.trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const ss = String(now.getSeconds()).padStart(2, '0');
+        const parsedDate = new Date(`${trimmed}T${hh}:${mm}:${ss}`);
+        if (!isNaN(parsedDate.getTime())) {
+          checkInTimestamp = parsedDate.toISOString();
+        }
+      } else if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(trimmed)) {
+        const parts = trimmed.split(/[\s,]+/);
+        const dateParts = parts[0].split('/');
+        const timePart = parts[1] || '12:00';
+        const d = dateParts[0].padStart(2, '0');
+        const m = dateParts[1].padStart(2, '0');
+        const y = dateParts[2];
+        const parsedDate = new Date(`${y}-${m}-${d}T${timePart.length === 5 ? timePart + ':00' : timePart}`);
+        if (!isNaN(parsedDate.getTime())) {
+          checkInTimestamp = parsedDate.toISOString();
+        }
+      } else {
+        const parsedDate = new Date(trimmed);
+        if (!isNaN(parsedDate.getTime())) {
+          checkInTimestamp = parsedDate.toISOString();
+        }
       }
     }
 

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useGym } from '../context/GymContext';
 import { Client, CheckInLog } from '../types';
+import { SessionBadge } from './SessionBadge';
 import { CheckInReceiptModal, CheckInReceiptData } from './CheckInReceiptModal';
 
 interface CheckInViewProps {
@@ -335,9 +336,11 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
                           {log.notes || '-'}
                         </td>
                         <td className="p-3">
-                          <span className="bg-emerald-500/20 text-emerald-400 font-extrabold px-2.5 py-1 rounded">
-                            Còn {log.sessionsRemainingAfter} b
-                          </span>
+                          <SessionBadge
+                            remainingSessions={log.sessionsRemainingAfter}
+                            clientType={client?.clientType}
+                            size="sm"
+                          />
                         </td>
                         <td className="p-3 text-right">
                           <div className="flex items-center justify-end gap-2">

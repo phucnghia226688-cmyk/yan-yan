@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { useGym } from '../context/GymContext';
 import { Appointment, Client, DEFAULT_AVATAR_URL } from '../types';
+import { SessionBadge } from './SessionBadge';
 import { CheckInReceiptModal, CheckInReceiptData } from './CheckInReceiptModal';
 import { ConfirmCheckInModal } from './ConfirmCheckInModal';
 import { ConfirmAppointmentActionModal, AppointmentActionType } from './ConfirmAppointmentActionModal';
@@ -1124,19 +1125,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
                         {/* Warning session badges */}
                         {client && (
                           <div className="mt-1">
-                            {remaining <= 1 ? (
-                              <span className="text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300 px-2 py-0.5 rounded-full">
-                                🔴 Còn {remaining} buổi (Nạp gấp)
-                              </span>
-                            ) : remaining <= 3 ? (
-                              <span className="text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-full">
-                                🟡 Còn {remaining} buổi
-                              </span>
-                            ) : (
-                              <span className="text-[10px] font-medium text-slate-500">
-                                Còn {remaining} buổi tập
-                              </span>
-                            )}
+                            <SessionBadge client={client} size="sm" />
                           </div>
                         )}
                       </div>
@@ -1283,9 +1272,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
                             </span>
                           )}
                           {client && (
-                            <span>
-                              Còn <strong className="text-slate-800 font-extrabold">{remaining}</strong> buổi
-                            </span>
+                            <SessionBadge client={client} size="sm" />
                           )}
                         </div>
                       </div>
@@ -1573,6 +1560,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
             avatarUrl={clientForConfirm?.avatarUrl}
             packageName={clientForConfirm?.packageName}
             remainingSessions={clientForConfirm?.remainingSessions}
+            clientType={clientForConfirm?.clientType}
             dayPlanName={confirmingAptCheckIn?.dayPlan}
             onClose={() => setConfirmingAptCheckIn(null)}
             onConfirm={(editedPlan, editedNotes, editedDateStr) => {

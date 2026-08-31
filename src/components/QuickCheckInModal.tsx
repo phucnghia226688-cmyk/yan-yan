@@ -6,6 +6,7 @@ import { toBlob, toPng } from 'html-to-image';
 import { useGym } from '../context/GymContext';
 import { useTenant } from '../context/TenantContext';
 import { Client } from '../types';
+import { SessionBadge } from './SessionBadge';
 import { ConfirmPasswordModal } from './ConfirmPasswordModal';
 import { ConfirmCheckInModal } from './ConfirmCheckInModal';
 
@@ -584,20 +585,8 @@ export const QuickCheckInModal: React.FC<QuickCheckInModalProps> = ({
                             </div>
                           </div>
 
-                          <div className="text-right">
-                            {client.clientType === 'monthly' ? (
-                              <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
-                                📅 Khách tháng
-                              </span>
-                            ) : (
-                              <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
-                                client.remainingSessions <= 2 
-                                  ? 'bg-red-50 text-red-600 border border-red-200' 
-                                  : 'bg-emerald-50 text-emerald-600 font-semibold'
-                              }`}>
-                                Còn {client.remainingSessions} buổi
-                              </span>
-                            )}
+                          <div className="text-right shrink-0">
+                            <SessionBadge client={client} size="sm" />
                           </div>
                         </div>
                       );
@@ -609,29 +598,13 @@ export const QuickCheckInModal: React.FC<QuickCheckInModalProps> = ({
               {/* Step 2: Selected Client Info & Day Plan */}
               {activeClient && (
                 <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-200/80">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-200/80 gap-2 flex-wrap sm:flex-nowrap">
                     <div>
                       <span className="text-xs font-bold text-slate-400 uppercase">Đã chọn:</span>
                       <h4 className="font-extrabold text-slate-900 text-base">{activeClient.name}</h4>
                     </div>
-                    <div className="text-right">
-                      {activeClient.clientType === 'monthly' ? (
-                        <>
-                          <p className="text-xs text-amber-900 font-bold">Thẻ Khách Tháng</p>
-                          <p className="text-sm font-black text-amber-900">
-                            Hạn: {activeClient.endDate || 'Chưa có'}
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <p className="text-xs text-slate-500 font-medium">Số buổi còn lại</p>
-                          <p className={`text-lg font-black ${
-                            activeClient.remainingSessions <= 2 ? 'text-red-600' : 'text-emerald-600'
-                          }`}>
-                            {activeClient.remainingSessions} / {activeClient.totalSessions}
-                          </p>
-                        </>
-                      )}
+                    <div className="text-right shrink-0">
+                      <SessionBadge client={activeClient} size="md" showDetails={true} />
                     </div>
                   </div>
 
