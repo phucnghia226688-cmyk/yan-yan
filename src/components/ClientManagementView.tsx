@@ -274,7 +274,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expiring' | 'expired' | 'closed'>('all');
   const [sortOption, setSortOption] = useState<'newest' | 'oldest' | 'name_asc' | 'name_desc' | 'sessions_asc' | 'sessions_desc'>('newest');
   const [selectedClient, setSelectedClient] = useState<Client | null>(selectedClientFromNav || clients[0] || null);
-  const [activeDetailTab, setActiveDetailTab] = useState<'info' | 'metrics' | 'photos' | 'history' | 'program'>('info');
+  const [activeDetailTab, setActiveDetailTab] = useState<'overview' | 'info' | 'history'>('overview');
 
   useEffect(() => {
     if (selectedClientFromNav) {
@@ -1042,44 +1042,39 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
               {/* Sub Navigation Tabs */}
               <div className="flex items-center gap-2 border-b border-slate-100 py-3 overflow-x-auto scrollbar-none">
                 <button
+                  type="button"
+                  onClick={() => setActiveDetailTab('overview')}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                    activeDetailTab === 'overview' ? 'bg-[#4F46E5] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  1. Tổng quan & Lịch tập
+                </button>
+                <button
+                  type="button"
                   onClick={() => setActiveDetailTab('info')}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                     activeDetailTab === 'info' ? 'bg-[#4F46E5] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
-                  1. Thông tin & Ghi chú
+                  2. Thông tin khách
                 </button>
                 <button
-                  onClick={() => setActiveDetailTab('metrics')}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
-                    activeDetailTab === 'metrics' ? 'bg-[#4F46E5] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  2. Chỉ số cơ thể ({(selectedClient.bodyMetrics || []).length})
-                </button>
-                <button
-                  onClick={() => setActiveDetailTab('photos')}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
-                    activeDetailTab === 'photos' ? 'bg-[#4F46E5] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  3. Ảnh Before / After
-                </button>
-                <button
+                  type="button"
                   onClick={() => setActiveDetailTab('history')}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                     activeDetailTab === 'history' ? 'bg-[#4F46E5] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
-                  4. Lịch sử tập ({clientCheckIns.length})
+                  3. Lịch sử tập ({clientCheckIns.length})
                 </button>
               </div>
 
               {/* Tab Content Area */}
               <div className="flex-1 overflow-y-auto pt-4 space-y-4">
                 
-                {/* TAB 1: INFO & NOTES */}
-                {activeDetailTab === 'info' && (
+                {/* TAB 1: OVERVIEW & SCHEDULE */}
+                {activeDetailTab === 'overview' && (
                   <div className="space-y-4">
                     <div className="flex flex-wrap items-center gap-2">
                       <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200/80 rounded-lg group hover:border-indigo-300 transition-all shadow-xs">
@@ -1121,7 +1116,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                     </div>
 
                     <div className="p-4 bg-slate-50/70 border border-slate-200 rounded-2xl space-y-4">
-                      <div className="pt-3 border-t border-slate-200">
+                      <div className="pt-1">
                         <h5 className="text-xs font-bold text-indigo-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                           <Calendar className="w-4 h-4 text-indigo-600" /> Lịch Tập Cố Định / Linh Hoạt ({(selectedClient.preferredDays || []).length} buổi/tuần)
                         </h5>
@@ -1142,7 +1137,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                           </div>
                         )}
                       </div>
-                                            <div className="pt-3 border-t border-slate-200">
+                      <div className="pt-3 border-t border-slate-200">
                         <h5 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                           <Zap className="w-4 h-4 text-[#FF4E00]" /> Lịch Sử Đóng Tiền & Doanh Thu
                         </h5>
@@ -1228,110 +1223,139 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                   </div>
                 )}
 
-                {/* TAB 2: BODY METRICS & PROGRESS CHART */}
-                {activeDetailTab === 'metrics' && (
+                {/* TAB 2: CLIENT INFO, GOALS & BODY METRICS */}
+                {activeDetailTab === 'info' && (
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-extrabold text-slate-900 text-base">Lịch Sử Cân Nặng & Chỉ Số Cơ Thể</h4>
-                      <button
-                        onClick={() => setIsMetricModalOpen(true)}
-                        className="bg-[#FF4E00] hover:bg-orange-600 text-white font-bold px-4 py-1.5 rounded-full text-xs flex items-center gap-1 shadow-xs"
-                      >
-                        <Plus className="w-4 h-4" /> Đo Chỉ Số Mới
-                      </button>
+                    {/* Goals & Health & PT Notes */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">🎯 Mục tiêu tập luyện:</span>
+                        <p className="text-xs font-bold text-indigo-900 bg-white p-2 rounded-xl border border-slate-200 min-h-[44px]">
+                          {selectedClient.goals || 'Chưa cập nhật mục tiêu.'}
+                        </p>
+                      </div>
+                      <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">🩺 Tiền sử chấn thương / Bệnh lý:</span>
+                        <p className="text-xs font-semibold text-rose-700 bg-white p-2 rounded-xl border border-slate-200 min-h-[44px]">
+                          {selectedClient.healthNotes || 'Không có.'}
+                        </p>
+                      </div>
+                      <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">📝 Ghi chú của HLV / PT:</span>
+                        <p className="text-xs font-medium text-slate-700 bg-white p-2 rounded-xl border border-slate-200 min-h-[44px]">
+                          {selectedClient.ptNotes || 'Chưa có ghi chú riêng.'}
+                        </p>
+                      </div>
                     </div>
 
-                    {(selectedClient.bodyMetrics || []).length === 0 ? (
-                      <p className="text-xs text-slate-500 py-6 text-center border border-dashed border-slate-200 rounded-2xl">
-                        Chưa có dữ liệu đo chỉ số. Hãy bấm "+ Đo Chỉ Số Mới" để bắt đầu theo dõi.
-                      </p>
-                    ) : (
-                      <>
-                        {/* Progress Chart */}
-                        <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl h-56">
-                          <p className="text-xs font-bold text-slate-600 mb-2">Biểu đồ biến thiên Cân nặng (kg)</p>
-                          <ResponsiveContainer width="100%" height="80%">
-                            <LineChart data={selectedClient.bodyMetrics || []}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                              <XAxis dataKey="date" stroke="#64748B" fontSize={11} />
-                              <YAxis stroke="#64748B" fontSize={11} domain={['dataMin - 2', 'dataMax + 2']} />
-                              <Tooltip contentStyle={{ backgroundColor: '#FFFFFF', borderColor: '#CBD5E1', borderRadius: '12px', color: '#0F172A' }} />
-                              <Line type="monotone" dataKey="weightKg" name="Cân nặng (kg)" stroke="#4F46E5" strokeWidth={3} dot={{ r: 5, fill: '#4F46E5' }} />
-                            </LineChart>
-                          </ResponsiveContainer>
-                        </div>
+                    {/* Body Metrics Section */}
+                    <div className="space-y-4 pt-2">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-extrabold text-slate-900 text-base">Lịch Sử Cân Nặng & Chỉ Số Cơ Thể</h4>
+                        <button
+                          type="button"
+                          onClick={() => setIsMetricModalOpen(true)}
+                          className="bg-[#FF4E00] hover:bg-orange-600 text-white font-bold px-4 py-1.5 rounded-full text-xs flex items-center gap-1 shadow-xs cursor-pointer"
+                        >
+                          <Plus className="w-4 h-4" /> Đo Chỉ Số Mới
+                        </button>
+                      </div>
 
-                        {/* Metric History Table */}
-                        <div className="overflow-x-auto border border-slate-200 rounded-2xl">
-                          <table className="w-full text-left text-xs text-slate-700">
-                            <thead className="bg-slate-100 text-slate-700 uppercase font-bold border-b border-slate-200">
-                              <tr>
-                                <th className="p-3">Ngày đo</th>
-                                <th className="p-3">Cân nặng (kg)</th>
-                                <th className="p-3">% Mỡ</th>
-                                <th className="p-3">Vòng eo (cm)</th>
-                                <th className="p-3">Vòng mông (cm)</th>
-                                <th className="p-3">Ghi chú</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 bg-white">
-                              {(selectedClient.bodyMetrics || []).map(m => (
-                                <tr key={m.id} className="hover:bg-slate-50">
-                                  <td className="p-3 font-bold text-slate-900">{m.date}</td>
-                                  <td className="p-3 text-[#4F46E5] font-black">{m.weightKg} kg</td>
-                                  <td className="p-3">{m.bodyFatPercent ? `${m.bodyFatPercent}%` : '-'}</td>
-                                  <td className="p-3">{m.waistCm ? `${m.waistCm} cm` : '-'}</td>
-                                  <td className="p-3">{m.hipsCm ? `${m.hipsCm} cm` : '-'}</td>
-                                  <td className="p-3 text-slate-500">{m.notes || '-'}</td>
+                      {(selectedClient.bodyMetrics || []).length === 0 ? (
+                        <p className="text-xs text-slate-500 py-6 text-center border border-dashed border-slate-200 rounded-2xl">
+                          Chưa có dữ liệu đo chỉ số. Hãy bấm "+ Đo Chỉ Số Mới" để bắt đầu theo dõi.
+                        </p>
+                      ) : (
+                        <>
+                          {/* Progress Chart */}
+                          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl h-56">
+                            <p className="text-xs font-bold text-slate-600 mb-2">Biểu đồ biến thiên Cân nặng (kg)</p>
+                            <ResponsiveContainer width="100%" height="80%">
+                              <LineChart data={selectedClient.bodyMetrics || []}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                                <XAxis dataKey="date" stroke="#64748B" fontSize={11} />
+                                <YAxis stroke="#64748B" fontSize={11} domain={['dataMin - 2', 'dataMax + 2']} />
+                                <Tooltip contentStyle={{ backgroundColor: '#FFFFFF', borderColor: '#CBD5E1', borderRadius: '12px', color: '#0F172A' }} />
+                                <Line type="monotone" dataKey="weightKg" name="Cân nặng (kg)" stroke="#4F46E5" strokeWidth={3} dot={{ r: 5, fill: '#4F46E5' }} />
+                              </LineChart>
+                            </ResponsiveContainer>
+                          </div>
+
+                          {/* Metric History Table */}
+                          <div className="overflow-x-auto border border-slate-200 rounded-2xl">
+                            <table className="w-full text-left text-xs text-slate-700">
+                              <thead className="bg-slate-100 text-slate-700 uppercase font-bold border-b border-slate-200">
+                                <tr>
+                                  <th className="p-3">Ngày đo</th>
+                                  <th className="p-3">Cân nặng (kg)</th>
+                                  <th className="p-3">% Mỡ</th>
+                                  <th className="p-3">Vòng eo (cm)</th>
+                                  <th className="p-3">Vòng mông (cm)</th>
+                                  <th className="p-3">Ghi chú</th>
                                 </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100 bg-white">
+                                {(selectedClient.bodyMetrics || []).map(m => (
+                                  <tr key={m.id} className="hover:bg-slate-50">
+                                    <td className="p-3 font-bold text-slate-900">{m.date}</td>
+                                    <td className="p-3 text-[#4F46E5] font-black">{m.weightKg} kg</td>
+                                    <td className="p-3">{m.bodyFatPercent ? `${m.bodyFatPercent}%` : '-'}</td>
+                                    <td className="p-3">{m.waistCm ? `${m.waistCm} cm` : '-'}</td>
+                                    <td className="p-3">{m.hipsCm ? `${m.hipsCm} cm` : '-'}</td>
+                                    <td className="p-3 text-slate-500">{m.notes || '-'}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Workout Program Section */}
+                    <div className="pt-3 border-t border-slate-200 space-y-3">
+                      {clientProgram ? (
+                        <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-extrabold text-[#4F46E5] text-base">{clientProgram.title}</h4>
+                            <button
+                              type="button"
+                              onClick={() => onGoToProgram(selectedClient.id)}
+                              className="bg-[#4F46E5] hover:bg-indigo-700 text-white font-bold px-3.5 py-1.5 rounded-full text-xs flex items-center gap-1 shadow-xs cursor-pointer"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" /> Mở Chi Tiết Giáo Án
+                            </button>
+                          </div>
+
+                          <p className="text-xs text-slate-500 font-medium">Bao gồm {clientProgram.days.length} buổi tập tiêu chuẩn:</p>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {clientProgram.days.map(d => (
+                              <div key={d.id} className="p-3 bg-white border border-slate-200 rounded-xl">
+                                <h5 className="font-bold text-slate-900 text-sm">{d.dayName}</h5>
+                                <p className="text-xs text-slate-500 mt-1">{d.exercises.length} bài tập (Set, Rep, Kg, RPE)</p>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </>
-                    )}
+                      ) : (
+                        <div className="p-6 text-center bg-slate-50 border border-dashed border-slate-200 rounded-2xl space-y-2">
+                          <ClipboardList className="w-8 h-8 text-slate-400 mx-auto" />
+                          <p className="text-xs text-slate-500 font-medium">Học viên này chưa có giáo án riêng.</p>
+                          <button
+                            type="button"
+                            onClick={() => onGoToProgram(selectedClient.id)}
+                            className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-1.5 rounded-xl text-xs cursor-pointer shadow-xs"
+                          >
+                            + Tạo Giáo Án Ngay
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
-                {/* TAB 3: BEFORE / AFTER PHOTOS */}
-                {activeDetailTab === 'photos' && (
-                  <div className="space-y-4">
-                    <h4 className="font-extrabold text-slate-900 text-base">Hình Ảnh So Sánh Vóc Dáng (Before / After)</h4>
-
-                    {selectedClient.beforeAfterPhotos?.beforeUrl ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-center space-y-2">
-                          <span className="text-xs font-bold bg-white text-slate-700 px-3 py-1 rounded-full border border-slate-200 shadow-xs">
-                            BEFORE ({selectedClient.beforeAfterPhotos.beforeDate || 'Đầu khóa'})
-                          </span>
-                          <img 
-                            src={selectedClient.beforeAfterPhotos.beforeUrl} 
-                            alt="Before" 
-                            className="w-full h-64 object-cover rounded-xl border border-slate-200"
-                          />
-                        </div>
-
-                        <div className="bg-indigo-50/50 p-3.5 rounded-2xl border border-indigo-200 text-center space-y-2">
-                          <span className="text-xs font-bold bg-[#4F46E5] text-white px-3 py-1 rounded-full shadow-xs">
-                            AFTER ({selectedClient.beforeAfterPhotos.afterDate || 'Hiện tại'})
-                          </span>
-                          <img 
-                            src={selectedClient.beforeAfterPhotos.afterUrl || selectedClient.beforeAfterPhotos.beforeUrl} 
-                            alt="After" 
-                            className="w-full h-64 object-cover rounded-xl border border-indigo-200"
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="p-8 text-center bg-slate-50 border border-dashed border-slate-200 rounded-2xl space-y-3">
-                        <ImageIcon className="w-10 h-10 text-slate-400 mx-auto" />
-                        <p className="text-sm text-slate-500 font-medium">Chưa có ảnh Before / After cho học viên này.</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* TAB 4: CHECK-IN HISTORY */}
+                {/* TAB 3: CHECK-IN HISTORY */}
                 {activeDetailTab === 'history' && (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
@@ -1355,9 +1379,11 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                               {ci.notes && <p className="text-xs text-indigo-600 font-medium italic mt-1">"{ci.notes}"</p>}
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="text-xs bg-emerald-100 text-emerald-700 font-bold px-3 py-1 rounded-full border border-emerald-200">
-                                Trừ 1 buổi (còn {ci.sessionsRemainingAfter})
-                              </span>
+                              <SessionBadge
+                                remainingSessions={ci.sessionsRemainingAfter}
+                                clientType={selectedClient?.clientType}
+                                size="sm"
+                              />
                               <button
                                 onClick={() => {
                                   setEditCheckInTarget(ci);
@@ -1378,47 +1404,6 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                             </div>
                           </div>
                         ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* TAB 5: WORKOUT PROGRAM LINK */}
-                {activeDetailTab === 'program' && (
-                  <div className="space-y-4">
-                    {clientProgram ? (
-                      <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-extrabold text-[#4F46E5] text-lg">{clientProgram.title}</h4>
-                          <button
-                            onClick={() => onGoToProgram(selectedClient.id)}
-                            className="bg-[#4F46E5] hover:bg-indigo-700 text-white font-bold px-3.5 py-1.5 rounded-full text-xs flex items-center gap-1 shadow-xs"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" /> Mở Chi Tiết Giáo Án
-                          </button>
-                        </div>
-
-                        <p className="text-xs text-slate-500 font-medium">Bao gồm {clientProgram.days.length} buổi tập tiêu chuẩn:</p>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {clientProgram.days.map(d => (
-                            <div key={d.id} className="p-3 bg-white border border-slate-200 rounded-xl">
-                              <h5 className="font-bold text-slate-900 text-sm">{d.dayName}</h5>
-                              <p className="text-xs text-slate-500 mt-1">{d.exercises.length} bài tập (Set, Rep, Kg, RPE)</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="p-8 text-center bg-slate-50 border border-dashed border-slate-200 rounded-2xl space-y-3">
-                        <ClipboardList className="w-10 h-10 text-slate-600 mx-auto" />
-                        <p className="text-sm text-slate-400">Học viên này chưa có giáo án riêng.</p>
-                        <button
-                          onClick={() => onGoToProgram(selectedClient.id)}
-                          className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs"
-                        >
-                          + Tạo Giáo Án Ngay
-                        </button>
                       </div>
                     )}
                   </div>
