@@ -11,6 +11,7 @@ interface SessionBadgeProps {
   status?: string;
   size?: 'sm' | 'md' | 'lg';
   showDetails?: boolean;
+  compact?: boolean;
   className?: string;
 }
 
@@ -23,9 +24,9 @@ export const SessionBadge: React.FC<SessionBadgeProps> = ({
   status: propStatus,
   size = 'md',
   showDetails = false,
+  compact = false,
   className = ''
 }) => {
-  const isClientPassed = !!client;
   const isClosed = (client?.status || propStatus) === 'closed';
   const clientType = client?.clientType || propClientType || 'session';
   const remaining = client ? client.remainingSessions : (propRemaining !== undefined ? propRemaining : 0);
@@ -33,16 +34,18 @@ export const SessionBadge: React.FC<SessionBadgeProps> = ({
   const endDate = client ? client.endDate : propEndDate;
 
   // Size styling classes
-  const sizeClasses = {
-    sm: 'text-[11px] px-2.5 py-0.5 font-bold tracking-tight',
-    md: 'text-xs px-3 py-1 font-black tracking-tight',
-    lg: 'text-sm px-4 py-1.5 font-black tracking-wide'
-  }[size];
+  const sizeClasses = compact
+    ? 'text-[11px] px-2 py-0.5 font-bold tracking-tight'
+    : {
+        sm: 'text-[11px] px-2.5 py-0.5 font-bold tracking-tight',
+        md: 'text-xs px-3 py-1 font-black tracking-tight',
+        lg: 'text-sm px-4 py-1.5 font-black tracking-wide'
+      }[size];
 
   if (isClosed) {
     return (
-      <span className={`inline-flex items-center gap-1 rounded-full bg-slate-200 text-slate-800 border-2 border-slate-400 shadow-2xs font-extrabold ${sizeClasses} ${className}`}>
-        🔒 HĐ đã đóng
+      <span className={`inline-flex items-center gap-1 rounded-full bg-slate-200 text-slate-800 border border-slate-400 shadow-2xs font-bold whitespace-nowrap ${sizeClasses} ${className}`}>
+        🔒 {compact ? 'Đã đóng' : 'HĐ đã đóng'}
       </span>
     );
   }
@@ -62,24 +65,24 @@ export const SessionBadge: React.FC<SessionBadgeProps> = ({
 
     if (daysRemaining < 0) {
       return (
-        <span className={`inline-flex items-center gap-1.5 rounded-full bg-red-600 text-white border-2 border-red-700 shadow-xs font-black uppercase ${sizeClasses} ${className}`}>
-          <span>🔴 KHÁCH THÁNG (HẾT HẠN)</span>
+        <span className={`inline-flex items-center gap-1 rounded-full bg-red-600 text-white border border-red-700 shadow-xs font-bold whitespace-nowrap ${sizeClasses} ${className}`}>
+          <span>🔴 {compact ? 'Hết hạn' : 'KHÁCH THÁNG (HẾT HẠN)'}</span>
         </span>
       );
     }
 
     if (daysRemaining <= 7) {
       return (
-        <span className={`inline-flex items-center gap-1.5 rounded-full bg-amber-400 text-slate-950 border-2 border-amber-500 shadow-xs font-black animate-pulse ${sizeClasses} ${className}`}>
-          <span>🟡 Khách Tháng (Còn {daysRemaining} ngày)</span>
+        <span className={`inline-flex items-center gap-1 rounded-full bg-amber-400 text-slate-950 border border-amber-500 shadow-xs font-bold whitespace-nowrap animate-pulse ${sizeClasses} ${className}`}>
+          <span>🟡 {compact ? `Hạn: ${daysRemaining} ngày` : `Khách Tháng (Còn ${daysRemaining} ngày)`}</span>
         </span>
       );
     }
 
     return (
-      <span className={`inline-flex items-center gap-1.5 rounded-full bg-amber-400 text-slate-950 border-2 border-amber-500 shadow-xs font-black ${sizeClasses} ${className}`}>
+      <span className={`inline-flex items-center gap-1 rounded-full bg-amber-400 text-slate-950 border border-amber-500 shadow-xs font-bold whitespace-nowrap ${sizeClasses} ${className}`}>
         <span>📅 Khách Tháng</span>
-        {showDetails && daysRemaining < 900 && (
+        {!compact && showDetails && daysRemaining < 900 && (
           <span className="text-[10px] bg-slate-950/15 px-1.5 py-0.2 rounded-md font-extrabold ml-0.5">
             {daysRemaining} ngày
           </span>
@@ -89,30 +92,43 @@ export const SessionBadge: React.FC<SessionBadgeProps> = ({
   }
 
   // Check expiration of contract date for session client if applicable
+  let contractDaysRemaining: number | null = null;
   if (endDate) {
     const today = getVNDate();
     today.setHours(0, 0, 0, 0);
     const endParts = endDate.split('-');
     if (endParts.length === 3) {
       const endD = new Date(parseInt(endParts[0]), parseInt(endParts[1]) - 1, parseInt(endParts[2]));
-      const daysRemaining = Math.ceil((endD.getTime() - today.getTime()) / (1000 * 3600 * 24));
-      if (daysRemaining < 0) {
-        return (
-          <span className={`inline-flex items-center gap-1.5 rounded-full bg-red-600 text-white border-2 border-red-700 shadow-xs font-black uppercase ${sizeClasses} ${className}`}>
-            <span>🔴 HẾT HẠN HỢP ĐỒNG</span>
-          </span>
-        );
-      }
+      contractDaysRemaining = Math.ceil((endD.getTime() - today.getTime()) / (1000 * 3600 * 24));
     }
+  }
+
+  if (contractDaysRemaining !== null && contractDaysRemaining < 0) {
+    return (
+      <span className={`inline-flex items-center gap-1 rounded-full bg-red-600 text-white border border-red-700 shadow-xs font-bold whitespace-nowrap ${sizeClasses} ${className}`}>
+        <span>🔴 {compact ? 'Hết hạn HĐ' : 'HẾT HẠN HỢP ĐỒNG'}</span>
+      </span>
+    );
+  }
+
+  // If contract is about to expire (<= 5 days) but sessions still remain
+  if (contractDaysRemaining !== null && contractDaysRemaining <= 5 && compact) {
+    return (
+      <span className={`inline-flex items-center gap-1 rounded-full bg-amber-400 text-slate-950 border border-amber-500 shadow-xs font-bold whitespace-nowrap animate-pulse ${sizeClasses} ${className}`}>
+        <span>🟡 Hạn: {contractDaysRemaining} ngày</span>
+      </span>
+    );
   }
 
   // Tier 1: 0 - 1 sessions (Red Alert)
   if (remaining <= 1) {
-    const textLabel = remaining === 0 ? '🔴 HẾT BUỔI (NẠP GẤP)' : `🔴 CÒN 1 BUỔI (GIA HẠN)`;
+    const textLabel = compact
+      ? (remaining === 0 ? '🔴 Hết buổi' : '🔴 Còn 1 buổi')
+      : (remaining === 0 ? '🔴 HẾT BUỔI (NẠP GẤP)' : '🔴 CÒN 1 BUỔI (GIA HẠN)');
     return (
-      <span className={`inline-flex items-center gap-1.5 rounded-full bg-red-600 text-white border-2 border-red-700 shadow-xs font-black uppercase animate-pulse ${sizeClasses} ${className}`}>
+      <span className={`inline-flex items-center gap-1 rounded-full bg-red-600 text-white border border-red-700 shadow-xs font-bold whitespace-nowrap animate-pulse ${sizeClasses} ${className}`}>
         <span>{textLabel}</span>
-        {showDetails && total > 0 && (
+        {!compact && showDetails && total > 0 && (
           <span className="text-[10px] bg-black/25 px-1.5 py-0.2 rounded font-mono font-black ml-0.5">
             {remaining}/{total}b
           </span>
@@ -124,9 +140,9 @@ export const SessionBadge: React.FC<SessionBadgeProps> = ({
   // Tier 2: 2 - 3 sessions (Amber Warning)
   if (remaining <= 3) {
     return (
-      <span className={`inline-flex items-center gap-1.5 rounded-full bg-amber-400 text-slate-950 border-2 border-amber-500 shadow-xs font-black ${sizeClasses} ${className}`}>
+      <span className={`inline-flex items-center gap-1 rounded-full bg-amber-400 text-slate-950 border border-amber-500 shadow-xs font-bold whitespace-nowrap ${sizeClasses} ${className}`}>
         <span>🟡 Còn {remaining} buổi</span>
-        {showDetails && total > 0 && (
+        {!compact && showDetails && total > 0 && (
           <span className="text-[10px] bg-slate-950/15 px-1.5 py-0.2 rounded font-mono font-black ml-0.5">
             {remaining}/{total}b
           </span>
@@ -137,9 +153,9 @@ export const SessionBadge: React.FC<SessionBadgeProps> = ({
 
   // Tier 3: > 3 sessions (Emerald Healthy)
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full bg-emerald-600 text-white border-2 border-emerald-700 shadow-xs font-black ${sizeClasses} ${className}`}>
+    <span className={`inline-flex items-center gap-1 rounded-full bg-emerald-600 text-white border border-emerald-700 shadow-xs font-bold whitespace-nowrap ${sizeClasses} ${className}`}>
       <span>🟢 Còn {remaining} buổi</span>
-      {showDetails && total > 0 && (
+      {!compact && showDetails && total > 0 && (
         <span className="text-[10px] bg-black/20 px-1.5 py-0.2 rounded font-mono font-bold ml-0.5">
           {remaining}/{total}b
         </span>

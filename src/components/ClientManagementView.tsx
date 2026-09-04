@@ -1,5 +1,5 @@
 import { removeAccents } from '../utils/textUtils';
-import { getTodayDateStr, getVNDate, parseDateLocal } from '../utils/dateUtils';
+import { getTodayDateStr, getVNDate, parseDateLocal, formatDate } from '../utils/dateUtils';
 import { SessionBadge } from './SessionBadge';
 
 
@@ -504,8 +504,8 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
   });
 
   // Calculate warning badge logic
-  const getWarningBadge = (client: Client, size: 'sm' | 'md' | 'lg' = 'sm') => {
-    return <SessionBadge client={client} size={size} />;
+  const getWarningBadge = (client: Client, size: 'sm' | 'md' | 'lg' = 'sm', compact = false) => {
+    return <SessionBadge client={client} size={size} compact={compact} />;
   };
 
   // Filter & sort clients
@@ -1704,25 +1704,32 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
           </div>
 
           {/* Clean Desktop Table View (Dành cho máy tính / máy tính bảng) */}
-          <div className="hidden md:block overflow-x-auto rounded-2xl border border-slate-200/90 shadow-2xs">
-            <table className="w-full text-left border-collapse text-xs">
+          <div className="hidden md:block w-full overflow-hidden rounded-2xl border border-slate-200/90 shadow-2xs bg-white">
+            <table className="w-full table-fixed border-collapse text-xs">
+              <colgroup>
+                <col style={{ width: '7%' }} />
+                <col style={{ width: '19%' }} />
+                <col style={{ width: '11%' }} />
+                <col style={{ width: '11%' }} />
+                <col style={{ width: '16%' }} />
+                <col style={{ width: '16%' }} />
+                <col style={{ width: '20%' }} />
+              </colgroup>
               <thead>
                 <tr className="bg-slate-100/90 text-slate-700 font-extrabold border-b border-slate-200 uppercase tracking-wider text-[11px] whitespace-nowrap">
-                  <th className="py-3 px-3 text-center border-r border-slate-200 w-12">#</th>
-                  <th className="py-3 px-3 border-r border-slate-200">Mã HV</th>
-                  <th className="py-3 px-3 border-r border-slate-200 min-w-[200px]">Học Viên (Tên & SĐT)</th>
-                  <th className="py-3 px-3 border-r border-slate-200">Gói Tập</th>
-                  <th className="py-3 px-3 border-r border-slate-200 text-center">Số Buổi (Còn/Tổng)</th>
-                  <th className="py-3 px-3 border-r border-slate-200 text-center">Ngày Đăng Ký</th>
-                  <th className="py-3 px-3 border-r border-slate-200 text-center">Hạn Hợp Đồng</th>
-                  <th className="py-3 px-3 border-r border-slate-200 text-center">Tình Trạng</th>
-                  <th className="py-3 px-3 text-center min-w-[220px]">Thao Tác Nhanh</th>
+                  <th className="py-2.5 px-2 text-center border-r border-slate-200"># / Mã</th>
+                  <th className="py-2.5 px-2 border-r border-slate-200">Học Viên (Tên & SĐT)</th>
+                  <th className="py-2.5 px-2 border-r border-slate-200">Gói Tập</th>
+                  <th className="py-2.5 px-2 border-r border-slate-200 text-center">Số Buổi (Còn/Tổng)</th>
+                  <th className="py-2.5 px-2 border-r border-slate-200 text-center">Ngày ĐK & Hạn HĐ</th>
+                  <th className="py-2.5 px-2 border-r border-slate-200 text-center">Tình Trạng</th>
+                  <th className="py-2.5 px-2 text-center">Thao Tác Nhanh</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 bg-white">
                 {filteredClients.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-8 text-center text-slate-400 font-semibold">
+                    <td colSpan={7} className="py-8 text-center text-slate-400 font-semibold">
                       Không tìm thấy học viên nào phù hợp với bộ lọc.
                     </td>
                   </tr>
@@ -1730,107 +1737,136 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                   filteredClients.map((client, idx) => {
                     const isSelected = selectedClient?.id === client.id;
                     const originalIdx = clients.findIndex(c => c.id === client.id);
-                const codeHV = `HV-${1000 + (clients.length - (originalIdx !== -1 ? originalIdx : idx))}`;
+                    const codeHV = `HV-${1000 + (clients.length - (originalIdx !== -1 ? originalIdx : idx))}`;
                     return (
                       <tr 
                         key={client.id}
                         onClick={() => { setSelectedClient(client); setIsDetailModalOpen(true); }}
-                        
                         title="Click để mở chi tiết"
                         className={`hover:bg-indigo-50/50 transition-colors cursor-pointer ${
                           isSelected ? 'bg-indigo-50/80 font-medium' : ''
                         }`}
                       >
-                        <td className="py-3 px-3 text-center font-bold text-slate-500 border-r border-slate-200">{idx + 1}</td>
-                        <td className="py-3 px-3 font-mono font-bold text-slate-600 border-r border-slate-200 whitespace-nowrap">{codeHV}</td>
-                        <td className="py-3 px-3 border-r border-slate-200">
-                          <div className="flex items-center gap-2.5">
+                        <td className="py-2.5 px-2 text-center border-r border-slate-200 overflow-hidden">
+                          <div className="flex flex-col items-center justify-center leading-tight">
+                            <span className="text-[10px] font-bold text-slate-400">#{idx + 1}</span>
+                            <span className="font-mono font-bold text-slate-700 text-[11px] truncate max-w-full" title={codeHV}>{codeHV}</span>
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-2 border-r border-slate-200 overflow-hidden">
+                          <div className="flex items-center gap-2 min-w-0">
                             <img src={client.avatarUrl} alt={client.name} className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0" />
-                            <div className="min-w-0">
-                              <span className="font-black text-indigo-950 hover:text-indigo-600 text-sm flex items-center gap-1.5 flex-wrap leading-tight">
-                                <span>{client.name}</span>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1 min-w-0">
+                                <span className="font-black text-indigo-950 hover:text-indigo-600 text-xs sm:text-[13px] truncate leading-tight" title={client.name}>
+                                  {client.name}
+                                </span>
                                 {client.trainingType === 'ca_nhom' ? (
-                                  <span className="text-[10px] bg-purple-100 text-purple-900 border border-purple-300 font-extrabold px-1.5 py-0.2 rounded-full flex items-center gap-0.5 shrink-0 shadow-2xs">
-                                    <Users className="w-2.5 h-2.5 text-purple-600 fill-purple-200" /> Ca Nhóm
+                                  <span className="text-[9px] bg-purple-100 text-purple-900 border border-purple-300 font-extrabold px-1 rounded-sm shrink-0 shadow-2xs" title="Ca nhóm">
+                                    Nhóm
                                   </span>
                                 ) : (
-                                  <span className="text-[10px] bg-sky-50 text-sky-800 border border-sky-200 font-bold px-1.5 py-0.2 rounded-full flex items-center gap-0.5 shrink-0">
-                                    <User className="w-2.5 h-2.5 text-sky-600" /> 1/1
+                                  <span className="text-[9px] bg-sky-50 text-sky-800 border border-sky-200 font-bold px-1 rounded-sm shrink-0" title="1 kèm 1">
+                                    1/1
                                   </span>
                                 )}
-                              </span>
-                              <span className="text-[11px] text-slate-500 font-semibold flex items-center gap-1 mt-0.5">
+                              </div>
+                              <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1 mt-0.5 truncate">
                                 <Phone className="w-2.5 h-2.5 text-slate-400 shrink-0" />
-                                <span>{client.phone}</span>
-                                <span className="text-[9px] bg-slate-100 text-slate-600 px-1 py-0.2 rounded border border-slate-200">
-                                  {client.gender}
-                                </span>
-                              </span>
+                                <span className="truncate">{client.phone}</span>
+                                {client.gender && (
+                                  <span className="text-[9px] bg-slate-100 text-slate-600 px-1 rounded border border-slate-200 shrink-0">
+                                    {client.gender}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </td>
-                        <td className="py-3 px-3 font-semibold text-slate-800 border-r border-slate-200">{client.packageName || 'Gói PT'}</td>
-                        <td className="py-3 px-3 text-center border-r border-slate-200 whitespace-nowrap">
+                        <td className="py-2.5 px-2 font-semibold text-slate-800 border-r border-slate-200 overflow-hidden">
+                          <div className="truncate text-xs font-semibold text-slate-800" title={client.packageName || 'Gói PT'}>
+                            {client.packageName || 'Gói PT'}
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-2 text-center border-r border-slate-200 whitespace-nowrap overflow-hidden">
                           {client.clientType === 'monthly' ? (
-                            <span className="font-black text-amber-900 bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-300 inline-block shadow-2xs">
-                              📅 Khách Tháng
+                            <span className="font-black text-amber-900 bg-amber-100 px-2 py-0.5 rounded text-[11px] border border-amber-300 inline-block shadow-2xs">
+                              Khách Tháng
                             </span>
                           ) : (
-                            <span className="font-black text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 inline-block">
+                            <span className="font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[11px] border border-emerald-200 inline-block">
                               {client.remainingSessions} / {client.totalSessions}b
                             </span>
                           )}
                         </td>
-                        <td className="py-3 px-3 text-center text-slate-600 font-mono text-[11px] border-r border-slate-200 whitespace-nowrap">{client.startDate || '---'}</td>
-                        <td className="py-3 px-3 text-center text-slate-700 font-mono text-[11px] font-bold border-r border-slate-200 whitespace-nowrap">{client.endDate || '---'}</td>
-                        <td className="py-3 px-3 text-center border-r border-slate-200 whitespace-nowrap">
-                          {getWarningBadge(client)}
-                          {getClientTotalPaid(client.id) === 0 && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedClient(client);
-                                setAddPaymentData(prev => ({...prev, amountVnd: 0, paymentDate: getTodayDateStr()}));
-                                setIsAddPaymentModalOpen(true);
-                              }}
-                              className="block mx-auto mt-1 px-2 py-0.5 bg-rose-50 hover:bg-rose-100 text-rose-600 text-[10px] font-bold rounded border border-rose-200 transition-colors"
-                            >
-                              Thu tiền
-                            </button>
-                          )}
+                        <td className="py-2.5 px-2 text-center border-r border-slate-200 whitespace-nowrap overflow-hidden">
+                          <div className="flex flex-col gap-0.5 text-center leading-tight">
+                            <span className="text-[11px] text-slate-500">
+                              <span className="text-[10px] text-slate-400 font-semibold uppercase">ĐK: </span>
+                              <span className="font-mono">{formatDate(client.startDate)}</span>
+                            </span>
+                            <span className="text-[11px] font-bold text-slate-800">
+                              <span className="text-[10px] text-slate-400 font-semibold uppercase">Hạn: </span>
+                              <span className="font-mono">{formatDate(client.endDate)}</span>
+                            </span>
+                          </div>
                         </td>
-                        <td className="py-2 px-3 text-center whitespace-nowrap">
-                          <div className="flex items-center justify-center gap-1">
+                        <td className="py-2.5 px-2 text-center border-r border-slate-200 whitespace-nowrap overflow-hidden">
+                          <div className="flex flex-col items-center justify-center gap-1">
+                            {getWarningBadge(client, 'sm', true)}
+                            {getClientTotalPaid(client.id) === 0 && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedClient(client);
+                                  setAddPaymentData(prev => ({...prev, amountVnd: 0, paymentDate: getTodayDateStr()}));
+                                  setIsAddPaymentModalOpen(true);
+                                }}
+                                className="block mx-auto px-2 py-0.5 bg-rose-50 hover:bg-rose-100 text-rose-600 text-[10px] font-bold rounded border border-rose-200 transition-colors whitespace-nowrap cursor-pointer"
+                              >
+                                Thu tiền
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-2 text-center whitespace-nowrap overflow-hidden">
+                          <div className="flex items-center justify-center gap-1.5 flex-nowrap">
                             <button
+                              type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onOpenQuickCheckIn(client);
                               }}
-                              className="p-1.5 bg-lime-500 hover:bg-lime-600 text-white rounded-lg transition-all active:scale-95 shadow-2xs cursor-pointer"
+                              className="px-2 py-1 bg-lime-500 hover:bg-lime-600 text-white rounded-lg transition-all active:scale-95 shadow-2xs cursor-pointer inline-flex items-center gap-1 font-bold text-[11px] whitespace-nowrap shrink-0"
                               title="Check-in điểm danh"
                             >
-                              <Zap className="w-3.5 h-3.5 fill-white" />
+                              <Zap className="w-3 h-3 fill-white shrink-0" />
+                              <span>Điểm danh</span>
                             </button>
                             <button
+                              type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 openRenewModal(client);
                               }}
-                              className="p-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all active:scale-95 shadow-2xs cursor-pointer"
+                              className="px-2 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all active:scale-95 shadow-2xs cursor-pointer inline-flex items-center gap-1 font-bold text-[11px] whitespace-nowrap shrink-0"
                               title="Gia hạn gói tập"
                             >
-                              <RotateCcw className="w-3.5 h-3.5" />
+                              <RotateCcw className="w-3 h-3 shrink-0" />
+                              <span>Gia hạn</span>
                             </button>
-
                             <button
+                              type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 openEditModal(client);
                               }}
-                              className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg transition-all active:scale-95 cursor-pointer"
+                              className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg transition-all active:scale-95 cursor-pointer inline-flex items-center gap-1 font-bold text-[11px] whitespace-nowrap shrink-0"
                               title="Sửa thông tin hồ sơ & hợp đồng"
                             >
-                              <Edit3 className="w-3.5 h-3.5" />
+                              <Edit3 className="w-3 h-3 shrink-0" />
+                              <span className="hidden xl:inline">Sửa</span>
                             </button>
                           </div>
                         </td>
