@@ -76,8 +76,10 @@ service cloud.firestore {
     }
 
     match /auditLogs/{docId} {
-      allow read, update, delete: if isLoggedIn() && (isMasterAdmin() || (isTenantPT() && resource.data.tenantId == getUserTenantId()));
+      allow read: if isLoggedIn() && (isMasterAdmin() || (isTenantPT() && resource.data.tenantId == getUserTenantId()));
       allow create: if isLoggedIn() && (isMasterAdmin() || (isTenantPT() && request.resource.data.tenantId == getUserTenantId()));
+      allow update: if isLoggedIn() && isMasterAdmin();
+      allow delete: if false;
     }
 
     match /all_users/{docId} {

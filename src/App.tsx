@@ -124,15 +124,12 @@ const AppContent: React.FC<AppContentProps> = ({ onLogout }) => {
           />
         )}
 
-        {(activeTab === 'finance' || activeTab === 'revenue' || activeTab === 'expenses') && (
-          <FinanceView initialTab={activeTab === 'expenses' ? 'expenses' : 'revenue'} />
+        {(activeTab === 'finance' || activeTab === 'revenue' || activeTab === 'expenses' || activeTab === 'reports') && (
+          <FinanceView initialTab={activeTab === 'expenses' ? 'expenses' : activeTab === 'reports' ? 'reports' : 'revenue'} />
         )}
 
-        {(activeTab === 'reports' || activeTab === 'audit') && (
-          <ReportsView 
-            activeSubTab={activeTab as 'reports' | 'audit'} 
-            onSubTabChange={(sub) => setActiveTab(sub)} 
-          />
+        {(activeTab === 'audit' || activeTab === 'audit_logs') && (
+          <AuditLogView />
         )}
       </main>
 

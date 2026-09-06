@@ -2,10 +2,11 @@ import { getTodayDateStr, parseDateLocal, getVNDate } from '../utils/dateUtils';
 
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { collection, onSnapshot, doc, setDoc, deleteDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc, deleteDoc, getDocs, query, where, orderBy, limit, Query, QuerySnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { auth } from '../lib/firebase';
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { cleanSnapshotForAudit } from '../services/auditLogService';
 
 import { useTenant } from './TenantContext';
 import { 
@@ -263,13 +264,22 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         ) => {
           let hasAttemptedInitialPush = false;
           try {
-            const q = (isMasterAdmin && currentTenant === 'master-admin') 
-              ? collection(db, colName) 
-              : query(collection(db, colName), where('tenantId', '==', currentTenant));
+            let q: Query;
+            if (colName === 'auditLogs') {
+              if (isMasterAdmin && currentTenant === 'master-admin') {
+                q = query(collection(db, colName), orderBy('timestamp', 'desc'), limit(100));
+              } else {
+                q = query(collection(db, colName), where('tenantId', '==', currentTenant), limit(100));
+              }
+            } else {
+              q = (isMasterAdmin && currentTenant === 'master-admin') 
+                ? collection(db, colName) 
+                : query(collection(db, colName), where('tenantId', '==', currentTenant));
+            }
 
             const unsub = onSnapshot(
               q,
-              (snapshot) => {
+              (snapshot: QuerySnapshot) => {
                 setIsCloudSynced(true);
                 let items = snapshot.docs.map(d => ({ ...(d.data() as T), id: d.id }));
 
@@ -485,24 +495,28 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     details?: string,
     snapshot?: SystemAuditLog['snapshot']
   ) => {
+    // Sanitize snapshot to ensure zero base64 and compact text-only storage
+    const sanitizedSnapshot = cleanSnapshotForAudit(snapshot);
+
     const newLog: SystemAuditLog = {
       id: `audit-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      tenantId: currentTenant,
       timestamp: new Date().toISOString(),
       actionType,
       targetName,
       summary,
       details,
       isUndone: false,
-      snapshot
+      snapshot: sanitizedSnapshot
     };
-    setAuditLogs(prev => [newLog, ...prev]);
+    // Keep latest 100 in memory state to optimize performance
+    setAuditLogs(prev => [newLog, ...prev].slice(0, 100));
+    // Persist permanently to Cloud Firestore
     saveToCloud('auditLogs', newLog);
   };
 
   const clearAuditLogs = () => {
-    auditLogs.forEach(l => removeFromCloud('auditLogs', l.id));
-    setAuditLogs([]);
-    localStorage.removeItem(STORAGE_KEYS.AUDIT_LOGS);
+    console.warn('Lịch sử thao tác (Audit Logs) đang ở chế độ lưu trữ vĩnh viễn (Permanent Storage) và không thể xóa.');
   };
 
   // Check-in action (Module 2 requirement)
@@ -1684,7 +1698,8 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const purgeAllFirestoreCollections = async () => {
-    const colNames = ['clients', 'programs', 'checkIns', 'payments', 'expenses', 'appointments', 'auditLogs', 'pdfDocuments'];
+    // Note: auditLogs are permanently stored on Cloud Firestore and MUST NEVER be deleted!
+    const colNames = ['clients', 'programs', 'checkIns', 'payments', 'expenses', 'appointments', 'pdfDocuments'];
     for (const colName of colNames) {
       try {
         if (db) {
@@ -1704,28 +1719,33 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const clearAllData = async () => {
-    // 1. Delete all items from Firestore collections directly
+    // 1. Delete operational items from Firestore collections (auditLogs permanently preserved)
     await purgeAllFirestoreCollections();
 
-    // 2. Clear LocalStorage and set to empty arrays
+    // 2. Clear LocalStorage operational data (auditLogs permanently preserved)
     localStorage.setItem(STORAGE_KEYS.CLIENTS, '[]');
     localStorage.setItem(STORAGE_KEYS.PROGRAMS, '[]');
     localStorage.setItem(STORAGE_KEYS.CHECKINS, '[]');
     localStorage.setItem(STORAGE_KEYS.PAYMENTS, '[]');
     localStorage.setItem(STORAGE_KEYS.EXPENSES, '[]');
     localStorage.setItem(STORAGE_KEYS.APPOINTMENTS, '[]');
-    localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, '[]');
     localStorage.setItem(STORAGE_KEYS.PDF_DOCS, '[]');
 
-    // 3. Reset React States to empty arrays
+    // 3. Reset React States for operational collections
     setClients([]);
     setPrograms([]);
     setCheckIns([]);
     setPayments([]);
     setExpenses([]);
     setAppointments([]);
-    setAuditLogs([]);
     setPdfDocuments([]);
+
+    // Record permanent audit log for reset action
+    addAuditLog(
+      'RESTORE_DATA',
+      'Dọn dẹp dữ liệu hoạt động',
+      `Đã xóa toàn bộ dữ liệu hoạt động của phòng tập (${currentTenant}). Lịch sử thao tác được bảo tồn vĩnh viễn trên Cloud Firestore.`
+    );
   };
 
   const resetData = () => {

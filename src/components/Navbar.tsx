@@ -106,7 +106,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     overview: true,
     clients: true,
     finance: true,
-    reports: true
+    audit: true
   });
 
   // Drag-to-scroll and swipe for horizontal menu
@@ -211,18 +211,18 @@ export const Navbar: React.FC<NavbarProps> = ({
     },
     {
       id: 'finance',
-      label: 'Quản lý thu chi',
+      label: 'Quản lý thu chi & Báo cáo',
       icon: Wallet,
       items: [
-        { id: 'finance', label: 'Quản lý thu chi', icon: Wallet },
+        { id: 'finance', label: 'Quản lý thu chi & Báo cáo', icon: Wallet },
       ]
     },
     {
-      id: 'reports',
-      label: 'Báo cáo & hệ thống',
-      icon: BarChart3,
+      id: 'audit',
+      label: 'Lịch sử thao tác',
+      icon: History,
       items: [
-        { id: 'reports', label: 'Báo cáo & lịch sử', icon: BarChart3, badge: auditLogs ? auditLogs.filter(a => !a.isUndone).length : undefined },
+        { id: 'audit', label: 'Lịch sử thao tác', icon: History, badge: auditLogs ? auditLogs.filter(a => !a.isUndone).length : undefined },
       ]
     }
   ];
