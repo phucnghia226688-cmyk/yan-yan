@@ -49,12 +49,12 @@ export const FinanceView: React.FC<FinanceViewProps> = ({ initialTab = 'revenue'
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full uppercase tracking-wider">
-                Quản Lý Tài Chính &amp; Thống Kê
+                QUẢN LÝ TÀI CHÍNH HỢP NHẤT
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-2 flex items-center gap-2">
               <Wallet className="w-8 h-8 text-emerald-400" />
-              Quản Lý Thu Chi &amp; Báo Cáo
+              Quản Lý Thu Chi
             </h1>
             <p className="text-sm text-slate-300 mt-1">
               Theo dõi chi tiết Doanh Thu thu vào, Khoản Chi ra, Báo Cáo Thống Kê và Lợi Nhuận Ròng.
