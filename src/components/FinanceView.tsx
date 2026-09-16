@@ -14,8 +14,13 @@ export const FinanceView: React.FC<FinanceViewProps> = ({ initialTab = 'revenue'
   const [financeTab, setFinanceTab] = useState<'revenue' | 'expenses' | 'reports'>(
     initialTab === 'expenses' ? 'expenses' : initialTab === 'reports' ? 'reports' : 'revenue'
   );
-  const { payments, expenses } = useGym();
+  const { payments, expenses, clients, cleanupOrphanedRecords } = useGym();
   const { currentUser, isMasterAdmin } = useTenant();
+
+  // Auto trigger orphan record cleanup on Finance view load
+  useEffect(() => {
+    cleanupOrphanedRecords();
+  }, [currentUser?.tenantId]);
 
   useEffect(() => {
     if (initialTab) {
@@ -23,11 +28,19 @@ export const FinanceView: React.FC<FinanceViewProps> = ({ initialTab = 'revenue'
     }
   }, [initialTab]);
 
-  // Tenant-aware top calculations
+  // Tenant-aware top calculations with client existence validation
+  const validClientIds = React.useMemo(() => new Set((clients || []).map(c => c.id)), [clients]);
+
   const tenantScopedPayments = (payments || []).filter(p => {
-    if (isMasterAdmin) return true;
-    const pTenant = p.tenantId || 'default';
-    return pTenant === (currentUser?.tenantId || 'default');
+    if (!isMasterAdmin) {
+      const pTenant = p.tenantId || 'default';
+      if (pTenant !== (currentUser?.tenantId || 'default')) return false;
+    }
+    // Exclude orphaned payments belonging to deleted clients
+    if (p.clientId && p.clientId.trim() !== '') {
+      if (clients.length > 0 && !validClientIds.has(p.clientId)) return false;
+    }
+    return true;
   });
 
   const tenantScopedExpenses = (expenses || []).filter(e => {

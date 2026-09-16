@@ -1,6 +1,6 @@
 import React from 'react';
 import { Client } from '../types';
-import { getVNDate } from '../utils/dateUtils';
+import { getClientContractStatus } from '../utils/dateUtils';
 
 interface SessionBadgeProps {
   client?: Client;
@@ -27,11 +27,19 @@ export const SessionBadge: React.FC<SessionBadgeProps> = ({
   compact = false,
   className = ''
 }) => {
-  const isClosed = (client?.status || propStatus) === 'closed';
-  const clientType = client?.clientType || propClientType || 'session';
-  const remaining = client ? client.remainingSessions : (propRemaining !== undefined ? propRemaining : 0);
-  const total = client ? client.totalSessions : (propTotal !== undefined ? propTotal : 0);
-  const endDate = client ? client.endDate : propEndDate;
+  const clientData = client || {
+    status: propStatus as any,
+    clientType: propClientType,
+    remainingSessions: propRemaining,
+    totalSessions: propTotal,
+    endDate: propEndDate
+  };
+
+  const statusInfo = getClientContractStatus(clientData);
+  const clientType = clientData.clientType || 'session';
+  const remaining = clientData.remainingSessions ?? 0;
+  const total = clientData.totalSessions ?? 0;
+  const diffDays = statusInfo.diffDays;
 
   // Size styling classes
   const sizeClasses = compact
@@ -42,7 +50,7 @@ export const SessionBadge: React.FC<SessionBadgeProps> = ({
         lg: 'text-sm px-4 py-1.5 font-black tracking-wide'
       }[size];
 
-  if (isClosed) {
+  if (statusInfo.status === 'closed') {
     return (
       <span className={`inline-flex items-center gap-1 rounded-full bg-slate-200 text-slate-800 border border-slate-400 shadow-2xs font-bold whitespace-nowrap ${sizeClasses} ${className}`}>
         🔒 {compact ? 'Đã đóng' : 'HĐ đã đóng'}
@@ -50,85 +58,29 @@ export const SessionBadge: React.FC<SessionBadgeProps> = ({
     );
   }
 
-  // Monthly client handling
-  if (clientType === 'monthly') {
-    let daysRemaining = 999;
-    if (endDate) {
-      const today = getVNDate();
-      today.setHours(0, 0, 0, 0);
-      const endParts = endDate.split('-');
-      if (endParts.length === 3) {
-        const endD = new Date(parseInt(endParts[0]), parseInt(endParts[1]) - 1, parseInt(endParts[2]));
-        daysRemaining = Math.ceil((endD.getTime() - today.getTime()) / (1000 * 3600 * 24));
-      }
-    }
-
-    if (daysRemaining < 0) {
-      return (
-        <span className={`inline-flex items-center gap-1 rounded-full bg-red-600 text-white border border-red-700 shadow-xs font-bold whitespace-nowrap ${sizeClasses} ${className}`}>
-          <span>🔴 {compact ? 'Hết hạn' : 'KHÁCH THÁNG (HẾT HẠN)'}</span>
-        </span>
-      );
-    }
-
-    if (daysRemaining <= 7) {
-      return (
-        <span className={`inline-flex items-center gap-1 rounded-full bg-amber-400 text-slate-950 border border-amber-500 shadow-xs font-bold whitespace-nowrap animate-pulse ${sizeClasses} ${className}`}>
-          <span>🟡 {compact ? `Hạn: ${daysRemaining} ngày` : `Khách Tháng (Còn ${daysRemaining} ngày)`}</span>
-        </span>
-      );
-    }
-
+  if (statusInfo.status === 'paused') {
     return (
-      <span className={`inline-flex items-center gap-1 rounded-full bg-amber-400 text-slate-950 border border-amber-500 shadow-xs font-bold whitespace-nowrap ${sizeClasses} ${className}`}>
-        <span>📅 Khách Tháng</span>
-        {!compact && showDetails && daysRemaining < 900 && (
-          <span className="text-[10px] bg-slate-950/15 px-1.5 py-0.2 rounded-md font-extrabold ml-0.5">
-            {daysRemaining} ngày
-          </span>
-        )}
+      <span className={`inline-flex items-center gap-1 rounded-full bg-slate-200 text-slate-800 border border-slate-400 shadow-2xs font-bold whitespace-nowrap ${sizeClasses} ${className}`}>
+        ⏸️ {compact ? 'Bảo lưu' : 'Tạm ngưng / Bảo lưu'}
       </span>
     );
   }
 
-  // Check expiration of contract date for session client if applicable
-  let contractDaysRemaining: number | null = null;
-  if (endDate) {
-    const today = getVNDate();
-    today.setHours(0, 0, 0, 0);
-    const endParts = endDate.split('-');
-    if (endParts.length === 3) {
-      const endD = new Date(parseInt(endParts[0]), parseInt(endParts[1]) - 1, parseInt(endParts[2]));
-      contractDaysRemaining = Math.ceil((endD.getTime() - today.getTime()) / (1000 * 3600 * 24));
+  // 🔴 QUÁ HẠN / HẾT HẠN HỢP ĐỒNG (diffDays < 0 HOẶC remaining <= 0)
+  if (statusInfo.status === 'expired') {
+    let label = '🔴 Quá hạn';
+    if (clientType === 'monthly') {
+      label = compact ? '🔴 Hết hạn' : '🔴 KHÁCH THÁNG (HẾT HẠN)';
+    } else if (remaining <= 0) {
+      label = compact ? '🔴 Hết buổi' : '🔴 HẾT BUỔI (GIA HẠN)';
+    } else if (diffDays !== null && diffDays < 0) {
+      label = compact ? '🔴 Hết hạn HĐ' : '🔴 HẾT HẠN HỢP ĐỒNG';
     }
-  }
 
-  if (contractDaysRemaining !== null && contractDaysRemaining < 0) {
     return (
-      <span className={`inline-flex items-center gap-1 rounded-full bg-red-600 text-white border border-red-700 shadow-xs font-bold whitespace-nowrap ${sizeClasses} ${className}`}>
-        <span>🔴 {compact ? 'Hết hạn HĐ' : 'HẾT HẠN HỢP ĐỒNG'}</span>
-      </span>
-    );
-  }
-
-  // If contract is about to expire (<= 5 days) but sessions still remain
-  if (contractDaysRemaining !== null && contractDaysRemaining <= 5 && compact) {
-    return (
-      <span className={`inline-flex items-center gap-1 rounded-full bg-amber-400 text-slate-950 border border-amber-500 shadow-xs font-bold whitespace-nowrap animate-pulse ${sizeClasses} ${className}`}>
-        <span>🟡 Hạn: {contractDaysRemaining} ngày</span>
-      </span>
-    );
-  }
-
-  // Tier 1: 0 - 1 sessions (Red Alert)
-  if (remaining <= 1) {
-    const textLabel = compact
-      ? (remaining === 0 ? '🔴 Hết buổi' : '🔴 Còn 1 buổi')
-      : (remaining === 0 ? '🔴 HẾT BUỔI (NẠP GẤP)' : '🔴 CÒN 1 BUỔI (GIA HẠN)');
-    return (
-      <span className={`inline-flex items-center gap-1 rounded-full bg-red-600 text-white border border-red-700 shadow-xs font-bold whitespace-nowrap animate-pulse ${sizeClasses} ${className}`}>
-        <span>{textLabel}</span>
-        {!compact && showDetails && total > 0 && (
+      <span className={`inline-flex items-center gap-1 rounded-full bg-rose-600 text-white border border-rose-700 shadow-xs font-bold whitespace-nowrap animate-pulse ${sizeClasses} ${className}`}>
+        <span>{label}</span>
+        {!compact && showDetails && total > 0 && clientType !== 'monthly' && (
           <span className="text-[10px] bg-black/25 px-1.5 py-0.2 rounded font-mono font-black ml-0.5">
             {remaining}/{total}b
           </span>
@@ -137,12 +89,21 @@ export const SessionBadge: React.FC<SessionBadgeProps> = ({
     );
   }
 
-  // Tier 2: 2 - 3 sessions (Amber Warning)
-  if (remaining <= 3) {
+  // 🟡 SẮP HẾT HẠN / SẮP HẾT BUỔI ((0 <= diffDays <= 5) HOẶC (0 < remaining <= 2))
+  if (statusInfo.status === 'expiring') {
+    let label = '🟡 Sắp hết hạn';
+    if (diffDays !== null && diffDays >= 0 && diffDays <= 5 && (clientType === 'monthly' || remaining > 2)) {
+      label = diffDays === 0
+        ? (compact ? '🟡 Hết hôm nay' : '🟡 Hết hạn hôm nay')
+        : (compact ? `🟡 Hạn: ${diffDays}n` : `🟡 Còn ${diffDays} ngày`);
+    } else if (remaining > 0 && remaining <= 2) {
+      label = compact ? `🟡 Còn ${remaining} buổi` : `🟡 Còn ${remaining} buổi (Sắp hết)`;
+    }
+
     return (
-      <span className={`inline-flex items-center gap-1 rounded-full bg-amber-400 text-slate-950 border border-amber-500 shadow-xs font-bold whitespace-nowrap ${sizeClasses} ${className}`}>
-        <span>🟡 Còn {remaining} buổi</span>
-        {!compact && showDetails && total > 0 && (
+      <span className={`inline-flex items-center gap-1 rounded-full bg-amber-400 text-slate-950 border border-amber-500 shadow-xs font-bold whitespace-nowrap animate-pulse ${sizeClasses} ${className}`}>
+        <span>{label}</span>
+        {!compact && showDetails && total > 0 && clientType !== 'monthly' && (
           <span className="text-[10px] bg-slate-950/15 px-1.5 py-0.2 rounded font-mono font-black ml-0.5">
             {remaining}/{total}b
           </span>
@@ -151,11 +112,18 @@ export const SessionBadge: React.FC<SessionBadgeProps> = ({
     );
   }
 
-  // Tier 3: > 3 sessions (Emerald Healthy)
+  // 🟢 ĐANG TẬP (ACTIVE - CÒN HẠN: diffDays > 5 VÀ (monthly HOẶC remaining > 2))
+  let activeLabel = '🟢 Đang tập';
+  if (clientType === 'monthly') {
+    activeLabel = compact ? '🟢 Đang tập' : '🟢 Khách Tháng (Đang tập)';
+  } else {
+    activeLabel = compact ? `🟢 Còn ${remaining}b` : `🟢 Đang tập (${remaining} buổi)`;
+  }
+
   return (
     <span className={`inline-flex items-center gap-1 rounded-full bg-emerald-600 text-white border border-emerald-700 shadow-xs font-bold whitespace-nowrap ${sizeClasses} ${className}`}>
-      <span>🟢 Còn {remaining} buổi</span>
-      {!compact && showDetails && total > 0 && (
+      <span>{activeLabel}</span>
+      {!compact && showDetails && total > 0 && clientType !== 'monthly' && (
         <span className="text-[10px] bg-black/20 px-1.5 py-0.2 rounded font-mono font-bold ml-0.5">
           {remaining}/{total}b
         </span>

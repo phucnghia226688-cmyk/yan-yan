@@ -95,8 +95,9 @@ export interface Client {
   packageName: string;
   totalSessions: number;
   remainingSessions: number;
-  startDate: string; // YYYY-MM-DD
-  endDate: string; // YYYY-MM-DD
+  startDate: string; // YYYY-MM-DD or DD/MM/YYYY
+  endDate: string; // YYYY-MM-DD or DD/MM/YYYY
+  expirationDate?: string; // DD/MM/YYYY
   avatarUrl: string;
   status: 'active' | 'expiring' | 'expired' | 'paused' | 'closed';
   healthNotes: string;

@@ -1,5 +1,14 @@
 import { removeAccents } from '../utils/textUtils';
-import { getTodayDateStr, getVNDate, parseDateLocal, formatDate } from '../utils/dateUtils';
+import { 
+  getTodayDateStr, 
+  getVNDate, 
+  parseDateLocal, 
+  formatDate,
+  getClientContractStatus,
+  getSafeDateTimestamp,
+  calculateContractDiffDays,
+  toInputDateStr
+} from '../utils/dateUtils';
 import { SessionBadge } from './SessionBadge';
 
 
@@ -103,18 +112,17 @@ const FLEXIBLE_TIME_SLOTS = [
 
 const calculateDaysDifference = (startStr: string, endStr: string): number | null => {
   if (!startStr || !endStr) return null;
-  const start = new Date(startStr);
-  const end = new Date(endStr);
-  if (isNaN(start.getTime()) || isNaN(end.getTime())) return null;
-  const diffTime = end.getTime() - start.getTime();
+  const startMs = getSafeDateTimestamp(startStr);
+  const endMs = getSafeDateTimestamp(endStr);
+  if (startMs === null || endMs === null) return null;
+  const diffTime = endMs - startMs;
   const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
   return diffDays >= 0 ? diffDays : null;
 };
 
 const addDaysToDate = (startStr: string, daysToAdd: number): string => {
-  const base = startStr ? new Date(startStr) : new Date();
-  if (isNaN(base.getTime())) return '';
-  const result = new Date(base);
+  const baseMs = getSafeDateTimestamp(startStr) || Date.now();
+  const result = new Date(baseMs);
   result.setDate(result.getDate() + daysToAdd);
   const yyyy = result.getFullYear();
   const mm = String(result.getMonth() + 1).padStart(2, '0');
@@ -123,12 +131,9 @@ const addDaysToDate = (startStr: string, daysToAdd: number): string => {
 };
 
 const addMonthsToDate = (startStr: string, monthsToAdd: number): string => {
-  const baseStr = startStr || getTodayDateStr();
-  const parts = baseStr.split('-');
-  const yyyy = parseInt(parts[0], 10) || new Date().getFullYear();
-  const mm = (parseInt(parts[1], 10) || 1) - 1;
-  const dd = parseInt(parts[2], 10) || 1;
-  const result = new Date(yyyy, mm + monthsToAdd, dd);
+  const baseMs = getSafeDateTimestamp(startStr) || Date.now();
+  const base = new Date(baseMs);
+  const result = new Date(base.getFullYear(), base.getMonth() + monthsToAdd, base.getDate());
   const rY = result.getFullYear();
   const rM = String(result.getMonth() + 1).padStart(2, '0');
   const rD = String(result.getDate()).padStart(2, '0');
@@ -568,8 +573,14 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
     const totalSess = isMonthly ? 0 : formData.totalSessions;
     const remSess = isMonthly ? 0 : formData.totalSessions;
 
+    const formattedStart = formatDate(formData.startDate);
+    const formattedEnd = formatDate(formData.endDate);
+
     const newClientPayload = {
       ...formData,
+      startDate: formattedStart,
+      endDate: formattedEnd,
+      expirationDate: formattedEnd,
       totalSessions: totalSess,
       remainingSessions: remSess,
       initialAmountVnd: formData.amountVnd,
@@ -611,6 +622,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
     addPayment({
       clientId: client.id,
       clientName: client.name,
+      tenantId: client.tenantId || activeTenantId,
       packageName: client.packageName,
       sessionsCount: 0,
       amountVnd: addPaymentData.amountVnd,
@@ -636,8 +648,14 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
     const isMonthly = formData.clientType === 'monthly';
     const finalTotal = isMonthly ? 0 : (formData.totalSessions || 0);
     const finalRem = isMonthly ? 0 : (formData.remainingSessions || 0);
+    const formattedStart = formatDate(formData.startDate);
+    const formattedEnd = formatDate(formData.endDate);
+
     const updatedPayload = {
       ...formData,
+      startDate: formattedStart,
+      endDate: formattedEnd,
+      expirationDate: formattedEnd,
       totalSessions: finalTotal,
       remainingSessions: finalRem
     };
@@ -696,8 +714,8 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
       remainingSessions: client.remainingSessions,
       amountVnd: 0,
       paymentMethod: 'Chuyển khoản',
-      startDate: client.startDate,
-      endDate: client.endDate,
+      startDate: toInputDateStr(client.startDate),
+      endDate: toInputDateStr(client.endDate),
       avatarUrl: DEFAULT_AVATAR_URL,
       healthNotes: client.healthNotes,
       ptNotes: client.ptNotes,
@@ -712,13 +730,11 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
 
   const openRenewModal = (client: Client) => {
     setRenewClient(client);
-    const today = getVNDate();
     let baseDate = new Date();
     if (client.endDate) {
-      const parts = client.endDate.split('-');
-      if (parts.length === 3) {
-        const parsed = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-        if (parsed > today) baseDate = parsed;
+      const parsedMs = getSafeDateTimestamp(client.endDate);
+      if (parsedMs && parsedMs > Date.now()) {
+        baseDate = new Date(parsedMs);
       }
     }
     const future3m = new Date(baseDate);
@@ -740,10 +756,9 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
   const handleApplyPresetDuration = (months: number) => {
     let baseDate = new Date();
     if (renewClient && renewClient.endDate) {
-      const parts = renewClient.endDate.split('-');
-      if (parts.length === 3) {
-        const parsed = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-        if (parsed > new Date()) baseDate = parsed;
+      const parsedMs = getSafeDateTimestamp(renewClient.endDate);
+      if (parsedMs && parsedMs > Date.now()) {
+        baseDate = new Date(parsedMs);
       }
     }
     const newDate = new Date(baseDate);
@@ -758,11 +773,14 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
 
     const addSessions = Number(renewFormData.additionalSessions) || 0;
     const payAmount = Number(renewFormData.amountVnd) || 0;
+    const finalEndDate = formatDate(renewFormData.newEndDate);
+    const targetTenantId = renewClient.tenantId || activeTenantId;
 
-    // 1. Record payment transaction into context (automatically updates revenue & profit for paymentDate month)
+    // 1. Record payment transaction into context with tenantId (automatically updates revenue & profit)
     addPayment({
       clientId: renewClient.id,
       clientName: renewClient.name,
+      tenantId: targetTenantId,
       packageName: renewFormData.packageName,
       sessionsCount: addSessions,
       amountVnd: payAmount,
@@ -770,7 +788,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
       paymentDate: renewFormData.paymentDate,
       notes: renewFormData.notes,
       skipSessionUpdate: true,
-      newEndDate: renewFormData.newEndDate,
+      newEndDate: finalEndDate,
       previousState: {
         remainingSessions: renewClient.remainingSessions || 0,
         totalSessions: renewClient.totalSessions || 0,
@@ -779,7 +797,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
       }
     });
 
-    // 2. Update client sessions & end date & status
+    // 2. Update client sessions & end date & status (status turns active, borders auto clear)
     const isMonthly = renewClient.clientType === 'monthly';
     const newRemaining = isMonthly ? 0 : (renewClient.remainingSessions || 0) + addSessions;
     const newTotal = isMonthly ? 0 : (addSessions > 0 ? addSessions : (renewClient.totalSessions || 0));
@@ -790,12 +808,13 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
       packageName: renewFormData.packageName,
       remainingSessions: newRemaining,
       totalSessions: newTotal,
-      endDate: renewFormData.newEndDate,
+      endDate: finalEndDate,
+      expirationDate: finalEndDate,
       status: 'active',
       actionType: 'renew',
       actionSummary: isMonthly
-        ? `🔄 Gia hạn Khách Tháng: ${renewFormData.packageName} - Hạn HĐ mới: ${renewFormData.newEndDate} - TT: ${formattedPay}`
-        : `🔄 Gia hạn HĐ: ${renewFormData.packageName} (+${addSessions} buổi, còn ${newRemaining}/${newTotal}b) - Hạn HĐ mới: ${renewFormData.newEndDate} - TT: ${formattedPay}`
+        ? `🔄 Gia hạn Khách Tháng: ${renewFormData.packageName} - Hạn HĐ mới: ${finalEndDate} - TT: ${formattedPay}`
+        : `🔄 Gia hạn HĐ: ${renewFormData.packageName} (+${addSessions} buổi, còn ${newRemaining}/${newTotal}b) - Hạn HĐ mới: ${finalEndDate} - TT: ${formattedPay}`
     });
 
     if (selectedClient && selectedClient.id === renewClient.id) {
@@ -804,14 +823,13 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
         packageName: renewFormData.packageName,
         remainingSessions: newRemaining,
         totalSessions: newTotal,
-        endDate: renewFormData.newEndDate,
+        endDate: finalEndDate,
+        expirationDate: finalEndDate,
         status: 'active'
       });
     }
 
-    const payDateFormatted = new Date(renewFormData.paymentDate).toLocaleDateString('vi-VN', {
-      day: '2-digit', month: '2-digit', year: 'numeric'
-    });
+    const payDateFormatted = formatDate(renewFormData.paymentDate);
     const nowTime = new Date().toLocaleTimeString('vi-VN', {
       hour: '2-digit', minute: '2-digit'
     });
@@ -822,7 +840,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
       amountPaid: payAmount,
       addedSessions: addSessions,
       totalRemainingSessions: newRemaining,
-      newExpirationDate: renewFormData.newEndDate ? new Date(renewFormData.newEndDate).toLocaleDateString('vi-VN') : '',
+      newExpirationDate: finalEndDate,
       createdAt: `${payDateFormatted} ${nowTime}`
     });
 
@@ -1580,6 +1598,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                 const isSelected = selectedClient?.id === client.id;
                 const originalIdx = clients.findIndex(c => c.id === client.id);
                 const codeHV = `HV-${1000 + (clients.length - (originalIdx !== -1 ? originalIdx : idx))}`;
+                const statusInfo = getClientContractStatus(client);
                 return (
                   <div
                     key={client.id}
@@ -1587,9 +1606,13 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                     
                     title="Click để mở chi tiết"
                     className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer ${
+                      statusInfo.borderClass ? statusInfo.borderClass : ''
+                    } ${
                       isSelected
                         ? 'bg-gradient-to-br from-indigo-50/95 via-indigo-50/70 to-slate-50 border-indigo-500 ring-2 ring-indigo-500/30 shadow-md'
-                        : 'bg-gradient-to-br from-slate-50/90 via-slate-100/60 to-slate-50 border-slate-300 hover:border-indigo-400 hover:bg-white shadow-sm hover:shadow-md'
+                        : statusInfo.borderClass
+                          ? 'border-slate-300 hover:border-indigo-400 shadow-sm hover:shadow-md'
+                          : 'bg-gradient-to-br from-slate-50/90 via-slate-100/60 to-slate-50 border-slate-300 hover:border-indigo-400 hover:bg-white shadow-sm hover:shadow-md'
                     }`}
                   >
                     {/* Top Row: Avatar + Name + Badges + Status */}
@@ -1738,12 +1761,15 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                     const isSelected = selectedClient?.id === client.id;
                     const originalIdx = clients.findIndex(c => c.id === client.id);
                     const codeHV = `HV-${1000 + (clients.length - (originalIdx !== -1 ? originalIdx : idx))}`;
+                    const statusInfo = getClientContractStatus(client);
                     return (
                       <tr 
                         key={client.id}
                         onClick={() => { setSelectedClient(client); setIsDetailModalOpen(true); }}
                         title="Click để mở chi tiết"
                         className={`hover:bg-indigo-50/50 transition-colors cursor-pointer ${
+                          statusInfo.borderClass ? statusInfo.borderClass : ''
+                        } ${
                           isSelected ? 'bg-indigo-50/80 font-medium' : ''
                         }`}
                       >
@@ -1969,6 +1995,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
             ) : (
               filteredClients.map(client => {
                 const isSelected = selectedClient?.id === client.id;
+                const statusInfo = getClientContractStatus(client);
                 return (
                   <div
                     key={client.id}
@@ -1976,9 +2003,13 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                     
                     title="Click để mở chi tiết"
                     className={`p-3 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
+                      statusInfo.borderClass ? statusInfo.borderClass : ''
+                    } ${
                       isSelected 
-                        ? 'bg-gradient-to-r from-indigo-100/90 via-indigo-50 to-slate-50 border-indigo-600 shadow-md ring-2 ring-indigo-400/30' 
-                        : 'bg-slate-100/80 border-slate-300 hover:bg-white hover:border-indigo-300 shadow-2xs'
+                        ? 'border-indigo-600 shadow-md ring-2 ring-indigo-400/30 bg-indigo-50/90' 
+                        : statusInfo.borderClass
+                          ? 'border-slate-300 hover:border-indigo-300 shadow-2xs'
+                          : 'bg-slate-100/80 border-slate-300 hover:bg-white hover:border-indigo-300 shadow-2xs'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -3992,17 +4023,17 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                 <Trash2 className="w-6 h-6 text-red-600" />
               </div>
               <div>
-                <h3 className="text-lg font-extrabold text-slate-900">Xác nhận xóa hội viên</h3>
-                <p className="text-xs text-slate-500 font-medium">Lưu vào lịch sử thao tác (có thể khôi phục)</p>
+                <h3 className="text-lg font-extrabold text-slate-900">Xóa liên hoàn học viên</h3>
+                <p className="text-xs text-red-600 font-semibold">Cascade Purge Delete • Xóa sạch 100% dữ liệu phái sinh</p>
               </div>
             </div>
 
             <div className="p-4 bg-red-50/80 border border-red-100 rounded-2xl space-y-2">
               <p className="text-sm font-bold text-slate-800">
-                Bạn có chắc chắn muốn xóa hội viên <span className="text-red-600 font-black">"{clientToDelete.name}"</span>?
+                Bạn có chắc chắn muốn xóa học viên <span className="text-red-600 font-black">"{clientToDelete.name}"</span>?
               </p>
               <p className="text-xs text-slate-600 leading-relaxed">
-                🔒 <strong>Yêu cầu xác thực:</strong> Để thực hiện xóa hội viên, vui lòng nhập mật khẩu xác nhận. Dữ liệu sau khi xóa có thể hoàn tác trong Lịch sử thao tác.
+                🔒 <strong>Cơ chế Cascade Purge:</strong> Hệ thống sẽ xóa sạch tài liệu học viên, toàn bộ lịch sử điểm danh, lịch tập, và các phiếu thu học phí thuộc về học viên này trong phòng tập. Khoản tiền này sẽ được tự động trừ khỏi <strong>Tổng Doanh Thu & Lợi Nhuận ròng</strong> tức thì.
               </p>
             </div>
 
@@ -4019,7 +4050,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                   setDeletePassword(e.target.value);
                   setDeletePasswordError(false);
                 }}
-                onKeyDown={(e) => {
+                onKeyDown={async (e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
                     const validAdminPass = currentUser?.password;
@@ -4030,7 +4061,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                     }
                     const targetName = clientToDelete.name;
                     const targetId = clientToDelete.id;
-                    deleteClient(targetId);
+                    await deleteClient(targetId);
                     if (selectedClient?.id === targetId) {
                       setSelectedClient(null);
                     }
@@ -4038,7 +4069,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                     setClientToDelete(null);
                     setDeletePassword('');
                     setDeletePasswordError(false);
-                    setDeleteSuccessToast(`Đã xóa hội viên "${targetName}". Dữ liệu đã được lưu trong Lịch sử thao tác.`);
+                    setDeleteSuccessToast(`Đã xóa vĩnh viễn học viên "${targetName}" cùng toàn bộ lịch sử check-in, lịch tập và giao dịch thu chi liên quan.`);
                     setTimeout(() => setDeleteSuccessToast(null), 6000);
                   }
                 }}
@@ -4069,7 +4100,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
               </button>
               <button
                 type="button"
-                onClick={() => {
+                onClick={async () => {
                   const validAdminPass = currentUser?.password;
                   const enteredPass = deletePassword.trim();
                   if (enteredPass !== validAdminPass && enteredPass !== localStorage.getItem('nb_gym_admin_password')) {
@@ -4078,7 +4109,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                   }
                   const targetName = clientToDelete.name;
                   const targetId = clientToDelete.id;
-                  deleteClient(targetId);
+                  await deleteClient(targetId);
                   if (selectedClient?.id === targetId) {
                     setSelectedClient(null);
                   }
@@ -4086,7 +4117,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                   setClientToDelete(null);
                   setDeletePassword('');
                   setDeletePasswordError(false);
-                  setDeleteSuccessToast(`Đã xóa hội viên "${targetName}". Dữ liệu đã được lưu trong Lịch sử thao tác.`);
+                  setDeleteSuccessToast(`Đã xóa vĩnh viễn học viên "${targetName}" cùng toàn bộ lịch sử check-in, lịch tập và giao dịch thu chi liên quan.`);
                   setTimeout(() => setDeleteSuccessToast(null), 6000);
                 }}
                 className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-extrabold shadow-md shadow-red-200 transition-all active:scale-95 flex items-center gap-1.5"

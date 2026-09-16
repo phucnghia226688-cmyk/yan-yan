@@ -1,8 +1,8 @@
-import { getTodayDateStr, parseDateLocal, getVNDate } from '../utils/dateUtils';
+import { getTodayDateStr, parseDateLocal, getVNDate, getClientContractStatus, formatDate } from '../utils/dateUtils';
 
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { collection, onSnapshot, doc, setDoc, deleteDoc, getDocs, query, where, orderBy, limit, Query, QuerySnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc, deleteDoc, getDocs, query, where, orderBy, limit, Query, QuerySnapshot, writeBatch } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { auth } from '../lib/firebase';
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
@@ -52,7 +52,12 @@ interface GymContextType {
   updateCheckIn: (id: string, updates: Partial<CheckInLog>) => void;
   addClient: (client: Omit<Client, 'id' | 'status' | 'bodyMetrics'> & { initialAmountVnd?: number; paymentMethod?: 'Tiền mặt' | 'Chuyển khoản' | 'Thẻ' }) => void;
   updateClient: (id: string, updates: Partial<Client> & { actionSummary?: string; actionType?: 'edit' | 'renew' | 'cancel' | 'status' | 'create' }) => void;
-  deleteClient: (id: string) => void;
+  deleteClient: (id: string) => Promise<void> | void;
+  cleanupOrphanedRecords: (targetTenantOverride?: string) => Promise<{
+    purgedPayments: number;
+    purgedCheckIns: number;
+    purgedAppointments: number;
+  }>;
   addBodyMetric: (clientId: string, metric: Omit<BodyMetricEntry, 'id'>) => void;
   
   saveProgram: (program: WorkoutProgram) => void;
@@ -886,25 +891,15 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const updatedHistory = [historyEntry, ...(c.editHistory || [])];
 
         const updated = { ...c, ...cleanUpdates, editHistory: updatedHistory };
-        if (updated.clientType === 'monthly') {
-          if (updated.status !== 'paused' && updated.status !== 'closed') {
-            const todayStr = getTodayDateStr();
-            if (updated.endDate && updated.endDate < todayStr) {
-              updated.status = 'expired';
-            } else if (updated.endDate) {
-              const endMs = new Date(updated.endDate).getTime();
-              const nowMs = new Date().getTime();
-              const daysLeft = Math.ceil((endMs - nowMs) / (1000 * 3600 * 24));
-              if (daysLeft <= 7) updated.status = 'expiring';
-              else updated.status = 'active';
-            } else {
-              updated.status = 'active';
-            }
-          }
-        } else {
-          if (updated.remainingSessions <= 0 && updated.status !== 'paused' && updated.status !== 'closed') updated.status = 'expired';
-          else if (updated.remainingSessions <= 3 && updated.status !== 'paused' && updated.status !== 'closed') updated.status = 'expiring';
-          else if (updated.remainingSessions > 3 && updated.status !== 'paused' && updated.status !== 'expired' && updated.status !== 'closed') updated.status = 'active';
+
+        if (updated.endDate) {
+          updated.endDate = formatDate(updated.endDate);
+          updated.expirationDate = updated.endDate;
+        }
+
+        if (updated.status !== 'paused' && updated.status !== 'closed') {
+          const contractStatus = getClientContractStatus(updated);
+          updated.status = contractStatus.status;
         }
 
         updatedResultClient = updated;
@@ -1016,47 +1011,242 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const deleteClient = (id: string) => {
+  const deleteClient = async (id: string) => {
     const targetClient = clients.find(c => c.id === id);
     if (!targetClient) return;
 
-    const targetAppointments = appointments.filter(a => a.clientId === id);
-    const targetProgram = programs.find(p => p.clientId === id);
-    const targetPayments = payments.filter(p => p.clientId === id);
-    const targetCheckIns = checkIns.filter(ci => ci.clientId === id);
+    // Strict Tenant Isolation: determine the target tenant ID
+    const targetTenantId = (currentUser && !isMasterAdmin)
+      ? (currentUser.tenantId || 'default')
+      : (targetClient.tenantId || activeTenantId || currentTenant || 'default');
 
-    // Delete client from clients
-    setClients(prev => prev.filter(c => c.id !== id));
-    removeFromCloud('clients', id);
-
-    // Delete associated appointments
-    targetAppointments.forEach(a => removeFromCloud('appointments', a.id));
-    setAppointments(prev => prev.filter(a => a.clientId !== id));
-
-    // Delete associated payments
-    targetPayments.forEach(p => removeFromCloud('payments', p.id));
-    setPayments(prev => prev.filter(p => p.clientId !== id));
-
-    // Delete associated checkIns
-    targetCheckIns.forEach(ci => removeFromCloud('checkIns', ci.id));
-    setCheckIns(prev => prev.filter(ci => ci.clientId !== id));
-
-    // Delete associated program
-    if (targetProgram) {
-      deleteProgram(targetProgram.id);
+    // Tenant Isolation Check: Non-master admins cannot delete data belonging to other tenants
+    if (!isMasterAdmin && (targetClient.tenantId || 'default') !== targetTenantId) {
+      console.warn('[Tenant Isolation] Access denied: cannot delete client belonging to another tenant.');
+      return;
     }
 
+    // 1. Identify all associated derivative records strictly matching this clientId AND targetTenantId
+    const targetAppointments = appointments.filter(a => 
+      a.clientId === id && (a.tenantId || 'default') === targetTenantId
+    );
+    const targetPayments = payments.filter(p => 
+      p.clientId === id && (p.tenantId || 'default') === targetTenantId
+    );
+    const targetCheckIns = checkIns.filter(ci => 
+      ci.clientId === id && (ci.tenantId || 'default') === targetTenantId
+    );
+    const targetPrograms = programs.filter(p => 
+      p.clientId === id && (p.tenantId || 'default') === targetTenantId
+    );
+    const targetPdfDocs = pdfDocuments.filter(pdf => 
+      pdf.clientId === id && (pdf.tenantId || 'default') === targetTenantId
+    );
+
+    // 2. SYNCHRONOUS REAL-TIME STATE PURGE (Zero delay, instant UI response without F5)
+    setClients(prev => prev.filter(c => c.id !== id));
+    setPayments(prev => prev.filter(p => !(p.clientId === id && (p.tenantId || 'default') === targetTenantId)));
+    setCheckIns(prev => prev.filter(ci => !(ci.clientId === id && (ci.tenantId || 'default') === targetTenantId)));
+    setAppointments(prev => prev.filter(a => !(a.clientId === id && (a.tenantId || 'default') === targetTenantId)));
+    setPrograms(prev => prev.filter(pr => !(pr.clientId === id && (pr.tenantId || 'default') === targetTenantId)));
+    setPdfDocuments(prev => prev.filter(pdf => !(pdf.clientId === id && (pdf.tenantId || 'default') === targetTenantId)));
+
+    // 3. IMMEDIATE LOCAL STORAGE CACHE SYNCHRONIZATION
+    try {
+      const updatedClients = clients.filter(c => c.id !== id);
+      const updatedPayments = payments.filter(p => !(p.clientId === id && (p.tenantId || 'default') === targetTenantId));
+      const updatedCheckIns = checkIns.filter(ci => !(ci.clientId === id && (ci.tenantId || 'default') === targetTenantId));
+      const updatedAppointments = appointments.filter(a => !(a.clientId === id && (a.tenantId || 'default') === targetTenantId));
+      const updatedPrograms = programs.filter(pr => !(pr.clientId === id && (pr.tenantId || 'default') === targetTenantId));
+      const updatedPdfDocs = pdfDocuments.filter(pdf => !(pdf.clientId === id && (pdf.tenantId || 'default') === targetTenantId));
+
+      localStorage.setItem(`${STORAGE_KEYS.CLIENTS}_${targetTenantId}`, JSON.stringify(updatedClients));
+      localStorage.setItem(`${STORAGE_KEYS.PAYMENTS}_${targetTenantId}`, JSON.stringify(updatedPayments));
+      localStorage.setItem(`${STORAGE_KEYS.CHECKINS}_${targetTenantId}`, JSON.stringify(updatedCheckIns));
+      localStorage.setItem(`${STORAGE_KEYS.APPOINTMENTS}_${targetTenantId}`, JSON.stringify(updatedAppointments));
+      localStorage.setItem(`${STORAGE_KEYS.PROGRAMS}_${targetTenantId}`, JSON.stringify(updatedPrograms));
+      localStorage.setItem(`${STORAGE_KEYS.PDF_DOCS}_${targetTenantId}`, JSON.stringify(updatedPdfDocs));
+    } catch (lsErr) {
+      console.warn('Error updating localStorage on cascade delete:', lsErr);
+    }
+
+    // 4. AUDIT LOGGING: Ghi 1 bản ghi duy nhất vào auditLogs kèm tenantId
     addAuditLog(
       'DELETE_CLIENT',
       targetClient.name,
-      `🗑️ Đã xóa học viên: ${targetClient.name} (${targetClient.packageName || 'Gói PT'} - còn ${targetClient.remainingSessions} buổi)`,
-      `SĐT: ${targetClient.phone} • Hạn HĐ: ${targetClient.endDate || 'Chưa có'}`,
+      `Đã xóa vĩnh viễn học viên ${targetClient.name} cùng toàn bộ lịch sử check-in, lịch tập và giao dịch thu chi liên quan`,
+      `Gói: ${targetClient.packageName || 'Gói PT'} • SĐT: ${targetClient.phone || 'Chưa có'} • Đã xóa ${targetPayments.length} phiếu thu, ${targetCheckIns.length} lượt check-in, ${targetAppointments.length} lịch tập`,
       {
         client: targetClient,
         appointmentsList: targetAppointments,
-        program: targetProgram
+        program: targetPrograms[0]
       }
     );
+
+    // 5. ATOMIC CASCADE PURGE VIA FIRESTORE writeBatch
+    if (db && !isFirestoreQuotaExceeded) {
+      try {
+        const docRefsToDelete: any[] = [];
+        
+        // Client document
+        docRefsToDelete.push(doc(db, 'clients', id));
+
+        // Known local items
+        targetPayments.forEach(p => docRefsToDelete.push(doc(db, 'payments', p.id)));
+        targetCheckIns.forEach(ci => docRefsToDelete.push(doc(db, 'checkIns', ci.id)));
+        targetAppointments.forEach(a => docRefsToDelete.push(doc(db, 'appointments', a.id)));
+        targetPrograms.forEach(pr => docRefsToDelete.push(doc(db, 'programs', pr.id)));
+        targetPdfDocs.forEach(pdf => docRefsToDelete.push(doc(db, 'pdfDocuments', pdf.id)));
+
+        // Deep Cloud query across collections for this clientId & targetTenantId to catch any cloud records
+        const collectionsToQuery = ['payments', 'checkIns', 'appointments', 'programs', 'pdfDocuments'];
+        for (const colName of collectionsToQuery) {
+          try {
+            const q = query(
+              collection(db, colName),
+              where('clientId', '==', id),
+              where('tenantId', '==', targetTenantId)
+            );
+            const snap = await getDocs(q);
+            snap.docs.forEach(d => {
+              if (!docRefsToDelete.some(ref => ref.path === d.ref.path)) {
+                docRefsToDelete.push(d.ref);
+              }
+            });
+          } catch (colErr) {
+            console.warn(`Firestore query for cascade purge on ${colName} error:`, colErr);
+          }
+        }
+
+        // Execute in batches of up to 400 (Firestore writeBatch limit is 500)
+        const BATCH_SIZE = 400;
+        for (let i = 0; i < docRefsToDelete.length; i += BATCH_SIZE) {
+          const batch = writeBatch(db);
+          const chunk = docRefsToDelete.slice(i, i + BATCH_SIZE);
+          chunk.forEach(dRef => batch.delete(dRef));
+          await batch.commit();
+        }
+        console.log(`[Cascade Purge] Successfully deleted ${docRefsToDelete.length} documents for client ${targetClient.name} (Tenant: ${targetTenantId})`);
+      } catch (cloudErr) {
+        console.warn('Firestore cascade writeBatch error:', cloudErr);
+      }
+    }
+  };
+
+  /**
+   * TỰ ĐỘNG DỌN DẸP DỮ LIỆU RÁC CŨ (AUTO-CLEANUP ORPHANED RECORDS):
+   * Tự động đối chiếu các phiếu thu trong payments, lượt check-in trong checkIns, và lịch trong appointments.
+   * Nếu phát hiện bản ghi nào có clientId không còn tồn tại trong danh sách clients của tenant đó,
+   * hệ thống lập tức dọn sạch khỏi database và cập nhật lại biểu đồ/thống kê tài chính tức thì.
+   */
+  const cleanupOrphanedRecords = async (targetTenantOverride?: string): Promise<{
+    purgedPayments: number;
+    purgedCheckIns: number;
+    purgedAppointments: number;
+  }> => {
+    const effectiveTenant = (!isMasterAdmin && currentUser)
+      ? (currentUser.tenantId || 'default')
+      : (targetTenantOverride || activeTenantId || currentTenant || 'default');
+
+    // Only perform check if clients are loaded
+    const tenantClients = clients.filter(c => (c.tenantId || 'default') === effectiveTenant);
+    const validClientIds = new Set(tenantClients.map(c => c.id));
+
+    // 1. Orphaned payments: has clientId, but client does not exist in this tenant
+    const orphanedPayments = payments.filter(p => {
+      const pTenant = p.tenantId || 'default';
+      if (pTenant !== effectiveTenant) return false;
+      if (p.clientId && p.clientId.trim() !== '') {
+        return !validClientIds.has(p.clientId);
+      }
+      return false;
+    });
+
+    // 2. Orphaned checkIns
+    const orphanedCheckIns = checkIns.filter(ci => {
+      const ciTenant = ci.tenantId || 'default';
+      if (ciTenant !== effectiveTenant) return false;
+      if (ci.clientId && ci.clientId.trim() !== '') {
+        return !validClientIds.has(ci.clientId);
+      }
+      return false;
+    });
+
+    // 3. Orphaned appointments
+    const orphanedAppointments = appointments.filter(a => {
+      const aTenant = a.tenantId || 'default';
+      if (aTenant !== effectiveTenant) return false;
+      if (a.clientId && a.clientId.trim() !== '') {
+        return !validClientIds.has(a.clientId);
+      }
+      return false;
+    });
+
+    const totalOrphaned = orphanedPayments.length + orphanedCheckIns.length + orphanedAppointments.length;
+    if (totalOrphaned === 0) {
+      return { purgedPayments: 0, purgedCheckIns: 0, purgedAppointments: 0 };
+    }
+
+    console.log(`[Auto-Cleanup] Detected ${totalOrphaned} orphaned records in tenant ${effectiveTenant}:`, {
+      payments: orphanedPayments.length,
+      checkIns: orphanedCheckIns.length,
+      appointments: orphanedAppointments.length
+    });
+
+    const orphanedPaymentIds = new Set(orphanedPayments.map(p => p.id));
+    const orphanedCheckInIds = new Set(orphanedCheckIns.map(ci => ci.id));
+    const orphanedAppointmentIds = new Set(orphanedAppointments.map(a => a.id));
+
+    // 1. Synchronous state purge for instant UI updates
+    if (orphanedPayments.length > 0) {
+      setPayments(prev => prev.filter(p => !orphanedPaymentIds.has(p.id)));
+    }
+    if (orphanedCheckIns.length > 0) {
+      setCheckIns(prev => prev.filter(ci => !orphanedCheckInIds.has(ci.id)));
+    }
+    if (orphanedAppointments.length > 0) {
+      setAppointments(prev => prev.filter(a => !orphanedAppointmentIds.has(a.id)));
+    }
+
+    // 2. Synchronize localStorage
+    try {
+      const updatedPayments = payments.filter(p => !orphanedPaymentIds.has(p.id));
+      const updatedCheckIns = checkIns.filter(ci => !orphanedCheckInIds.has(ci.id));
+      const updatedAppointments = appointments.filter(a => !orphanedAppointmentIds.has(a.id));
+
+      localStorage.setItem(`${STORAGE_KEYS.PAYMENTS}_${effectiveTenant}`, JSON.stringify(updatedPayments));
+      localStorage.setItem(`${STORAGE_KEYS.CHECKINS}_${effectiveTenant}`, JSON.stringify(updatedCheckIns));
+      localStorage.setItem(`${STORAGE_KEYS.APPOINTMENTS}_${effectiveTenant}`, JSON.stringify(updatedAppointments));
+    } catch (lsErr) {
+      console.warn('LocalStorage error during orphan cleanup:', lsErr);
+    }
+
+    // 3. Batch delete from Firestore
+    if (db && !isFirestoreQuotaExceeded) {
+      try {
+        const docRefsToDelete: any[] = [];
+        orphanedPayments.forEach(p => docRefsToDelete.push(doc(db, 'payments', p.id)));
+        orphanedCheckIns.forEach(ci => docRefsToDelete.push(doc(db, 'checkIns', ci.id)));
+        orphanedAppointments.forEach(a => docRefsToDelete.push(doc(db, 'appointments', a.id)));
+
+        const BATCH_SIZE = 400;
+        for (let i = 0; i < docRefsToDelete.length; i += BATCH_SIZE) {
+          const batch = writeBatch(db);
+          const chunk = docRefsToDelete.slice(i, i + BATCH_SIZE);
+          chunk.forEach(dRef => batch.delete(dRef));
+          await batch.commit();
+        }
+        console.log(`[Auto-Cleanup] Successfully wiped ${docRefsToDelete.length} orphaned documents from Firestore.`);
+      } catch (cloudErr) {
+        console.warn('Firestore auto-cleanup writeBatch error:', cloudErr);
+      }
+    }
+
+    return {
+      purgedPayments: orphanedPayments.length,
+      purgedCheckIns: orphanedCheckIns.length,
+      purgedAppointments: orphanedAppointments.length
+    };
   };
 
   const addBodyMetric = (clientId: string, metric: Omit<BodyMetricEntry, 'id'>) => {
@@ -1133,12 +1323,23 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const addPayment = (paymentData: Omit<PaymentRecord, 'id'>) => {
+    const targetTenantId = (paymentData as any).tenantId || currentTenant;
     const newPayment: PaymentRecord = {
       ...paymentData,
+      tenantId: targetTenantId,
       id: `pay-${Date.now()}`
     };
     setPayments(prev => [newPayment, ...prev]);
     saveToCloud('payments', newPayment);
+
+    // Audit log for payment
+    addAuditLog(
+      'ADD_PAYMENT',
+      paymentData.clientName || 'Khách hàng',
+      `💰 Ghi nhận phiếu thu: ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(paymentData.amountVnd || 0)}`,
+      `Gói: ${paymentData.packageName || 'Gói tập'} • PT: ${paymentData.paymentMethod} • Ngày: ${formatDate(paymentData.paymentDate)}`,
+      { payment: newPayment }
+    );
 
     // If payment adds sessions, update client's remaining and total sessions!
     if (paymentData.clientId && paymentData.sessionsCount > 0 && !paymentData.skipSessionUpdate) {
@@ -1146,15 +1347,15 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (c.id === paymentData.clientId) {
           const newRemaining = c.remainingSessions + paymentData.sessionsCount;
           const newTotal = paymentData.sessionsCount;
-          let newStatus = c.status;
-          if (newRemaining > 3) newStatus = 'active';
           const updated = {
             ...c,
             packageName: paymentData.packageName || c.packageName,
             totalSessions: newTotal,
-            remainingSessions: newRemaining,
-            status: newStatus
+            remainingSessions: newRemaining
           };
+          if (updated.status !== 'paused' && updated.status !== 'closed') {
+            updated.status = getClientContractStatus(updated).status;
+          }
           saveToCloud('clients', updated);
           return updated;
         }
@@ -1807,6 +2008,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addClient,
       updateClient,
       deleteClient,
+      cleanupOrphanedRecords,
       addBodyMetric,
       saveProgram,
       deleteProgram,

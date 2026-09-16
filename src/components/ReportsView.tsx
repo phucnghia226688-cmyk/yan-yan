@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -43,8 +43,13 @@ interface ReportsViewProps {
 }
 
 export const ReportsView: React.FC<ReportsViewProps> = ({ onNavigateTab }) => {
-  const { clients, payments, expenses } = useGym();
+  const { clients, payments, expenses, cleanupOrphanedRecords } = useGym();
   const { currentUser, isMasterAdmin, tenants } = useTenant();
+
+  // Auto-cleanup orphaned records on mount or tenant switch
+  useEffect(() => {
+    cleanupOrphanedRecords();
+  }, [currentUser?.tenantId]);
 
   // Multi-tenant selection (Master Admin only)
   const [selectedTenantFilter, setSelectedTenantFilter] = useState<string>('all');
@@ -82,14 +87,21 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ onNavigateTab }) => {
     return selectedTenantFilter; // 'all' or specific tenantId
   }, [isMasterAdmin, currentUser, selectedTenantFilter]);
 
+  const validClientIds = useMemo(() => new Set((clients || []).map(c => c.id)), [clients]);
+
   // Filter raw data strictly by tenant
   const tenantFilteredPayments = useMemo(() => {
     return (payments || []).filter(p => {
-      if (isMasterAdmin && effectiveTenantId === 'all') return true;
-      const pTenant = p.tenantId || 'default';
-      return pTenant === effectiveTenantId;
+      if (!isMasterAdmin || effectiveTenantId !== 'all') {
+        const pTenant = p.tenantId || 'default';
+        if (pTenant !== effectiveTenantId) return false;
+      }
+      if (p.clientId && p.clientId.trim() !== '') {
+        if (clients.length > 0 && !validClientIds.has(p.clientId)) return false;
+      }
+      return true;
     });
-  }, [payments, isMasterAdmin, effectiveTenantId]);
+  }, [payments, clients, isMasterAdmin, effectiveTenantId, validClientIds]);
 
   const tenantFilteredExpenses = useMemo(() => {
     return (expenses || []).filter(e => {

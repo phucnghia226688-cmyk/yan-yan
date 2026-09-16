@@ -1,6 +1,6 @@
 import { getTodayDateStr, formatDate } from '../utils/dateUtils';
 import { removeAccents } from '../utils/textUtils';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   TrendingUp, 
   DollarSign, 
@@ -17,19 +17,42 @@ import {
   Edit3
 } from 'lucide-react';
 import { useGym } from '../context/GymContext';
+import { useTenant } from '../context/TenantContext';
 import { PaymentRecord } from '../types';
 import { RenewalReceiptModal, RenewalReceiptData } from './RenewalReceiptModal';
 import { EditPaymentAmountModal } from './EditPaymentAmountModal';
 import { ImageIcon } from 'lucide-react';
 
 export const RevenueView: React.FC = () => {
-  const { payments, clients, addPayment, deletePayment } = useGym();
+  const { payments, clients, addPayment, deletePayment, cleanupOrphanedRecords } = useGym();
+  const { currentUser, isMasterAdmin } = useTenant();
+
+  // Auto trigger orphan record cleanup when revenue view loads
+  useEffect(() => {
+    cleanupOrphanedRecords();
+  }, [currentUser?.tenantId]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPeriod, setFilterPeriod] = useState<'month' | 'year' | 'all'>('month');
   const [isAddPaymentModalOpen, setIsAddPaymentModalOpen] = useState(false);
   const [renewalReceiptData, setRenewalReceiptData] = useState<RenewalReceiptData | null>(null);
   const [editingPaymentAmount, setEditingPaymentAmount] = useState<PaymentRecord | null>(null);
+
+  const validClientIds = useMemo(() => new Set((clients || []).map(c => c.id)), [clients]);
+
+  // Tenant-scoped payments with orphan client validation
+  const tenantScopedPayments = useMemo(() => {
+    return (payments || []).filter(p => {
+      if (!isMasterAdmin) {
+        const pTenant = p.tenantId || 'default';
+        if (pTenant !== (currentUser?.tenantId || 'default')) return false;
+      }
+      if (p.clientId && p.clientId.trim() !== '') {
+        if (clients.length > 0 && !validClientIds.has(p.clientId)) return false;
+      }
+      return true;
+    });
+  }, [payments, clients, isMasterAdmin, currentUser?.tenantId, validClientIds]);
 
   const handleOpenReceipt = (payment: PaymentRecord) => {
     const payDateFormatted = formatDate(payment.paymentDate);
@@ -116,7 +139,7 @@ export const RevenueView: React.FC = () => {
   };
 
   // Filter payments
-  const filteredPayments = payments.filter(p => {
+  const filteredPayments = tenantScopedPayments.filter(p => {
     const searchNormalized = removeAccents(searchQuery.trim().toLowerCase());
     const nameNormalized = removeAccents(p.clientName.toLowerCase());
     const packageNormalized = removeAccents(p.packageName.toLowerCase());
@@ -135,18 +158,18 @@ export const RevenueView: React.FC = () => {
   });
 
   // Totals
-  const totalRevenueMonth = payments
+  const totalRevenueMonth = tenantScopedPayments
     .filter(p => {
       const d = new Date(p.paymentDate);
       return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
     })
     .reduce((sum, p) => sum + p.amountVnd, 0);
 
-  const totalRevenueYear = payments
+  const totalRevenueYear = tenantScopedPayments
     .filter(p => new Date(p.paymentDate).getFullYear() === currentYear)
     .reduce((sum, p) => sum + p.amountVnd, 0);
 
-  const totalRevenueAll = payments.reduce((sum, p) => sum + p.amountVnd, 0);
+  const totalRevenueAll = tenantScopedPayments.reduce((sum, p) => sum + p.amountVnd, 0);
 
   const formatVnd = (num: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num);

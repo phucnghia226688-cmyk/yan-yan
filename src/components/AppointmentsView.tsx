@@ -1,5 +1,5 @@
 import { getTodayDateStr, getVNDateStr, parseDateLocal, getVNDate } from '../utils/dateUtils';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Calendar as CalendarIcon, 
   Clock, 
@@ -55,8 +55,14 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
     deleteAppointment, 
     checkInClient,
     checkIns,
-    cancelCheckIn
+    cancelCheckIn,
+    cleanupOrphanedRecords
   } = useGym();
+
+  // Auto trigger orphan record cleanup on Appointments view load
+  useEffect(() => {
+    cleanupOrphanedRecords();
+  }, []);
 
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDateStr());
   const [showQuickStats, setShowQuickStats] = useState<boolean>(true);
