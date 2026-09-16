@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { collection, onSnapshot, doc, setDoc, deleteDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { TenantAccount } from '../types';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, setPersistence, browserSessionPersistence } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
@@ -61,8 +61,10 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const isMasterAdmin = currentUser?.role === 'admin' || currentUser?.username?.toLowerCase() === 'admin' || currentUser?.tenantId === 'master-admin';
 
   const [activeTenantId, setActiveTenantIdState] = useState<string>(() => {
-    return currentUser?.tenantId || 'default';
+    return currentUser?.tenantId || (isMasterAdmin ? 'master-admin' : 'default');
   });
+
+  const isAutoReauthingRef = useRef<boolean>(false);
 
   const setActiveTenantId = (id: string) => {
     if (isMasterAdmin) {
@@ -85,7 +87,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [currentUser, isMasterAdmin]);
 
-  // Validate session against cloud on mount
+  // Validate session against cloud on mount & auto-reconnect Firebase Auth across devices
   useEffect(() => {
     if (!db) return;
     let unsubSnapshot: (() => void) | undefined;
@@ -188,6 +190,32 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
       } else {
         if (unsubSnapshot) unsubSnapshot();
+
+        // If auth user is null but we have active currentUser in storage (e.g. reopened phone browser)
+        const savedSession = localStorage.getItem(STORAGE_USER_SESSION_KEY);
+        if (savedSession && !isAutoReauthingRef.current) {
+          try {
+            const parsed = JSON.parse(savedSession) as TenantAccount;
+            if (parsed?.username && parsed?.password) {
+              isAutoReauthingRef.current = true;
+              console.log("Auto-reauthenticating Firebase Auth across devices for:", parsed.username);
+              const userEmail = parsed.username.includes('@') ? parsed.username.toLowerCase() : `${parsed.username.toLowerCase()}@nbgym.com`;
+              setPersistence(auth, browserLocalPersistence).then(() => {
+                return signInWithEmailAndPassword(auth, userEmail, parsed.password);
+              }).then(() => {
+                isAutoReauthingRef.current = false;
+              }).catch((err: any) => {
+                isAutoReauthingRef.current = false;
+                console.warn("Auto-reauth failed:", err?.code, err?.message);
+                if (err?.code === 'auth/wrong-password' || err?.code === 'auth/user-not-found' || err?.code === 'auth/invalid-credential') {
+                  logout();
+                }
+              });
+            }
+          } catch (e) {
+            isAutoReauthingRef.current = false;
+          }
+        }
       }
     });
 
@@ -208,9 +236,9 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     const userEmail = cleanUser.includes('@') ? cleanUser : cleanUser + '@nbgym.com';
       
-    // 1. Try to authenticate with Firebase Auth
+    // 1. Try to authenticate with Firebase Auth using persistent local cache (IndexedDB/LocalStorage)
     try {
-      await setPersistence(auth, browserSessionPersistence);
+      await setPersistence(auth, browserLocalPersistence);
       await signInWithEmailAndPassword(auth, userEmail, cleanPass);
     } catch (e: any) {
       console.warn("Firebase auth login failed:", e.code, e.message);
@@ -298,7 +326,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     localStorage.clear();
     sessionStorage.clear();
     setCurrentUser(null);
-    setActiveTenantIdState('default');
+    setActiveTenantIdState('master-admin');
   };
 
   const createTenant = async (data: {

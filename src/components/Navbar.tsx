@@ -59,7 +59,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectClient,
   onLogout
 }) => {
-  const { clients, payments, expenses, auditLogs, resetData, isCloudSynced, themeMode, toggleThemeMode } = useGym();
+  const { clients, payments, expenses, auditLogs, resetData, isCloudSynced, isSyncingCloud, manualSync, themeMode, toggleThemeMode } = useGym();
 
   // 1-Click Instant Gym Master Data Export
   const handleQuickExportGymMaster = () => {
@@ -268,14 +268,24 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div className="min-w-0">
                 <h1 className="text-base sm:text-lg font-black tracking-tight text-slate-900 flex flex-wrap items-center gap-1.5 leading-tight">
                   <span className="truncate">{(!currentUser?.gymName || currentUser?.gymName === 'NB PRIVATE GYM (Gốc)') ? 'NBFit Master' : currentUser.gymName}</span>
-                  <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded-full flex items-center gap-1 shadow-2xs whitespace-nowrap ${
-                    isCloudSynced 
-                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-300' 
-                      : 'bg-amber-50 text-amber-800 border border-amber-300'
-                  }`} title="Firebase Cloud Sync">
+                  <button
+                    type="button"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      await manualSync();
+                    }}
+                    disabled={isSyncingCloud}
+                    className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs whitespace-nowrap cursor-pointer transition-all hover:scale-105 active:scale-95 ${
+                      isCloudSynced 
+                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100' 
+                        : 'bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 animate-pulse'
+                    }`}
+                    title="Bấm vào để đồng bộ ngay lập tức dữ liệu giữa Điện thoại và Máy tính qua Firebase Cloud"
+                  >
                     <span className={`w-1.5 h-1.5 rounded-full ${isCloudSynced ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></span>
-                    {isCloudSynced ? 'Realtime Sync' : 'Connecting...'}
-                  </span>
+                    <span>{isSyncingCloud ? 'Đang đồng bộ...' : (isCloudSynced ? 'Đồng bộ Realtime' : 'Bấm để kết nối lại')}</span>
+                    <RefreshCw className={`w-2.5 h-2.5 ml-0.5 ${isSyncingCloud ? 'animate-spin' : ''}`} />
+                  </button>
                 </h1>
                 
                 {/* Owner info, date & Direct Zalo contact connection */}

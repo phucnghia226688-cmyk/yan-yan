@@ -90,6 +90,8 @@ interface GymContextType {
     pdfDocumentsCount?: number 
   };
   syncAllToCloud: () => Promise<void>;
+  isSyncingCloud: boolean;
+  manualSync: () => Promise<void>;
 }
 
 const STORAGE_KEYS = {
@@ -113,6 +115,7 @@ let isFirestoreQuotaExceeded = false;
 export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { activeTenantId, currentUser, isMasterAdmin, logout } = useTenant();
   const [isCloudSynced, setIsCloudSynced] = useState<boolean>(false);
+  const [isSyncingCloud, setIsSyncingCloud] = useState<boolean>(false);
 
   // Helper to safely load stored local data or auto-backup snapshot scoped by tenant
   const loadStoredData = <T extends { tenantId?: string }>(storageKey: string, colName: string, fallback: T[]): T[] => {
@@ -358,11 +361,11 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                   isFirestoreQuotaExceeded = true;
                   console.warn(`Firestore quota limit reached for ${colName}. Switching to local storage cache.`);
                 } else if (isPermissionDenied) {
-                  console.error(`Permission denied for ${colName}, forcing logout to refresh token`);
-                  localStorage.clear();
-                  logout();
-                  window.location.href = '/';
-                  return;
+                  console.warn(`Permission denied for ${colName}, attempting auth refresh without clearing local data`);
+                  if (!auth.currentUser && currentUser?.username && currentUser?.password) {
+                    const userEmail = currentUser.username.includes('@') ? currentUser.username.toLowerCase() : `${currentUser.username.toLowerCase()}@nbgym.com`;
+                    signInWithEmailAndPassword(auth, userEmail, currentUser.password).catch(() => {});
+                  }
                 } else {
                   console.warn(`Firestore sync warning for ${colName}:`, err);
                   if (!isFirestoreQuotaExceeded && retryCount < 3) {
@@ -413,19 +416,34 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const handleOnline = () => {
       setIsCloudSynced(true);
+      if (!auth.currentUser && currentUser?.username && currentUser?.password) {
+        const userEmail = currentUser.username.includes('@') ? currentUser.username.toLowerCase() : `${currentUser.username.toLowerCase()}@nbgym.com`;
+        signInWithEmailAndPassword(auth, userEmail, currentUser.password).catch(() => {});
+      }
     };
     const handleOffline = () => {
       setIsCloudSynced(false);
     };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        if (!auth.currentUser && currentUser?.username && currentUser?.password) {
+          const userEmail = currentUser.username.includes('@') ? currentUser.username.toLowerCase() : `${currentUser.username.toLowerCase()}@nbgym.com`;
+          signInWithEmailAndPassword(auth, userEmail, currentUser.password).catch(() => {});
+        }
+      }
+    };
     
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       unsubAuth();
       unsubscribers.forEach(unsub => unsub());
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [currentTenant, isMasterAdmin, currentUser?.username, currentUser?.password]);
 
@@ -1653,14 +1671,15 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const syncAllToCloud = async () => {
     try {
       const tId = currentTenant;
-      const tenantClients = clients.filter(c => (c.tenantId || 'default') === tId);
-      const tenantPrograms = programs.filter(p => (p.tenantId || 'default') === tId);
-      const tenantCheckIns = checkIns.filter(ci => (ci.tenantId || 'default') === tId);
-      const tenantPayments = payments.filter(p => (p.tenantId || 'default') === tId);
-      const tenantExpenses = expenses.filter(e => (e.tenantId || 'default') === tId);
-      const tenantAppointments = appointments.filter(a => (a.tenantId || 'default') === tId);
-      const tenantAuditLogs = auditLogs.filter(al => (al.tenantId || 'default') === tId);
-      const tenantPdfDocs = pdfDocuments.filter(d => (d.tenantId || 'default') === tId);
+      const isMaster = isMasterAdmin && (tId === 'master-admin' || tId === 'default');
+      const tenantClients = clients.filter(c => (c.tenantId || 'default') === tId || isMaster);
+      const tenantPrograms = programs.filter(p => (p.tenantId || 'default') === tId || isMaster);
+      const tenantCheckIns = checkIns.filter(ci => (ci.tenantId || 'default') === tId || isMaster);
+      const tenantPayments = payments.filter(p => (p.tenantId || 'default') === tId || isMaster);
+      const tenantExpenses = expenses.filter(e => (e.tenantId || 'default') === tId || isMaster);
+      const tenantAppointments = appointments.filter(a => (a.tenantId || 'default') === tId || isMaster);
+      const tenantAuditLogs = auditLogs.filter(al => (al.tenantId || 'default') === tId || isMaster);
+      const tenantPdfDocs = pdfDocuments.filter(d => (d.tenantId || 'default') === tId || isMaster);
 
       tenantClients.forEach(c => saveToCloud('clients', c));
       tenantPrograms.forEach(p => saveToCloud('programs', p));
@@ -1694,6 +1713,22 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setIsCloudSynced(true);
     } catch (err) {
       console.error('Failed to force sync all to cloud:', err);
+    }
+  };
+
+  const manualSync = async () => {
+    setIsSyncingCloud(true);
+    try {
+      if (!auth.currentUser && currentUser?.username && currentUser?.password) {
+        const email = currentUser.username.includes('@') ? currentUser.username.toLowerCase() : `${currentUser.username.toLowerCase()}@nbgym.com`;
+        await signInWithEmailAndPassword(auth, email, currentUser.password);
+      }
+      await syncAllToCloud();
+      setIsCloudSynced(true);
+    } catch (e) {
+      console.warn("Manual sync error:", e);
+    } finally {
+      setIsSyncingCloud(false);
     }
   };
 
@@ -1794,7 +1829,9 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       exportBackupJson,
       exportClientsCsv,
       importBackupJson,
-      syncAllToCloud
+      syncAllToCloud,
+      isSyncingCloud,
+      manualSync
     }}>
       {children}
     </GymContext.Provider>

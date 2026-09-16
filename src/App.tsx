@@ -167,11 +167,10 @@ const MainWrapper: React.FC = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(async () => {
         if (currentUser) {
-          alert("Phiên đăng nhập đã hết hạn do không có hoạt động trong 10 phút. Vui lòng đăng nhập lại.");
+          console.log("Phiên làm việc hết hạn sau 12 giờ không có hoạt động.");
           await logout();
-          window.location.reload();
         }
-      }, 10 * 60 * 1000); // 10 minutes
+      }, 12 * 60 * 60 * 1000); // 12 hours of complete inactivity
     };
 
     const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart', 'touchmove', 'touchend'];
