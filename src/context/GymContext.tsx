@@ -48,7 +48,16 @@ interface GymContextType {
   
   // Actions
   checkInClient: (clientId: string, dayPlanName?: string, notes?: string, customDate?: string) => CheckInLog | null;
+  checkInExtraService: (clientId: string, customDateTime?: string, notes?: string) => CheckInLog | null;
   cancelCheckIn: (checkInId: string) => void;
+  renewExtraService: (
+    clientId: string, 
+    additionalCount: number, 
+    priceVnd: number, 
+    paymentMethod?: 'Tiền mặt' | 'Chuyển khoản' | 'Thẻ', 
+    paymentDate?: string, 
+    notes?: string
+  ) => void;
   updateCheckIn: (id: string, updates: Partial<CheckInLog>) => void;
   addClient: (client: Omit<Client, 'id' | 'status' | 'bodyMetrics'> & { initialAmountVnd?: number; paymentMethod?: 'Tiền mặt' | 'Chuyển khoản' | 'Thẻ' }) => void;
   updateClient: (id: string, updates: Partial<Client> & { actionSummary?: string; actionType?: 'edit' | 'renew' | 'cancel' | 'status' | 'create' }) => void;
@@ -666,30 +675,162 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const targetLog = checkIns.find(ci => ci.id === checkInId);
     if (!targetLog) return;
 
-    // Refund 1 session to client if not monthly client
-    setClients(prev => prev.map(c => {
-      if (c.id === targetLog.clientId) {
-        const isMonthly = c.clientType === 'monthly';
-        const newRemaining = isMonthly ? c.remainingSessions : c.remainingSessions + 1;
-        let newStatus = c.status;
-        if (!isMonthly) {
-          if (newRemaining > 3) newStatus = 'active';
-          else if (newRemaining > 0) newStatus = 'expiring';
+    if (targetLog.type === 'extra_service') {
+      // Refund 1 extra service unit to client
+      setClients(prev => prev.map(c => {
+        if (c.id === targetLog.clientId) {
+          const newRemaining = (c.remainingExtraServices || 0) + 1;
+          const updated = {
+            ...c,
+            remainingExtraServices: newRemaining
+          };
+          saveToCloud('clients', updated);
+          return updated;
         }
-        const updated = {
-          ...c,
-          remainingSessions: newRemaining,
-          status: newStatus
-        };
-        saveToCloud('clients', updated);
-        return updated;
-      }
-      return c;
-    }));
+        return c;
+      }));
+
+      addAuditLog(
+        'CANCEL_CHECK_IN',
+        targetLog.clientName,
+        `↩️ Hủy check-in dịch vụ thêm của ${targetLog.clientName} (${targetLog.serviceName || targetLog.dayPlanName}) - Hoàn lại +1 suất`,
+        targetLog.notes
+      );
+    } else {
+      // Refund 1 session to client if not monthly client
+      setClients(prev => prev.map(c => {
+        if (c.id === targetLog.clientId) {
+          const isMonthly = c.clientType === 'monthly';
+          const newRemaining = isMonthly ? c.remainingSessions : c.remainingSessions + 1;
+          let newStatus = c.status;
+          if (!isMonthly) {
+            if (newRemaining > 3) newStatus = 'active';
+            else if (newRemaining > 0) newStatus = 'expiring';
+          }
+          const updated = {
+            ...c,
+            remainingSessions: newRemaining,
+            status: newStatus
+          };
+          saveToCloud('clients', updated);
+          return updated;
+        }
+        return c;
+      }));
+
+      addAuditLog(
+        'CANCEL_CHECK_IN',
+        targetLog.clientName,
+        `↩️ Hủy check-in buổi tập của ${targetLog.clientName} (${targetLog.dayPlanName}) - Hoàn lại +1 buổi tập`,
+        targetLog.notes
+      );
+    }
 
     // Remove from checkIns log
     setCheckIns(prev => prev.filter(ci => ci.id !== checkInId));
     removeFromCloud('checkIns', checkInId);
+  };
+
+  const checkInExtraService = (clientId: string, customDateTime?: string, notes?: string): CheckInLog | null => {
+    const targetClient = clients.find(c => c.id === clientId);
+    if (!targetClient) return null;
+
+    const currentRemaining = targetClient.remainingExtraServices ?? targetClient.totalExtraServices ?? 0;
+    const newRemaining = Math.max(0, currentRemaining - 1);
+
+    const updatedClient: Client = {
+      ...targetClient,
+      remainingExtraServices: newRemaining
+    };
+
+    setClients(prev => prev.map(c => c.id === clientId ? updatedClient : c));
+    saveToCloud('clients', updatedClient);
+
+    let checkInTimestamp = new Date().toISOString();
+    if (customDateTime && customDateTime.trim()) {
+      const parsed = new Date(customDateTime.trim());
+      if (!isNaN(parsed.getTime())) {
+        checkInTimestamp = parsed.toISOString();
+      }
+    }
+
+    const serviceName = targetClient.extraServiceName || 'Dịch vụ thêm';
+    const newCheckIn: CheckInLog = {
+      id: `ci-svc-${Date.now()}`,
+      tenantId: targetClient.tenantId || currentTenant,
+      clientId: targetClient.id,
+      clientName: targetClient.name,
+      timestamp: checkInTimestamp,
+      dayPlanName: `Dịch vụ: ${serviceName}`,
+      sessionsRemainingAfter: newRemaining,
+      type: 'extra_service',
+      serviceName: serviceName,
+      extraServicesRemainingAfter: newRemaining,
+      notes: notes?.trim() || ''
+    };
+
+    setCheckIns(prev => [newCheckIn, ...prev].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+    saveToCloud('checkIns', newCheckIn);
+
+    addAuditLog(
+      'CHECK_IN_EXTRA_SERVICE',
+      targetClient.name,
+      `⚡ Check-in dịch vụ: ${targetClient.name} (${serviceName}) - Trừ 1 suất (còn ${newRemaining}/${targetClient.totalExtraServices || 0} suất)`,
+      notes,
+      { client: updatedClient, checkInLog: newCheckIn }
+    );
+
+    return newCheckIn;
+  };
+
+  const renewExtraService = (
+    clientId: string, 
+    additionalCount: number, 
+    priceVnd: number, 
+    paymentMethod: 'Tiền mặt' | 'Chuyển khoản' | 'Thẻ' = 'Chuyển khoản', 
+    paymentDate: string = getTodayDateStr(), 
+    notes?: string
+  ) => {
+    const targetClient = clients.find(c => c.id === clientId);
+    if (!targetClient) return;
+
+    const newTotal = (targetClient.totalExtraServices || 0) + additionalCount;
+    const newRemaining = (targetClient.remainingExtraServices || 0) + additionalCount;
+
+    const updatedClient: Client = {
+      ...targetClient,
+      totalExtraServices: newTotal,
+      remainingExtraServices: newRemaining,
+      hasExtraService: true
+    };
+
+    setClients(prev => prev.map(c => c.id === clientId ? updatedClient : c));
+    saveToCloud('clients', updatedClient);
+
+    const serviceName = targetClient.extraServiceName || 'Dịch vụ thêm';
+
+    if (priceVnd > 0) {
+      addPayment({
+        clientId: targetClient.id,
+        clientName: targetClient.name,
+        packageName: serviceName,
+        sessionsCount: additionalCount,
+        amountVnd: priceVnd,
+        paymentMethod,
+        paymentDate,
+        category: 'extra_service',
+        notes: notes || `Gia hạn thêm Dịch vụ (${serviceName}) - +${additionalCount} suất - ${targetClient.name}`,
+        skipSessionUpdate: true
+      });
+    }
+
+    addAuditLog(
+      'RENEW_EXTRA_SERVICE',
+      targetClient.name,
+      `🔄 Gia hạn thêm dịch vụ ${serviceName}: +${additionalCount} suất (còn ${newRemaining}/${newTotal} suất)`,
+      `Thu phí: ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(priceVnd)} • PT: ${paymentMethod}`,
+      { client: updatedClient }
+    );
   };
 
   const addClient = (newClientData: Omit<Client, 'id' | 'status' | 'bodyMetrics'> & { initialAmountVnd?: number; paymentMethod?: 'Tiền mặt' | 'Chuyển khoản' | 'Thẻ' }) => {
@@ -765,6 +906,25 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         paymentMethod: newClientData.paymentMethod || 'Chuyển khoản',
         paymentDate: newClientData.startDate || getTodayDateStr(),
         notes: 'Thanh toán khởi tạo học viên mới',
+        category: 'membership',
+        skipSessionUpdate: true
+      });
+    }
+
+    // Tự động tạo phiếu thu Dịch vụ thêm nếu có đăng ký & có phí
+    if (newClientData.hasExtraService && newClientData.extraServicePrice && newClientData.extraServicePrice > 0) {
+      const extraServiceName = newClientData.extraServiceName || 'Dịch vụ thêm';
+      const extraCount = newClientData.totalExtraServices || 0;
+      addPayment({
+        clientId: id,
+        clientName: newClientData.name,
+        packageName: extraServiceName,
+        sessionsCount: extraCount,
+        amountVnd: newClientData.extraServicePrice,
+        paymentMethod: newClientData.paymentMethod || 'Chuyển khoản',
+        paymentDate: newClientData.startDate || getTodayDateStr(),
+        category: 'extra_service',
+        notes: `Thu phí Dịch vụ thêm (${extraServiceName} - ${extraCount} suất) - ${newClientData.name}`,
         skipSessionUpdate: true
       });
     }
@@ -2003,7 +2163,9 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       auditLogs,
       pdfDocuments,
       checkInClient,
+      checkInExtraService,
       cancelCheckIn,
+      renewExtraService,
       updateCheckIn,
       addClient,
       updateClient,

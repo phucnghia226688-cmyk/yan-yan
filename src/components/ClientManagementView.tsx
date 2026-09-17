@@ -55,7 +55,11 @@ import {
   Download,
   Printer,
   Camera,
-  Archive
+  Archive,
+  Utensils,
+  Sparkles,
+  RefreshCw,
+  ShoppingBag
 } from 'lucide-react';
 import { useGym } from '../context/GymContext';
 import { useTenant } from '../context/TenantContext';
@@ -63,6 +67,9 @@ import { Client, BodyMetricEntry, EditHistoryEntry, CheckInLog, PaymentRecord, D
 import { CheckInReceiptModal, CheckInReceiptData } from './CheckInReceiptModal';
 import { RenewalReceiptModal, RenewalReceiptData } from './RenewalReceiptModal';
 import { EditPaymentAmountModal } from './EditPaymentAmountModal';
+import { ServiceCheckInModal } from './ServiceCheckInModal';
+import { RenewExtraServiceModal } from './RenewExtraServiceModal';
+import { ServiceReceiptModal, ServiceReceiptData } from './ServiceReceiptModal';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 interface ClientManagementViewProps {
@@ -267,7 +274,23 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
   selectedClientFromNav,
   onGoToAudit
 }) => {
-  const { clients, addClient, updateClient, deleteClient, addBodyMetric, addPayment, updatePayment, deletePayment, checkIns, cancelCheckIn, updateCheckIn, programs, payments } = useGym();
+  const { 
+    clients, 
+    addClient, 
+    updateClient, 
+    deleteClient, 
+    addBodyMetric, 
+    addPayment, 
+    updatePayment, 
+    deletePayment, 
+    checkIns, 
+    cancelCheckIn, 
+    checkInExtraService,
+    renewExtraService,
+    updateCheckIn, 
+    programs, 
+    payments 
+  } = useGym();
   const { currentUser, activeTenantId, tenants } = useTenant();
 
   const activeTenant = tenants.find(t => t.tenantId === activeTenantId || t.id === activeTenantId);
@@ -279,7 +302,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expiring' | 'expired' | 'closed'>('all');
   const [sortOption, setSortOption] = useState<'newest' | 'oldest' | 'name_asc' | 'name_desc' | 'sessions_asc' | 'sessions_desc'>('newest');
   const [selectedClient, setSelectedClient] = useState<Client | null>(selectedClientFromNav || clients[0] || null);
-  const [activeDetailTab, setActiveDetailTab] = useState<'overview' | 'info' | 'history'>('overview');
+  const [activeDetailTab, setActiveDetailTab] = useState<'overview' | 'info' | 'history' | 'service'>('overview');
 
   useEffect(() => {
     if (selectedClientFromNav) {
@@ -459,6 +482,74 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
     setIsPastReceiptModalOpen(true);
   };
 
+  // Service Check-In Modal States & Handlers
+  const [isServiceCheckInModalOpen, setIsServiceCheckInModalOpen] = useState(false);
+  const [isRenewServiceModalOpen, setIsRenewServiceModalOpen] = useState(false);
+  const [serviceReceiptModalData, setServiceReceiptModalData] = useState<ServiceReceiptData | null>(null);
+  const [isServiceReceiptModalOpen, setIsServiceReceiptModalOpen] = useState(false);
+  const [cancelServiceCheckInTarget, setCancelServiceCheckInTarget] = useState<{ id: string; clientName: string; serviceName?: string } | null>(null);
+
+  const handleServiceCheckInSuccess = (log: CheckInLog, updatedClient: Client) => {
+    const logDate = new Date(log.timestamp);
+    const checkInDateStr = logDate.toLocaleDateString('vi-VN', {
+      weekday: 'long',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+    const checkInTimeStr = logDate.toLocaleTimeString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    const remCount = log.extraServicesRemainingAfter !== undefined
+      ? log.extraServicesRemainingAfter
+      : (updatedClient.remainingExtraServices ?? log.sessionsRemainingAfter);
+
+    setServiceReceiptModalData({
+      clientName: log.clientName || updatedClient.name,
+      avatarUrl: updatedClient.avatarUrl,
+      serviceName: updatedClient.extraServiceName || 'Dịch vụ thêm',
+      checkInDateStr,
+      checkInTimeStr,
+      notes: log.notes,
+      remainingCount: remCount,
+      totalCount: updatedClient.totalExtraServices || Math.max(remCount, 1)
+    });
+    setIsServiceReceiptModalOpen(true);
+  };
+
+  const handleShowServiceReceiptForLog = (log: CheckInLog) => {
+    if (!selectedClient) return;
+    const logDate = new Date(log.timestamp);
+    const checkInDateStr = logDate.toLocaleDateString('vi-VN', {
+      weekday: 'long',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+    const checkInTimeStr = logDate.toLocaleTimeString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    const remCount = log.extraServicesRemainingAfter !== undefined
+      ? log.extraServicesRemainingAfter
+      : (selectedClient.remainingExtraServices ?? log.sessionsRemainingAfter);
+
+    setServiceReceiptModalData({
+      clientName: log.clientName || selectedClient.name,
+      avatarUrl: selectedClient.avatarUrl,
+      serviceName: log.dayPlanName || selectedClient.extraServiceName || 'Dịch vụ thêm',
+      checkInDateStr,
+      checkInTimeStr,
+      notes: log.notes,
+      remainingCount: remCount,
+      totalCount: selectedClient.totalExtraServices || Math.max(remCount, 1)
+    });
+    setIsServiceReceiptModalOpen(true);
+  };
+
   // Renewal form state
   const [renewClient, setRenewClient] = useState<Client | null>(null);
   const [renewalReceiptData, setRenewalReceiptData] = useState<RenewalReceiptData | null>(null);
@@ -495,7 +586,13 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
     preferredTime: '08:00 - 09:00',
     dayTimes: {} as Record<number, string>,
     trainingType: '1/1' as '1/1' | 'ca_nhom',
-    status: 'active' as 'active' | 'expiring' | 'expired' | 'paused' | 'closed'
+    status: 'active' as 'active' | 'expiring' | 'expired' | 'paused' | 'closed',
+    // Dịch vụ thêm (Add-on Services)
+    hasExtraService: false,
+    extraServiceName: '',
+    totalExtraServices: 0,
+    remainingExtraServices: 0,
+    extraServicePrice: 0
   });
 
   // Metric form state
@@ -576,8 +673,18 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
     const formattedStart = formatDate(formData.startDate);
     const formattedEnd = formatDate(formData.endDate);
 
+    const hasExtra = !!formData.hasExtraService;
+    const extraTotal = hasExtra ? (formData.totalExtraServices || 0) : 0;
+    const extraPrice = hasExtra ? (formData.extraServicePrice || 0) : 0;
+    const extraName = hasExtra ? (formData.extraServiceName || '').trim() : '';
+
     const newClientPayload = {
       ...formData,
+      hasExtraService: hasExtra,
+      extraServiceName: extraName,
+      totalExtraServices: extraTotal,
+      remainingExtraServices: extraTotal,
+      extraServicePrice: extraPrice,
       startDate: formattedStart,
       endDate: formattedEnd,
       expirationDate: formattedEnd,
@@ -611,7 +718,12 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
       preferredTime: '08:00 - 09:00',
       dayTimes: {},
       trainingType: '1/1',
-      status: 'active'
+      status: 'active',
+      hasExtraService: false,
+      extraServiceName: '',
+      totalExtraServices: 0,
+      remainingExtraServices: 0,
+      extraServicePrice: 0
     });
   };
 
@@ -651,8 +763,19 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
     const formattedStart = formatDate(formData.startDate);
     const formattedEnd = formatDate(formData.endDate);
 
+    const hasExtra = !!formData.hasExtraService;
+    const extraTotal = hasExtra ? (formData.totalExtraServices || 0) : 0;
+    const extraRem = hasExtra ? (formData.remainingExtraServices !== undefined ? formData.remainingExtraServices : extraTotal) : 0;
+    const extraPrice = hasExtra ? (formData.extraServicePrice || 0) : 0;
+    const extraName = hasExtra ? (formData.extraServiceName || '').trim() : '';
+
     const updatedPayload = {
       ...formData,
+      hasExtraService: hasExtra,
+      extraServiceName: extraName,
+      totalExtraServices: extraTotal,
+      remainingExtraServices: extraRem,
+      extraServicePrice: extraPrice,
       startDate: formattedStart,
       endDate: formattedEnd,
       expirationDate: formattedEnd,
@@ -723,7 +846,12 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
       preferredTime: client.preferredTime || '08:00 - 09:00',
       dayTimes: client.dayTimes || {},
       trainingType: client.trainingType || '1/1',
-      status: client.status || 'active'
+      status: client.status || 'active',
+      hasExtraService: !!client.hasExtraService,
+      extraServiceName: client.extraServiceName || '',
+      totalExtraServices: client.totalExtraServices || 0,
+      remainingExtraServices: client.remainingExtraServices !== undefined ? client.remainingExtraServices : (client.totalExtraServices || 0),
+      extraServicePrice: client.extraServicePrice || 0
     });
     setIsEditModalOpen(true);
   };
@@ -1018,11 +1146,51 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                       <span><Phone className="w-3 h-3 inline mr-1 text-slate-400" />{selectedClient.phone}</span>
                       <span>🎂 {selectedClient.dob}</span>
                       <span>💼 {selectedClient.occupation}</span>
+                      {selectedClient.hasExtraService && (
+                        <span className={`inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-0.5 rounded-full border ${
+                          (selectedClient.remainingExtraServices ?? 0) <= 0
+                            ? 'bg-rose-100 text-rose-800 border-rose-200'
+                            : (selectedClient.remainingExtraServices ?? 0) <= 3
+                            ? 'bg-amber-100 text-amber-800 border-amber-200'
+                            : 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                        }`}>
+                          ⭐ {selectedClient.extraServiceName || 'Dịch vụ thêm'}: {selectedClient.remainingExtraServices ?? selectedClient.totalExtraServices ?? 0}/{selectedClient.totalExtraServices ?? 0} suất
+                        </span>
+                      )}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap">
+                  {selectedClient.hasExtraService ? (
+                    <>
+                      <button
+                        onClick={() => setIsServiceCheckInModalOpen(true)}
+                        className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-3.5 py-2 rounded-full text-xs flex items-center gap-1.5 shadow-md shadow-amber-200 transition-all active:scale-95 cursor-pointer"
+                        title={`Check-in ${selectedClient.extraServiceName || 'dịch vụ'} 1-chạm`}
+                      >
+                        <Zap className="w-3.5 h-3.5 fill-current text-slate-950" />
+                        Check-in DV
+                      </button>
+                      <button
+                        onClick={() => setIsRenewServiceModalOpen(true)}
+                        className="bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 font-extrabold px-3 py-2 rounded-full transition-colors flex items-center gap-1 text-xs cursor-pointer active:scale-95 shadow-2xs"
+                        title="Gia hạn thêm suất dịch vụ"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5 text-amber-700" />
+                        Gia Hạn DV
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => openEditModal(selectedClient)}
+                      className="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold px-3 py-2 rounded-full transition-colors flex items-center gap-1 text-xs cursor-pointer active:scale-95 shadow-2xs"
+                      title="Đăng ký thêm Dịch vụ (Meal plan, đồ uống, locker...)"
+                    >
+                      <Plus className="w-3.5 h-3.5 text-amber-600" />
+                      + Dịch Vụ
+                    </button>
+                  )}
 
                   <button
                     onClick={() => openRenewModal(selectedClient)}
@@ -1058,34 +1226,68 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
               </div>
 
               {/* Sub Navigation Tabs */}
-              <div className="flex items-center gap-2 border-b border-slate-100 py-3 overflow-x-auto scrollbar-none">
-                <button
-                  type="button"
-                  onClick={() => setActiveDetailTab('overview')}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-                    activeDetailTab === 'overview' ? 'bg-[#4F46E5] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  1. Tổng quan & Lịch tập
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveDetailTab('info')}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-                    activeDetailTab === 'info' ? 'bg-[#4F46E5] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  2. Thông tin khách
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveDetailTab('history')}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-                    activeDetailTab === 'history' ? 'bg-[#4F46E5] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  3. Lịch sử tập ({clientCheckIns.length})
-                </button>
+              <div className="flex items-center justify-between border-b border-slate-100 py-3 overflow-x-auto scrollbar-none gap-2">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveDetailTab('overview')}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                      activeDetailTab === 'overview' ? 'bg-[#4F46E5] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    1. Tổng quan & Lịch tập
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveDetailTab('info')}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                      activeDetailTab === 'info' ? 'bg-[#4F46E5] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    2. Thông tin khách
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveDetailTab('history')}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                      activeDetailTab === 'history' ? 'bg-[#4F46E5] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    3. Lịch sử tập ({clientCheckIns.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveDetailTab(activeDetailTab === 'service' ? 'overview' : 'service')}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+                      activeDetailTab === 'service' 
+                        ? 'bg-amber-500 text-slate-950 font-black shadow-xs ring-2 ring-amber-300' 
+                        : selectedClient.hasExtraService
+                        ? 'bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                    title={activeDetailTab === 'service' ? "Nhấp để đóng tab Dịch vụ" : "Xem chi tiết dịch vụ thêm"}
+                  >
+                    <Utensils className={`w-3.5 h-3.5 ${activeDetailTab === 'service' ? 'text-slate-950' : 'text-amber-600'}`} />
+                    <span>
+                      4. Dịch vụ {selectedClient.hasExtraService ? `(${selectedClient.remainingExtraServices ?? 0}/${selectedClient.totalExtraServices ?? 0})` : ''}
+                    </span>
+                    {activeDetailTab === 'service' && (
+                      <X className="w-3.5 h-3.5 ml-0.5 text-slate-950 hover:scale-125 transition-transform" />
+                    )}
+                  </button>
+                </div>
+
+                {activeDetailTab === 'service' && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveDetailTab('overview')}
+                    className="text-xs font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-full border border-slate-200 flex items-center gap-1 shrink-0 transition-colors cursor-pointer shadow-2xs"
+                    title="Đóng tab Dịch vụ & Quay lại Tổng quan"
+                  >
+                    <X className="w-3.5 h-3.5 text-slate-500" />
+                    <span className="hidden sm:inline">Đóng tab dịch vụ</span>
+                  </button>
+                )}
               </div>
 
               {/* Tab Content Area */}
@@ -1422,6 +1624,230 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                             </div>
                           </div>
                         ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* TAB 4: EXTRA SERVICE CHECK-IN & MANAGEMENT */}
+                {activeDetailTab === 'service' && (
+                  <div className="space-y-4 animate-fade-in">
+                    {/* Top Close / Return Action Bar */}
+                    <div className="flex items-center justify-between p-3 rounded-2xl bg-amber-500/10 border border-amber-300/80">
+                      <div className="flex items-center gap-2">
+                        <Utensils className="w-4 h-4 text-amber-700" />
+                        <span className="text-xs font-bold text-amber-950">
+                          Chi tiết & Lịch sử check-in {selectedClient.extraServiceName || 'Dịch vụ thêm'}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setActiveDetailTab('overview')}
+                        className="text-xs font-black text-amber-950 bg-amber-400 hover:bg-amber-300 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        <span>Đóng tab này / Về Tổng quan</span>
+                      </button>
+                    </div>
+
+                    {selectedClient.hasExtraService ? (
+                      <>
+                        {/* Service Status Dashboard Card */}
+                        <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-50/60 border-2 border-amber-300 shadow-sm space-y-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-black shadow-md border border-amber-400">
+                                <Utensils className="w-6 h-6" />
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <h4 className="text-base font-black text-slate-900">
+                                    {selectedClient.extraServiceName || 'Dịch vụ thêm'}
+                                  </h4>
+                                  <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border ${
+                                    (selectedClient.remainingExtraServices ?? 0) <= 0
+                                      ? 'bg-rose-100 text-rose-800 border-rose-300'
+                                      : (selectedClient.remainingExtraServices ?? 0) <= 3
+                                      ? 'bg-amber-100 text-amber-800 border-amber-300 animate-pulse'
+                                      : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                  }`}>
+                                    {(selectedClient.remainingExtraServices ?? 0) <= 0
+                                      ? '⛔ Đã hết suất'
+                                      : (selectedClient.remainingExtraServices ?? 0) <= 3
+                                      ? '⚠️ Sắp hết suất'
+                                      : '✅ Đang hoạt động'}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-slate-600 font-medium mt-0.5">
+                                  Đã thu phí: <strong className="text-amber-950 font-bold">{selectedClient.extraServicePrice ? selectedClient.extraServicePrice.toLocaleString('vi-VN') + ' đ' : 'Miễn phí'}</strong>
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Quick Action CTA Buttons */}
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <button
+                                type="button"
+                                onClick={() => setIsServiceCheckInModalOpen(true)}
+                                className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-md shadow-amber-200 transition-all active:scale-95 cursor-pointer"
+                              >
+                                <Zap className="w-4 h-4 fill-current text-slate-950" />
+                                <span>Check-in DV Nhanh</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setIsRenewServiceModalOpen(true)}
+                                className="bg-white hover:bg-amber-100 text-amber-950 border border-amber-300 font-extrabold px-3.5 py-2.5 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 cursor-pointer"
+                              >
+                                <RefreshCw className="w-4 h-4 text-amber-700" />
+                                <span>Gia Hạn Thêm Suất</span>
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Visual Progress Meter */}
+                          <div className="space-y-1.5 bg-white/80 p-3.5 rounded-xl border border-amber-200/80">
+                            <div className="flex items-center justify-between text-xs font-black">
+                              <span className="text-amber-950 flex items-center gap-1">
+                                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                                Tiến độ sử dụng dịch vụ:
+                              </span>
+                              <span className="text-indigo-950 font-mono text-sm">
+                                Còn lại <span className="text-amber-700 font-black text-base">{selectedClient.remainingExtraServices ?? 0}</span> / {selectedClient.totalExtraServices ?? 0} suất
+                              </span>
+                            </div>
+                            <div className="w-full bg-slate-200/90 h-3 rounded-full overflow-hidden p-0.5 border border-slate-300">
+                              <div
+                                className={`h-full rounded-full transition-all duration-500 ${
+                                  (selectedClient.remainingExtraServices ?? 0) <= 0
+                                    ? 'bg-rose-500'
+                                    : (selectedClient.remainingExtraServices ?? 0) <= 3
+                                    ? 'bg-amber-500'
+                                    : 'bg-gradient-to-r from-amber-400 to-emerald-500'
+                                }`}
+                                style={{
+                                  width: `${Math.min(100, Math.max(0, ((selectedClient.remainingExtraServices ?? 0) / Math.max(1, selectedClient.totalExtraServices ?? 1)) * 100))}%`
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Service Check-in History Logs for this client */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h5 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                              <History className="w-4 h-4 text-amber-600" />
+                              Lịch sử check-in {selectedClient.extraServiceName || 'dịch vụ'} ({checkIns.filter(ci => ci.clientId === selectedClient.id && ci.type === 'extra_service').length} lượt)
+                            </h5>
+                          </div>
+
+                          {checkIns.filter(ci => ci.clientId === selectedClient.id && ci.type === 'extra_service').length === 0 ? (
+                            <div className="p-8 text-center bg-slate-50 border border-slate-200/80 rounded-2xl text-slate-400">
+                              <Utensils className="w-10 h-10 mx-auto mb-2 text-slate-300 stroke-1" />
+                              <p className="text-xs font-semibold">Chưa có lượt check-in dịch vụ nào.</p>
+                              <p className="text-[11px] text-slate-400 mt-0.5">Nhấp vào "Check-in DV Nhanh" ở trên để ghi nhận suất sử dụng đầu tiên.</p>
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              {checkIns
+                                .filter(ci => ci.clientId === selectedClient.id && ci.type === 'extra_service')
+                                .map((log) => {
+                                  const logDate = new Date(log.timestamp);
+                                  const dateStr = logDate.toLocaleDateString('vi-VN', {
+                                    day: '2-digit', month: '2-digit', year: 'numeric'
+                                  });
+                                  const timeStr = logDate.toLocaleTimeString('vi-VN', {
+                                    hour: '2-digit', minute: '2-digit'
+                                  });
+                                  const logRemaining = log.extraServicesRemainingAfter !== undefined
+                                    ? log.extraServicesRemainingAfter
+                                    : log.sessionsRemainingAfter;
+
+                                  return (
+                                    <div
+                                      key={log.id}
+                                      className="p-3 bg-white hover:bg-amber-50/40 border border-slate-200/90 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 transition-all shadow-2xs"
+                                    >
+                                      <div className="flex items-start gap-2.5">
+                                        <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs shrink-0 border border-amber-300 mt-0.5">
+                                          <Utensils className="w-4 h-4" />
+                                        </div>
+                                        <div>
+                                          <div className="flex items-center gap-2 flex-wrap">
+                                            <span className="font-extrabold text-xs text-slate-900">
+                                              {log.dayPlanName || selectedClient.extraServiceName || 'Dịch vụ thêm'}
+                                            </span>
+                                            <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 flex items-center gap-1">
+                                              <Clock className="w-3 h-3 text-slate-400" />
+                                              {timeStr} • {dateStr}
+                                            </span>
+                                            <span className="text-[10px] font-black text-amber-900 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300">
+                                              Còn lại {logRemaining} suất
+                                            </span>
+                                          </div>
+                                          {log.notes && (
+                                            <p className="text-xs text-slate-600 mt-1 italic flex items-center gap-1 bg-amber-50/70 px-2.5 py-1 rounded-lg border border-amber-100 w-fit">
+                                              <span>💬</span>
+                                              <span>{log.notes}</span>
+                                            </p>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      <div className="flex items-center gap-1.5 self-end sm:self-auto">
+                                        <button
+                                          type="button"
+                                          onClick={() => handleShowServiceReceiptForLog(log)}
+                                          className="text-xs text-amber-800 hover:text-amber-950 bg-amber-50 hover:bg-amber-100 border border-amber-300 px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1 transition-colors shadow-2xs cursor-pointer"
+                                          title="Tạo ảnh thẻ check-in gửi Zalo"
+                                        >
+                                          <Camera className="w-3.5 h-3.5 text-amber-700" />
+                                          <span>Thẻ Zalo</span>
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => setCancelServiceCheckInTarget({
+                                            id: log.id,
+                                            clientName: selectedClient.name,
+                                            serviceName: log.dayPlanName || selectedClient.extraServiceName
+                                          })}
+                                          className="text-xs text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1 transition-colors shadow-2xs cursor-pointer"
+                                          title="Hủy lượt check-in này & hoàn lại +1 suất"
+                                        >
+                                          <RotateCcw className="w-3.5 h-3.5 text-rose-600" />
+                                          <span>Hủy</span>
+                                        </button>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      /* Empty State for client without extra service */
+                      <div className="p-8 rounded-3xl bg-gradient-to-br from-amber-50/90 via-orange-50/40 to-white border-2 border-dashed border-amber-300 text-center space-y-4">
+                        <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center mx-auto border border-amber-300 shadow-sm">
+                          <Sparkles className="w-7 h-7 text-amber-600" />
+                        </div>
+                        <div className="max-w-md mx-auto space-y-1.5">
+                          <h4 className="text-base font-black text-slate-900">
+                            Học viên chưa đăng ký Dịch vụ thêm
+                          </h4>
+                          <p className="text-xs text-slate-600 leading-relaxed">
+                            Bạn có thể thêm các dịch vụ kèm theo như: <strong>Meal Plan (Suất ăn dinh dưỡng), Đồ uống Protein, Khăn tập & Locker riêng, Thực phẩm bổ sung...</strong> để theo dõi và điểm danh riêng biệt với buổi tập PT.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(selectedClient)}
+                          className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-5 py-2.5 rounded-2xl text-xs inline-flex items-center gap-2 shadow-md shadow-amber-200 transition-all active:scale-95 cursor-pointer"
+                        >
+                          <Plus className="w-4 h-4 stroke-[3]" />
+                          <span>Kích Hoạt Dịch Vụ Thêm Cho Học Viên</span>
+                        </button>
                       </div>
                     )}
                   </div>
@@ -2566,6 +2992,127 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                 </div>
               </div>
 
+              {/* Extra Services Section (Dịch vụ thêm) */}
+              <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.hasExtraService}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setFormData({
+                          ...formData,
+                          hasExtraService: checked,
+                          extraServiceName: checked ? (formData.extraServiceName || 'Bữa ăn dinh dưỡng') : '',
+                          totalExtraServices: checked ? (formData.totalExtraServices || 30) : 0,
+                          remainingExtraServices: checked ? (formData.totalExtraServices || 30) : 0,
+                          extraServicePrice: checked ? (formData.extraServicePrice || 1500000) : 0
+                        });
+                      }}
+                      className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 border-amber-300 cursor-pointer"
+                    />
+                    <span className="text-xs font-black text-amber-950 uppercase tracking-wide flex items-center gap-1.5">
+                      ⭐ Đăng ký thêm Dịch vụ thêm (Add-on Services)
+                    </span>
+                  </label>
+                  {formData.hasExtraService && (
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">
+                      Đã kích hoạt
+                    </span>
+                  )}
+                </div>
+
+                {formData.hasExtraService && (
+                  <div className="pt-2 border-t border-amber-200/80 space-y-3 animate-fade-in">
+                    <div>
+                      <label className="block text-xs font-bold text-amber-900 mb-1">
+                        Tên dịch vụ thêm (Nhập tự do) *
+                      </label>
+                      <input
+                        type="text"
+                        required={formData.hasExtraService}
+                        value={formData.extraServiceName}
+                        onChange={(e) => setFormData({ ...formData, extraServiceName: e.target.value })}
+                        placeholder="VD: Meal Plan, Bữa ăn dinh dưỡng, Nước uống, Khăn tập VIP..."
+                        className="w-full bg-white text-slate-900 font-bold border border-amber-300 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                      <div className="flex flex-wrap gap-1 mt-1.5">
+                        {['Bữa ăn dinh dưỡng', 'Meal Plan', 'Nước uống BCAA', 'Khăn tập & Tủ VIP'].map((s, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, extraServiceName: s })}
+                            className="text-[10px] font-bold bg-amber-100 hover:bg-amber-200 text-amber-900 px-2 py-0.5 rounded-md border border-amber-300 transition-colors"
+                          >
+                            + {s}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-bold text-amber-900 mb-1">
+                          Tổng số lượng / suất đăng ký *
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          required={formData.hasExtraService}
+                          value={formData.totalExtraServices || ''}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value, 10) || 0;
+                            setFormData({
+                              ...formData,
+                              totalExtraServices: val,
+                              remainingExtraServices: val
+                            });
+                          }}
+                          placeholder="30"
+                          className="w-full bg-white text-amber-950 font-black border border-amber-300 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                        <div className="flex gap-1 mt-1">
+                          {[10, 20, 30, 60].map(cnt => (
+                            <button
+                              key={cnt}
+                              type="button"
+                              onClick={() => setFormData({ ...formData, totalExtraServices: cnt, remainingExtraServices: cnt })}
+                              className="text-[10px] font-extrabold bg-white hover:bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded border border-amber-300"
+                            >
+                              {cnt}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-amber-900 mb-1">
+                          Số tiền thu dịch vụ (VNĐ)
+                        </label>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={formData.extraServicePrice ? new Intl.NumberFormat('vi-VN').format(formData.extraServicePrice) : ''}
+                          onChange={(e) => {
+                            const digitsOnly = e.target.value.replace(/\D/g, '');
+                            setFormData({
+                              ...formData,
+                              extraServicePrice: digitsOnly ? parseInt(digitsOnly, 10) : 0
+                            });
+                          }}
+                          placeholder="0"
+                          className="w-full bg-white text-emerald-950 font-black border border-amber-300 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                        <span className="text-[10px] font-bold text-emerald-700 mt-1 block">
+                          {formData.extraServicePrice ? `= ${formData.extraServicePrice.toLocaleString('vi-VN')} đ (Hạch toán DT)` : '0 đ (Miễn phí đi kèm)'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Schedule / PT Appointment Auto-Generation Section */}
               <div className="p-4 bg-indigo-50/60 border border-indigo-100 rounded-2xl space-y-3">
                 <div className="flex items-center justify-between">
@@ -3030,6 +3577,105 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                   onChange={(e) => setFormData({ ...formData, goals: e.target.value })}
                   className="w-full bg-slate-100 text-slate-800 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:bg-white"
                 />
+              </div>
+
+              {/* Extra Services Section (Dịch vụ thêm) in Edit Modal */}
+              <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.hasExtraService}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setFormData({
+                          ...formData,
+                          hasExtraService: checked,
+                          extraServiceName: checked ? (formData.extraServiceName || 'Bữa ăn dinh dưỡng') : '',
+                          totalExtraServices: checked ? (formData.totalExtraServices || 30) : 0,
+                          remainingExtraServices: checked ? (formData.remainingExtraServices || 30) : 0,
+                          extraServicePrice: checked ? (formData.extraServicePrice || 1500000) : 0
+                        });
+                      }}
+                      className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 border-amber-300 cursor-pointer"
+                    />
+                    <span className="text-xs font-black text-amber-950 uppercase tracking-wide flex items-center gap-1.5">
+                      ⭐ Đăng ký thêm Dịch vụ thêm (Add-on Services)
+                    </span>
+                  </label>
+                  {formData.hasExtraService && (
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">
+                      Đang bật
+                    </span>
+                  )}
+                </div>
+
+                {formData.hasExtraService && (
+                  <div className="pt-2 border-t border-amber-200/80 space-y-3 animate-fade-in">
+                    <div>
+                      <label className="block text-xs font-bold text-amber-900 mb-1">
+                        Tên dịch vụ thêm *
+                      </label>
+                      <input
+                        type="text"
+                        required={formData.hasExtraService}
+                        value={formData.extraServiceName}
+                        onChange={(e) => setFormData({ ...formData, extraServiceName: e.target.value })}
+                        placeholder="VD: Meal Plan, Bữa ăn dinh dưỡng, Nước uống..."
+                        className="w-full bg-white text-slate-900 font-bold border border-amber-300 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-xs font-bold text-amber-900 mb-1">
+                          Tổng suất đã đăng ký *
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          required={formData.hasExtraService}
+                          value={formData.totalExtraServices || ''}
+                          onChange={(e) => setFormData({ ...formData, totalExtraServices: parseInt(e.target.value, 10) || 0 })}
+                          className="w-full bg-white text-slate-900 font-black border border-amber-300 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-amber-900 mb-1">
+                          Số suất còn lại *
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          required={formData.hasExtraService}
+                          value={formData.remainingExtraServices !== undefined ? formData.remainingExtraServices : ''}
+                          onChange={(e) => setFormData({ ...formData, remainingExtraServices: parseInt(e.target.value, 10) || 0 })}
+                          className="w-full bg-white text-amber-950 font-black border border-amber-400 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-amber-900 mb-1">
+                          Giá thu dịch vụ (VNĐ)
+                        </label>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={formData.extraServicePrice ? new Intl.NumberFormat('vi-VN').format(formData.extraServicePrice) : ''}
+                          onChange={(e) => {
+                            const digitsOnly = e.target.value.replace(/\D/g, '');
+                            setFormData({
+                              ...formData,
+                              extraServicePrice: digitsOnly ? parseInt(digitsOnly, 10) : 0
+                            });
+                          }}
+                          className="w-full bg-white text-emerald-950 font-black border border-amber-300 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Schedule / PT Appointment Auto-Update Section */}
@@ -4330,6 +4976,53 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
         isOpen={!!editingPaymentAmount}
         payment={editingPaymentAmount}
         onClose={() => setEditingPaymentAmount(null)}
+      />
+
+      {/* SERVICE CHECK-IN MODAL */}
+      <ServiceCheckInModal
+        isOpen={isServiceCheckInModalOpen}
+        client={selectedClient}
+        onClose={() => setIsServiceCheckInModalOpen(false)}
+        onSuccess={(log, updatedClient) => {
+          setIsServiceCheckInModalOpen(false);
+          handleServiceCheckInSuccess(log, updatedClient);
+        }}
+        onOpenRenew={() => {
+          setIsServiceCheckInModalOpen(false);
+          setIsRenewServiceModalOpen(true);
+        }}
+      />
+
+      {/* RENEW EXTRA SERVICE MODAL */}
+      <RenewExtraServiceModal
+        isOpen={isRenewServiceModalOpen}
+        client={selectedClient}
+        onClose={() => setIsRenewServiceModalOpen(false)}
+        onSuccess={() => {
+          setIsRenewServiceModalOpen(false);
+        }}
+      />
+
+      {/* SERVICE RECEIPT MODAL */}
+      <ServiceReceiptModal
+        isOpen={isServiceReceiptModalOpen}
+        onClose={() => setIsServiceReceiptModalOpen(false)}
+        data={serviceReceiptModalData}
+      />
+
+      {/* Password Confirmation Modal for Cancel Service Check-in */}
+      <ConfirmPasswordModal
+        isOpen={!!cancelServiceCheckInTarget}
+        title="Xác Nhận Mật Khẩu Hủy Check-in Dịch Vụ"
+        description={cancelServiceCheckInTarget ? `Bạn đang yêu cầu HỦY lượt check-in ${cancelServiceCheckInTarget.serviceName || 'dịch vụ'} của học viên "${cancelServiceCheckInTarget.clientName || 'học viên'}". Thao tác này sẽ cộng lại +1 suất dịch vụ cho học viên.` : ''}
+        confirmLabel="Xác Nhận Hủy Check-in DV"
+        onClose={() => setCancelServiceCheckInTarget(null)}
+        onConfirm={() => {
+          if (cancelServiceCheckInTarget) {
+            cancelCheckIn(cancelServiceCheckInTarget.id);
+            setCancelServiceCheckInTarget(null);
+          }
+        }}
       />
 
     </div>

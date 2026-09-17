@@ -25,8 +25,10 @@ export type AuditActionType =
   | 'ADD_CLIENT' 
   | 'UPDATE_CLIENT' 
   | 'CHECK_IN' 
+  | 'CHECK_IN_EXTRA_SERVICE'
   | 'CANCEL_CHECK_IN' 
   | 'RENEW_CLIENT' 
+  | 'RENEW_EXTRA_SERVICE'
   | 'DELETE_EXPENSE' 
   | 'UPDATE_EXPENSE'
   | 'ADD_EXPENSE' 
@@ -115,6 +117,12 @@ export interface Client {
     afterDate?: string;
   };
   workoutProgramId?: string;
+  // Dịch vụ thêm (Add-on Services)
+  hasExtraService?: boolean;
+  extraServiceName?: string;
+  totalExtraServices?: number;
+  remainingExtraServices?: number;
+  extraServicePrice?: number;
 }
 
 export interface ExerciseItem {
@@ -169,6 +177,9 @@ export interface CheckInLog {
   dayPlanName: string;
   sessionsRemainingAfter: number;
   notes?: string;
+  type?: 'workout' | 'extra_service';
+  serviceName?: string;
+  extraServicesRemainingAfter?: number;
   exerciseLogs?: {
     exerciseName: string;
     setsLogged: { setNum: number; weightKg: number; reps: number }[];
@@ -186,6 +197,7 @@ export interface PaymentRecord {
   paymentMethod: 'Tiền mặt' | 'Chuyển khoản' | 'Thẻ';
   paymentDate: string; // YYYY-MM-DD
   notes?: string;
+  category?: 'membership' | 'extra_service' | string;
   skipSessionUpdate?: boolean;
   isEdited?: boolean;
   editedAt?: string;

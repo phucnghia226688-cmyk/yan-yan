@@ -295,8 +295,19 @@ export const RevenueView: React.FC = () => {
                   <tr key={p.id} className="hover:bg-slate-50 transition-colors">
                     <td className="p-3 font-mono text-slate-500 whitespace-nowrap font-medium">{formatDate(p.paymentDate)}</td>
                     <td className="p-3 font-extrabold text-slate-900">{p.clientName}</td>
-                    <td className="p-3 font-bold text-[#4F46E5]">{p.packageName}</td>
-                    <td className="p-3 text-center font-bold text-slate-700">{p.sessionsCount} buổi</td>
+                    <td className="p-3 font-bold text-[#4F46E5]">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span>{p.packageName}</span>
+                        {p.category === 'extra_service' && (
+                          <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300">
+                            ⭐ Dịch vụ
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-3 text-center font-bold text-slate-700">
+                      {p.category === 'extra_service' ? `${p.sessionsCount} suất` : `${p.sessionsCount} buổi`}
+                    </td>
                     <td className="p-3 text-right font-black text-emerald-600 text-sm">
                       <div className="flex items-center justify-end gap-1.5">
                         <div className="text-right">
