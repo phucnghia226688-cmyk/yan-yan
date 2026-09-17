@@ -59,7 +59,10 @@ import {
   Utensils,
   Sparkles,
   RefreshCw,
-  ShoppingBag
+  ShoppingBag,
+  PauseCircle,
+  CreditCard,
+  Info
 } from 'lucide-react';
 import { useGym } from '../context/GymContext';
 import { useTenant } from '../context/TenantContext';
@@ -552,6 +555,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
 
   // Renewal form state
   const [renewClient, setRenewClient] = useState<Client | null>(null);
+  const [renewMode, setRenewMode] = useState<'paid' | 'extend_only'>('paid');
   const [renewalReceiptData, setRenewalReceiptData] = useState<RenewalReceiptData | null>(null);
   const [renewFormData, setRenewFormData] = useState({
     packageName: 'Gói 24 buổi',
@@ -560,7 +564,8 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
     paymentMethod: 'Chuyển khoản' as 'Chuyển khoản' | 'Tiền mặt' | 'Thẻ',
     paymentDate: getTodayDateStr(),
     newEndDate: '',
-    notes: ''
+    notes: '',
+    reason: ''
   });
 
   // Form states for Add / Edit
@@ -862,6 +867,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
 
   const openRenewModal = (client: Client) => {
     setRenewClient(client);
+    setRenewMode('paid');
     let baseDate = new Date();
     if (client.endDate) {
       const parsedMs = getSafeDateTimestamp(client.endDate);
@@ -873,19 +879,21 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
     future3m.setMonth(future3m.getMonth() + 3);
     const future3mStr = `${future3m.getFullYear()}-${String(future3m.getMonth() + 1).padStart(2, '0')}-${String(future3m.getDate()).padStart(2, '0')}`;
 
+    const isMonthly = client.clientType === 'monthly';
     setRenewFormData({
-      packageName: client.packageName ? `${client.packageName}` : 'Gói PT 24 buổi',
-      additionalSessions: 24,
-      amountVnd: 12000000,
+      packageName: client.packageName ? `${client.packageName}` : (isMonthly ? 'Gói Hội Viên Tháng' : 'Gói PT 24 buổi'),
+      additionalSessions: isMonthly ? 0 : 24,
+      amountVnd: isMonthly ? 3000000 : 12000000,
       paymentMethod: 'Chuyển khoản',
       paymentDate: getTodayDateStr(),
       newEndDate: future3mStr,
-      notes: `Gia hạn gói tập mới cho ${client.name}`
+      notes: `Gia hạn gói tập mới cho ${client.name}`,
+      reason: ''
     });
     setIsRenewModalOpen(true);
   };
 
-  const handleApplyPresetDuration = (months: number) => {
+  const handleApplyPresetDuration = (months: number, days: number = 0) => {
     let baseDate = new Date();
     if (renewClient && renewClient.endDate) {
       const parsedMs = getSafeDateTimestamp(renewClient.endDate);
@@ -894,7 +902,27 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
       }
     }
     const newDate = new Date(baseDate);
-    newDate.setMonth(newDate.getMonth() + months);
+    if (months > 0) {
+      newDate.setMonth(newDate.getMonth() + months);
+    }
+    if (days > 0) {
+      newDate.setDate(newDate.getDate() + days);
+    }
+    const dateStr = `${newDate.getFullYear()}-${String(newDate.getMonth() + 1).padStart(2, '0')}-${String(newDate.getDate()).padStart(2, '0')}`;
+    setRenewFormData(prev => ({ ...prev, newEndDate: dateStr }));
+  };
+
+  const handleQuickExtendFromOldDate = (days: number = 0, months: number = 0) => {
+    let baseDate = new Date();
+    if (renewClient && renewClient.endDate) {
+      const parsedMs = getSafeDateTimestamp(renewClient.endDate);
+      if (parsedMs) {
+        baseDate = new Date(parsedMs);
+      }
+    }
+    const newDate = new Date(baseDate);
+    if (months > 0) newDate.setMonth(newDate.getMonth() + months);
+    if (days > 0) newDate.setDate(newDate.getDate() + days);
     const dateStr = `${newDate.getFullYear()}-${String(newDate.getMonth() + 1).padStart(2, '0')}-${String(newDate.getDate()).padStart(2, '0')}`;
     setRenewFormData(prev => ({ ...prev, newEndDate: dateStr }));
   };
@@ -904,77 +932,113 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
     if (!renewClient) return;
 
     const addSessions = Number(renewFormData.additionalSessions) || 0;
-    const payAmount = Number(renewFormData.amountVnd) || 0;
     const finalEndDate = formatDate(renewFormData.newEndDate);
     const targetTenantId = renewClient.tenantId || activeTenantId;
-
-    // 1. Record payment transaction into context with tenantId (automatically updates revenue & profit)
-    addPayment({
-      clientId: renewClient.id,
-      clientName: renewClient.name,
-      tenantId: targetTenantId,
-      packageName: renewFormData.packageName,
-      sessionsCount: addSessions,
-      amountVnd: payAmount,
-      paymentMethod: renewFormData.paymentMethod,
-      paymentDate: renewFormData.paymentDate,
-      notes: renewFormData.notes,
-      skipSessionUpdate: true,
-      newEndDate: finalEndDate,
-      previousState: {
-        remainingSessions: renewClient.remainingSessions || 0,
-        totalSessions: renewClient.totalSessions || 0,
-        endDate: renewClient.endDate || '',
-        status: renewClient.status
-      }
-    });
-
-    // 2. Update client sessions & end date & status (status turns active, borders auto clear)
     const isMonthly = renewClient.clientType === 'monthly';
-    const newRemaining = isMonthly ? 0 : (renewClient.remainingSessions || 0) + addSessions;
-    const newTotal = isMonthly ? 0 : (addSessions > 0 ? addSessions : (renewClient.totalSessions || 0));
 
-    const formattedPay = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(payAmount);
+    if (renewMode === 'paid') {
+      const payAmount = Number(renewFormData.amountVnd) || 0;
 
-    updateClient(renewClient.id, {
-      packageName: renewFormData.packageName,
-      remainingSessions: newRemaining,
-      totalSessions: newTotal,
-      endDate: finalEndDate,
-      expirationDate: finalEndDate,
-      status: 'active',
-      actionType: 'renew',
-      actionSummary: isMonthly
-        ? `🔄 Gia hạn Khách Tháng: ${renewFormData.packageName} - Hạn HĐ mới: ${finalEndDate} - TT: ${formattedPay}`
-        : `🔄 Gia hạn HĐ: ${renewFormData.packageName} (+${addSessions} buổi, còn ${newRemaining}/${newTotal}b) - Hạn HĐ mới: ${finalEndDate} - TT: ${formattedPay}`
-    });
+      // 1. Record payment transaction into context with tenantId (automatically updates revenue & profit)
+      if (payAmount > 0) {
+        addPayment({
+          clientId: renewClient.id,
+          clientName: renewClient.name,
+          tenantId: targetTenantId,
+          packageName: renewFormData.packageName,
+          sessionsCount: addSessions,
+          amountVnd: payAmount,
+          paymentMethod: renewFormData.paymentMethod,
+          paymentDate: renewFormData.paymentDate,
+          notes: renewFormData.notes,
+          skipSessionUpdate: true,
+          newEndDate: finalEndDate,
+          previousState: {
+            remainingSessions: renewClient.remainingSessions || 0,
+            totalSessions: renewClient.totalSessions || 0,
+            endDate: renewClient.endDate || '',
+            status: renewClient.status
+          }
+        });
+      }
 
-    if (selectedClient && selectedClient.id === renewClient.id) {
-      setSelectedClient({
-        ...selectedClient,
+      // 2. Update client sessions & end date & status (status turns active, borders auto clear)
+      const newRemaining = isMonthly ? 0 : (renewClient.remainingSessions || 0) + addSessions;
+      const newTotal = isMonthly ? 0 : (addSessions > 0 ? (renewClient.totalSessions || 0) + addSessions : (renewClient.totalSessions || 0));
+
+      const formattedPay = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(payAmount);
+
+      updateClient(renewClient.id, {
         packageName: renewFormData.packageName,
         remainingSessions: newRemaining,
         totalSessions: newTotal,
         endDate: finalEndDate,
         expirationDate: finalEndDate,
-        status: 'active'
+        status: 'active',
+        actionType: 'renew',
+        actionSummary: isMonthly
+          ? `🔄 Gia hạn Khách Tháng: ${renewFormData.packageName} - Hạn HĐ mới: ${finalEndDate} - TT: ${formattedPay}`
+          : `🔄 Gia hạn HĐ: ${renewFormData.packageName} (+${addSessions} buổi, còn ${newRemaining}/${newTotal}b) - Hạn HĐ mới: ${finalEndDate} - TT: ${formattedPay}`
       });
+
+      if (selectedClient && selectedClient.id === renewClient.id) {
+        setSelectedClient({
+          ...selectedClient,
+          packageName: renewFormData.packageName,
+          remainingSessions: newRemaining,
+          totalSessions: newTotal,
+          endDate: finalEndDate,
+          expirationDate: finalEndDate,
+          status: 'active'
+        });
+      }
+
+      const payDateFormatted = formatDate(renewFormData.paymentDate);
+      const nowTime = new Date().toLocaleTimeString('vi-VN', {
+        hour: '2-digit', minute: '2-digit'
+      });
+
+      setRenewalReceiptData({
+        clientName: renewClient.name,
+        packageName: renewFormData.packageName,
+        amountPaid: payAmount,
+        addedSessions: addSessions,
+        totalRemainingSessions: newRemaining,
+        newExpirationDate: finalEndDate,
+        createdAt: `${payDateFormatted} ${nowTime}`
+      });
+    } else {
+      // CHẾ ĐỘ 2: BẢO LƯU / CHỈ GIA HẠN THỜI HẠN (KHÔNG GHI NHẬN PHIẾU THU & KHÔNG THÊM BUỔI)
+      // TUYỆT ĐỐI KHÔNG TẠO BẢN GHI TRONG PAYMENTS!
+      const newRemaining = isMonthly ? 0 : (renewClient.remainingSessions || 0) + addSessions;
+      const newTotal = isMonthly ? 0 : (addSessions > 0 ? (renewClient.totalSessions || 0) + addSessions : (renewClient.totalSessions || 0));
+      const reasonText = renewFormData.reason?.trim() || renewFormData.notes?.trim() || 'Bảo lưu / Kéo dài thời hạn HĐ';
+
+      const actionSummary = `⏸️ BẢO LƯU / GIA HẠN THỜI HẠN cho học viên ${renewClient.name} - Hạn mới: ${finalEndDate}${addSessions > 0 ? ` (+${addSessions}b bù)` : ''} (Còn ${newRemaining}/${newTotal}b) - Số tiền: 0 đ - Lý do: ${reasonText}`;
+
+      updateClient(renewClient.id, {
+        packageName: renewFormData.packageName,
+        remainingSessions: newRemaining,
+        totalSessions: newTotal,
+        endDate: finalEndDate,
+        expirationDate: finalEndDate,
+        status: 'active',
+        actionType: 'renew',
+        actionSummary
+      });
+
+      if (selectedClient && selectedClient.id === renewClient.id) {
+        setSelectedClient({
+          ...selectedClient,
+          packageName: renewFormData.packageName,
+          remainingSessions: newRemaining,
+          totalSessions: newTotal,
+          endDate: finalEndDate,
+          expirationDate: finalEndDate,
+          status: 'active'
+        });
+      }
     }
-
-    const payDateFormatted = formatDate(renewFormData.paymentDate);
-    const nowTime = new Date().toLocaleTimeString('vi-VN', {
-      hour: '2-digit', minute: '2-digit'
-    });
-
-    setRenewalReceiptData({
-      clientName: renewClient.name,
-      packageName: renewFormData.packageName,
-      amountPaid: payAmount,
-      addedSessions: addSessions,
-      totalRemainingSessions: newRemaining,
-      newExpirationDate: finalEndDate,
-      createdAt: `${payDateFormatted} ${nowTime}`
-    });
 
     setIsRenewModalOpen(false);
   };
@@ -2111,15 +2175,40 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                         <span className="text-[10px] text-slate-500 block font-semibold uppercase tracking-wider">
                           {client.clientType === 'monthly' ? 'Loại thẻ' : 'Số buổi (Còn/Tổng)'}
                         </span>
-                        {client.clientType === 'monthly' ? (
-                          <span className="font-black text-amber-900 bg-amber-100/90 px-2 py-0.5 rounded-md border border-amber-300 inline-block text-xs mt-0.5">
-                            📅 Khách Tháng
-                          </span>
-                        ) : (
-                          <span className="font-black text-emerald-700 bg-emerald-100/90 px-2 py-0.5 rounded-md border border-emerald-200 inline-block text-xs mt-0.5">
-                            {client.remainingSessions} / {client.totalSessions}b
-                          </span>
-                        )}
+                        <div className="flex flex-col items-start gap-1 mt-0.5">
+                          {client.clientType === 'monthly' ? (
+                            <span className="font-black text-amber-900 bg-amber-100/90 px-2 py-0.5 rounded-md border border-amber-300 inline-block text-xs">
+                              📅 Khách Tháng
+                            </span>
+                          ) : (
+                            <span className="font-black text-emerald-700 bg-emerald-100/90 px-2 py-0.5 rounded-md border border-emerald-200 inline-block text-xs">
+                              {client.remainingSessions} / {client.totalSessions}b
+                            </span>
+                          )}
+
+                          {client.hasExtraService && (
+                            (() => {
+                              const extraTotal = client.totalExtraServices || 0;
+                              const extraRemaining = client.remainingExtraServices !== undefined 
+                                ? client.remainingExtraServices 
+                                : extraTotal;
+                              const isDepleted = extraRemaining <= 0;
+                              const isWarning = !isDepleted && extraRemaining <= 3;
+                              return (
+                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] shadow-2xs ${
+                                  isDepleted 
+                                    ? 'bg-slate-100 text-slate-600 border border-slate-300 font-medium' 
+                                    : isWarning 
+                                      ? 'bg-amber-100 text-amber-950 border border-amber-400 font-black ring-1 ring-amber-400' 
+                                      : 'bg-amber-100 text-amber-900 border border-amber-300 font-semibold'
+                                }`}>
+                                  <span>🍴</span>
+                                  <span>{isDepleted ? `Hết DV (0/${extraTotal})` : `Dịch vụ (${extraRemaining}/${extraTotal})`}</span>
+                                </span>
+                              );
+                            })()
+                          )}
+                        </div>
                       </div>
                       <div>
                         <span className="text-[10px] text-slate-500 block font-semibold uppercase tracking-wider">Đăng ký</span>
@@ -2176,10 +2265,10 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
             <table className="w-full table-fixed border-collapse text-xs">
               <colgroup>
                 <col style={{ width: '7%' }} />
-                <col style={{ width: '19%' }} />
+                <col style={{ width: '18%' }} />
                 <col style={{ width: '11%' }} />
-                <col style={{ width: '11%' }} />
-                <col style={{ width: '16%' }} />
+                <col style={{ width: '13%' }} />
+                <col style={{ width: '15%' }} />
                 <col style={{ width: '16%' }} />
                 <col style={{ width: '20%' }} />
               </colgroup>
@@ -2218,13 +2307,13 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                           isSelected ? 'bg-indigo-50/80 font-medium' : ''
                         }`}
                       >
-                        <td className="py-2.5 px-2 text-center border-r border-slate-200 overflow-hidden">
+                        <td className="py-2.5 px-2 text-center border-r border-slate-200 overflow-hidden align-middle">
                           <div className="flex flex-col items-center justify-center leading-tight">
                             <span className="text-[10px] font-bold text-slate-400">#{idx + 1}</span>
                             <span className="font-mono font-bold text-slate-700 text-[11px] truncate max-w-full" title={codeHV}>{codeHV}</span>
                           </div>
                         </td>
-                        <td className="py-2.5 px-2 border-r border-slate-200 overflow-hidden">
+                        <td className="py-2.5 px-2 border-r border-slate-200 overflow-hidden align-middle">
                           <div className="flex items-center gap-2 min-w-0">
                             <img src={client.avatarUrl} alt={client.name} className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0" />
                             <div className="min-w-0 flex-1">
@@ -2254,21 +2343,56 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                             </div>
                           </div>
                         </td>
-                        <td className="py-2.5 px-2 font-semibold text-slate-800 border-r border-slate-200 overflow-hidden">
+                        <td className="py-2.5 px-2 font-semibold text-slate-800 border-r border-slate-200 overflow-hidden align-middle">
                           <div className="truncate text-xs font-semibold text-slate-800" title={client.packageName || 'Gói PT'}>
                             {client.packageName || 'Gói PT'}
                           </div>
                         </td>
-                        <td className="py-2.5 px-2 text-center border-r border-slate-200 whitespace-nowrap overflow-hidden">
-                          {client.clientType === 'monthly' ? (
-                            <span className="font-black text-amber-900 bg-amber-100 px-2 py-0.5 rounded text-[11px] border border-amber-300 inline-block shadow-2xs">
-                              Khách Tháng
-                            </span>
-                          ) : (
-                            <span className="font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[11px] border border-emerald-200 inline-block">
-                              {client.remainingSessions} / {client.totalSessions}b
-                            </span>
-                          )}
+                        <td className="py-2.5 px-2 text-center border-r border-slate-200 align-middle">
+                          <div className="flex flex-col items-center justify-center gap-1.5">
+                            {client.clientType === 'monthly' ? (
+                              <span className="font-black text-amber-900 bg-amber-100 px-2 py-0.5 rounded text-[11px] border border-amber-300 inline-block shadow-2xs">
+                                Khách Tháng
+                              </span>
+                            ) : (
+                              <span className="font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[11px] border border-emerald-200 inline-block">
+                                {client.remainingSessions} / {client.totalSessions}b
+                              </span>
+                            )}
+
+                            {/* Thẻ Dịch Vụ Thêm (Yellow Service Badge) */}
+                            {client.hasExtraService && (
+                              (() => {
+                                const extraTotal = client.totalExtraServices || 0;
+                                const extraRemaining = client.remainingExtraServices !== undefined 
+                                  ? client.remainingExtraServices 
+                                  : extraTotal;
+                                const isDepleted = extraRemaining <= 0;
+                                const isWarning = !isDepleted && extraRemaining <= 3;
+
+                                let badgeClass = "bg-amber-100 text-amber-900 border border-amber-300 font-semibold";
+                                if (isDepleted) {
+                                  badgeClass = "bg-slate-100 text-slate-600 border border-slate-300 font-medium";
+                                } else if (isWarning) {
+                                  badgeClass = "bg-amber-100 text-amber-950 border border-amber-400 ring-1 ring-amber-400 font-black";
+                                }
+
+                                return (
+                                  <span 
+                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs whitespace-nowrap shadow-2xs ${badgeClass}`}
+                                    title={`Dịch vụ: ${client.extraServiceName || 'Dịch vụ thêm'} (Còn ${extraRemaining}/${extraTotal} suất)`}
+                                  >
+                                    <span>🍴</span>
+                                    <span>
+                                      {isDepleted 
+                                        ? `Hết DV (0/${extraTotal})` 
+                                        : `Dịch vụ (${extraRemaining}/${extraTotal})`}
+                                    </span>
+                                  </span>
+                                );
+                              })()
+                            )}
+                          </div>
                         </td>
                         <td className="py-2.5 px-2 text-center border-r border-slate-200 whitespace-nowrap overflow-hidden">
                           <div className="flex flex-col gap-0.5 text-center leading-tight">
@@ -2487,7 +2611,31 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                             {client.gender === 'Nữ' ? 'Nữ' : 'Nam'}
                           </span>
                         </h4>
-                        <p className="text-xs text-slate-500">{client.packageName}</p>
+                        <p className="text-xs text-slate-500 flex items-center gap-1.5 flex-wrap mt-0.5">
+                          <span>{client.packageName}</span>
+                          {client.hasExtraService && (
+                            (() => {
+                              const extraTotal = client.totalExtraServices || 0;
+                              const extraRemaining = client.remainingExtraServices !== undefined 
+                                ? client.remainingExtraServices 
+                                : extraTotal;
+                              const isDepleted = extraRemaining <= 0;
+                              const isWarning = !isDepleted && extraRemaining <= 3;
+                              return (
+                                <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full text-[10px] shadow-2xs ${
+                                  isDepleted 
+                                    ? 'bg-slate-100 text-slate-600 border border-slate-300 font-medium' 
+                                    : isWarning 
+                                      ? 'bg-amber-100 text-amber-950 border border-amber-400 font-black ring-1 ring-amber-400' 
+                                      : 'bg-amber-100 text-amber-900 border border-amber-300 font-bold'
+                                }`}>
+                                  <span>🍴</span>
+                                  <span>{isDepleted ? `0/${extraTotal}` : `${extraRemaining}/${extraTotal}`}</span>
+                                </span>
+                              );
+                            })()
+                          )}
+                        </p>
                       </div>
                     </div>
 
@@ -4293,35 +4441,102 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
                 <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
-                  <RotateCcw className="w-5 h-5 text-[#FF4E00]" />
-                  Gia hạn gói tập: {renewClient.name}
+                  {renewMode === 'paid' ? (
+                    <RotateCcw className="w-5 h-5 text-[#FF4E00]" />
+                  ) : (
+                    <PauseCircle className="w-5 h-5 text-blue-600" />
+                  )}
+                  {renewMode === 'paid' ? 'Gia hạn gói tập' : 'Bảo lưu / Gia hạn hạn dùng'}: {renewClient.name}
                 </h3>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">Thêm số buổi, ghi nhận doanh thu & điều chỉnh thời hạn hợp đồng</p>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  {renewMode === 'paid'
+                    ? 'Thêm số buổi, ghi nhận doanh thu & điều chỉnh thời hạn hợp đồng'
+                    : 'Kéo dài thời hạn hợp đồng, bảo lưu thẻ tập không phát sinh chi phí'}
+                </p>
               </div>
               <button 
                 onClick={() => setIsRenewModalOpen(false)} 
-                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-200/60 transition-colors"
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-200/60 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Info Notice Banner */}
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-2.5 text-xs text-amber-900 font-medium">
-              <span className="text-base leading-none">💡</span>
-              <div>
-                <p className="font-bold">Doanh thu & lợi nhuận tự động cập nhật</p>
-                <p className="text-amber-700 text-[11px] mt-0.5">
-                  Số tiền thanh toán sẽ tự động cộng vào Doanh thu & Lợi nhuận phòng gym thuộc <span className="font-extrabold underline">Tháng được chọn</span> bên dưới.
-                </p>
-              </div>
+            {/* Mode Selector Tabs */}
+            <div className="grid grid-cols-2 p-1 bg-slate-100/90 rounded-2xl border border-slate-200 gap-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setRenewMode('paid');
+                  const isMonthly = renewClient.clientType === 'monthly';
+                  setRenewFormData(prev => ({
+                    ...prev,
+                    amountVnd: prev.amountVnd === 0 ? (isMonthly ? 3000000 : 12000000) : prev.amountVnd,
+                    additionalSessions: prev.additionalSessions === 0 ? (isMonthly ? 0 : 24) : prev.additionalSessions
+                  }));
+                }}
+                className={`py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                  renewMode === 'paid'
+                    ? 'bg-white text-[#FF4E00] shadow-xs ring-1 ring-slate-200/90'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                }`}
+              >
+                <CreditCard className="w-4 h-4" />
+                <span>💰 Gia Hạn Đóng Phí</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setRenewMode('extend_only');
+                  setRenewFormData(prev => ({
+                    ...prev,
+                    amountVnd: 0,
+                    additionalSessions: 0,
+                    reason: prev.reason || 'Khách bảo lưu / kéo dài thời hạn hợp đồng'
+                  }));
+                }}
+                className={`py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                  renewMode === 'extend_only'
+                    ? 'bg-blue-600 text-white shadow-xs ring-1 ring-blue-700'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                }`}
+              >
+                <PauseCircle className="w-4 h-4" />
+                <span>⏸️ Chỉ Gia Hạn Hạn Dùng (Bảo Lưu)</span>
+              </button>
             </div>
+
+            {/* Dynamic Notice Banner */}
+            {renewMode === 'paid' ? (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-2.5 text-xs text-amber-900 font-medium">
+                <span className="text-base leading-none">💡</span>
+                <div>
+                  <p className="font-bold">Doanh thu & lợi nhuận tự động cập nhật</p>
+                  <p className="text-amber-700 text-[11px] mt-0.5">
+                    Số tiền thanh toán sẽ tự động cộng vào Doanh thu & Lợi nhuận phòng gym thuộc <span className="font-extrabold underline">Tháng được chọn</span> bên dưới.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-2xl flex items-start gap-2.5 text-xs text-blue-950 font-medium">
+                <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-blue-900">Chế độ Bảo lưu / Kéo dài hạn hợp đồng</p>
+                  <p className="text-blue-800 text-[11px] mt-0.5">
+                    Thao tác này sẽ <span className="font-extrabold underline">KHÔNG ghi nhận phiếu thu</span> và <span className="font-extrabold underline">KHÔNG cộng doanh thu vào sổ quỹ</span>. Số buổi hiện tại của học viên được giữ nguyên.
+                  </p>
+                </div>
+              </div>
+            )}
 
             <form onSubmit={handleSaveRenewPackage} className="space-y-4">
               
               {/* Package Name */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Tên Gói Tập Mới *</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  {renewMode === 'paid' ? 'Tên Gói Tập Mới *' : 'Tên Gói Tập (Giữ nguyên hoặc đổi)'}
+                </label>
                 <input
                   type="text"
                   required
@@ -4335,78 +4550,165 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
               {/* Number of sessions & Price */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Thêm Số Buổi (+Buổi) *</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    {renewMode === 'paid' ? 'Thêm Số Buổi (+Buổi) *' : 'Thêm Số Buổi Bù (Mặc định 0)'}
+                  </label>
                   <input
                     type="number"
-                    min="1"
+                    min="0"
                     required
                     value={renewFormData.additionalSessions}
                     onChange={(e) => setRenewFormData({ ...renewFormData, additionalSessions: parseInt(e.target.value) || 0 })}
                     className="w-full bg-slate-50 text-emerald-700 border border-slate-200 rounded-xl p-2.5 text-sm font-black focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:bg-white"
                   />
                   <p className="text-[10px] text-slate-500 font-medium mt-1">
-                    Số buổi mới sau gia hạn: <span className="font-extrabold text-emerald-600">{(renewClient.remainingSessions || 0) + Number(renewFormData.additionalSessions)} / {Number(renewFormData.additionalSessions) || renewClient.totalSessions} buổi</span>
+                    {renewMode === 'paid' ? (
+                      <>Số buổi mới sau gia hạn: <span className="font-extrabold text-emerald-600">{(renewClient.remainingSessions || 0) + Number(renewFormData.additionalSessions)} / {(renewClient.totalSessions || 0) + (Number(renewFormData.additionalSessions) || 0)} buổi</span></>
+                    ) : (
+                      Number(renewFormData.additionalSessions) > 0 ? (
+                        <>Cộng bù thêm: <span className="font-extrabold text-emerald-600">{(renewClient.remainingSessions || 0) + Number(renewFormData.additionalSessions)} / {(renewClient.totalSessions || 0) + Number(renewFormData.additionalSessions)} buổi</span></>
+                      ) : (
+                        <>Số buổi được giữ nguyên: <span className="font-extrabold text-emerald-600">{renewClient.remainingSessions || 0} / {renewClient.totalSessions || 0} buổi</span></>
+                      )
+                    )}
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Số Tiền Thanh Toán (VND) *</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Số Tiền Thanh Toán (VND) {renewMode === 'paid' && '*'}
+                  </label>
+                  {renewMode === 'paid' ? (
+                    <>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        required
+                        value={renewFormData.amountVnd ? new Intl.NumberFormat('vi-VN').format(renewFormData.amountVnd) : ''}
+                        onChange={(e) => {
+                          const digitsOnly = e.target.value.replace(/\D/g, '');
+                          setRenewFormData({
+                            ...renewFormData,
+                            amountVnd: digitsOnly ? parseInt(digitsOnly, 10) : 0
+                          });
+                        }}
+                        placeholder="0"
+                        className="w-full bg-slate-50 text-[#FF4E00] border border-slate-200 rounded-xl p-2.5 text-sm font-black focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:bg-white"
+                      />
+                      <p className="text-[10px] font-bold text-slate-600 mt-1">
+                        {renewFormData.amountVnd > 0 ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(renewFormData.amountVnd) : '0 đ'}
+                      </p>
+                    </>
+                  ) : (
+                    <div className="relative">
+                      <input
+                        type="text"
+                        disabled
+                        readOnly
+                        value="0 đ (Bảo lưu - Miễn phí)"
+                        className="w-full bg-slate-100 text-slate-500 border border-slate-200 rounded-xl p-2.5 text-sm font-extrabold cursor-not-allowed select-none"
+                      />
+                      <p className="text-[10px] font-bold text-blue-600 mt-1">
+                        ✓ Miễn phí / Không tạo phiếu thu doanh thu
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Payment Date & Method (Only in paid mode) vs Reason input (in extend_only mode) */}
+              {renewMode === 'paid' ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Tháng / ngày ghi nhận doanh thu *</label>
+                    <input
+                      type="date"
+                      required
+                      value={renewFormData.paymentDate}
+                      onChange={(e) => setRenewFormData({ ...renewFormData, paymentDate: e.target.value })}
+                      className="w-full bg-slate-50 text-slate-800 border border-slate-200 rounded-xl p-2.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:bg-white"
+                    />
+                    <p className="text-[10px] text-indigo-600 font-bold mt-1">
+                      📅 Cập nhật vào báo cáo Tháng {new Date(renewFormData.paymentDate || new Date()).getMonth() + 1}/{new Date(renewFormData.paymentDate || new Date()).getFullYear()}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Hình Thức Thanh Toán</label>
+                    <select
+                      value={renewFormData.paymentMethod}
+                      onChange={(e) => setRenewFormData({ ...renewFormData, paymentMethod: e.target.value as any })}
+                      className="w-full bg-slate-50 text-slate-800 border border-slate-200 rounded-xl p-2.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:bg-white"
+                    >
+                      <option value="Chuyển khoản">Chuyển khoản (NH)</option>
+                      <option value="Tiền mặt">Tiền mặt</option>
+                      <option value="Thẻ">Thẻ Quẹt POS</option>
+                    </select>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-xs font-bold text-blue-950 mb-1 flex items-center gap-1.5">
+                    <PauseCircle className="w-3.5 h-3.5 text-blue-600" />
+                    Lý do bảo lưu / gia hạn thời hạn hợp đồng *
+                  </label>
                   <input
                     type="text"
-                    inputMode="numeric"
                     required
-                    value={renewFormData.amountVnd ? new Intl.NumberFormat('vi-VN').format(renewFormData.amountVnd) : ''}
-                    onChange={(e) => {
-                      const digitsOnly = e.target.value.replace(/\D/g, '');
-                      setRenewFormData({
-                        ...renewFormData,
-                        amountVnd: digitsOnly ? parseInt(digitsOnly, 10) : 0
-                      });
-                    }}
-                    placeholder="0"
-                    className="w-full bg-slate-50 text-[#FF4E00] border border-slate-200 rounded-xl p-2.5 text-sm font-black focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:bg-white"
+                    value={renewFormData.reason}
+                    onChange={(e) => setRenewFormData({ ...renewFormData, reason: e.target.value })}
+                    placeholder="Ví dụ: Khách bận công tác, chấn thương, nghỉ Tết, chính sách CSKH..."
+                    className="w-full bg-blue-50/50 text-slate-900 border border-blue-200 rounded-xl p-2.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
                   />
-                  <p className="text-[10px] font-bold text-slate-600 mt-1">
-                    {renewFormData.amountVnd > 0 ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(renewFormData.amountVnd) : '0 đ'}
-                  </p>
                 </div>
-              </div>
+              )}
 
-              {/* Payment Date & Method */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Tháng / ngày ghi nhận doanh thu *</label>
-                  <input
-                    type="date"
-                    required
-                    value={renewFormData.paymentDate}
-                    onChange={(e) => setRenewFormData({ ...renewFormData, paymentDate: e.target.value })}
-                    className="w-full bg-slate-50 text-slate-800 border border-slate-200 rounded-xl p-2.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:bg-white"
-                  />
-                  <p className="text-[10px] text-indigo-600 font-bold mt-1">
-                    📅 Cập nhật vào báo cáo Tháng {new Date(renewFormData.paymentDate || new Date()).getMonth() + 1}/{new Date(renewFormData.paymentDate || new Date()).getFullYear()}
-                  </p>
+              {/* New Expiry Date (Hạn HD) with quick buttons & QuickDaysBox */}
+              <div className={`p-3.5 rounded-2xl space-y-2.5 ${renewMode === 'paid' ? 'bg-indigo-50/70 border border-indigo-100' : 'bg-blue-50/80 border border-blue-200'}`}>
+                <div className="flex items-center justify-between flex-wrap gap-1">
+                  <label className={`block text-xs font-extrabold ${renewMode === 'paid' ? 'text-indigo-950' : 'text-blue-950'}`}>
+                    Thời Hạn Hợp Đồng Mới (Hạn HĐ) *
+                  </label>
+                  <span className="text-[10px] font-bold text-indigo-700 bg-white px-2 py-0.5 rounded-md border border-indigo-200 shadow-2xs">
+                    Hạn cũ: {renewClient.endDate ? formatDate(renewClient.endDate) : 'Chưa có'}
+                  </span>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Hình Thức Thanh Toán</label>
-                  <select
-                    value={renewFormData.paymentMethod}
-                    onChange={(e) => setRenewFormData({ ...renewFormData, paymentMethod: e.target.value as any })}
-                    className="w-full bg-slate-50 text-slate-800 border border-slate-200 rounded-xl p-2.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:bg-white"
+                {/* Quick Date Presets */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-[10px] font-bold text-slate-500">Cộng nhanh:</span>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickExtendFromOldDate(15, 0)}
+                    className="px-2.5 py-1 bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg text-[11px] font-extrabold transition-all shadow-2xs hover:border-indigo-400 active:scale-95 cursor-pointer"
+                    title="Cộng thêm 15 ngày từ hạn cũ/hiện tại"
                   >
-                    <option value="Chuyển khoản">Chuyển khoản (NH)</option>
-                    <option value="Tiền mặt">Tiền mặt</option>
-                    <option value="Thẻ">Thẻ Quẹt POS</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* New Expiry Date (Hạn HD) with QuickDaysBox */}
-              <div className="p-3.5 bg-indigo-50/70 border border-indigo-100 rounded-2xl space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-bold text-indigo-950">Thời Hạn Hợp Đồng Mới (Hạn HĐ) *</label>
-                  <span className="text-[10px] font-bold text-indigo-600 bg-white px-2 py-0.5 rounded-md border border-indigo-200">Tùy chỉnh chọn</span>
+                    +15 Ngày
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickExtendFromOldDate(0, 1)}
+                    className="px-2.5 py-1 bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg text-[11px] font-extrabold transition-all shadow-2xs hover:border-indigo-400 active:scale-95 cursor-pointer"
+                    title="Cộng thêm 1 tháng từ hạn cũ/hiện tại"
+                  >
+                    +1 Tháng
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickExtendFromOldDate(0, 2)}
+                    className="px-2.5 py-1 bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg text-[11px] font-extrabold transition-all shadow-2xs hover:border-indigo-400 active:scale-95 cursor-pointer"
+                    title="Cộng thêm 2 tháng từ hạn cũ/hiện tại"
+                  >
+                    +2 Tháng
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickExtendFromOldDate(0, 3)}
+                    className="px-2.5 py-1 bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg text-[11px] font-extrabold transition-all shadow-2xs hover:border-indigo-400 active:scale-95 cursor-pointer"
+                    title="Cộng thêm 3 tháng từ hạn cũ/hiện tại"
+                  >
+                    +3 Tháng
+                  </button>
                 </div>
 
                 <input
@@ -4428,12 +4730,12 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
 
               {/* Notes */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Ghi chú đợt gia hạn</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Ghi chú bổ sung</label>
                 <textarea
                   rows={2}
                   value={renewFormData.notes}
                   onChange={(e) => setRenewFormData({ ...renewFormData, notes: e.target.value })}
-                  placeholder="Ghi chú thêm về đợt đóng tiền gia hạn này..."
+                  placeholder={renewMode === 'paid' ? "Ghi chú thêm về đợt đóng tiền gia hạn này..." : "Ghi chú thêm về việc bảo lưu hạn sử dụng..."}
                   className="w-full bg-slate-50 text-slate-800 border border-slate-200 rounded-xl p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:bg-white"
                 />
               </div>
@@ -4443,17 +4745,27 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsRenewModalOpen(false)}
-                  className="px-5 py-2.5 bg-slate-100 text-slate-600 rounded-full text-xs font-bold hover:bg-slate-200 transition-colors"
+                  className="px-5 py-2.5 bg-slate-100 text-slate-600 rounded-full text-xs font-bold hover:bg-slate-200 transition-colors cursor-pointer"
                 >
                   Hủy Bỏ
                 </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 bg-[#FF4E00] hover:bg-orange-600 text-white font-extrabold rounded-full text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5"
-                >
-                  <Check className="w-4 h-4" />
-                  Xác nhận gia hạn & cập nhật doanh thu
-                </button>
+                {renewMode === 'paid' ? (
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 bg-[#FF4E00] hover:bg-orange-600 text-white font-extrabold rounded-full text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Check className="w-4 h-4" />
+                    Xác nhận gia hạn & cập nhật doanh thu
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-full text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Check className="w-4 h-4" />
+                    Xác nhận bảo lưu / gia hạn hạn dùng (0 đ)
+                  </button>
+                )}
               </div>
 
             </form>
