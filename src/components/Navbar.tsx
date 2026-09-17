@@ -264,7 +264,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => setActiveTab('dashboard')} 
               className="flex items-center gap-2 sm:gap-3 cursor-pointer group min-w-0"
             >
-              <NbGymLogo size="md" className="group-hover:scale-105 transition-transform duration-300 bg-white p-1 border border-slate-200/80 rounded-xl shadow-2xs shrink-0" />
+              <NbGymLogo size="md" className="group-hover:scale-105 transition-all duration-300 drop-shadow-[0_2px_8px_rgba(0,0,0,0.15)] group-hover:drop-shadow-[0_4px_14px_rgba(255,85,0,0.4)] shrink-0" />
               <div className="min-w-0">
                 <h1 className="text-base sm:text-lg font-black tracking-tight text-slate-900 flex flex-wrap items-center gap-1.5 leading-tight">
                   <span className="truncate">{(!currentUser?.gymName || currentUser?.gymName === 'NB PRIVATE GYM (Gốc)') ? 'NBFit Master' : currentUser.gymName}</span>

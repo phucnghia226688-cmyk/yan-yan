@@ -177,7 +177,7 @@ export const ServiceReceiptModal: React.FC<ServiceReceiptModalProps> = ({
             {/* Gym Brand Header */}
             <div className="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-4">
               <div className="flex items-center gap-2">
-                <NbGymLogo className="w-8 h-8 rounded-xl shadow-md" />
+                <NbGymLogo size="sm" className="drop-shadow-[0_4px_10px_rgba(255,100,0,0.4)]" />
                 <div>
                   <h4 className="font-black text-sm tracking-wide text-amber-400 uppercase">
                     {displayGymName}

@@ -46,8 +46,13 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
         
         {/* Top Header Logo */}
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <NbGymLogo size="lg" className="bg-white p-2 rounded-2xl shadow-lg border border-slate-700/50" />
+          <div className="flex justify-center mb-5 relative group">
+            {/* Ambient Halo Glow */}
+            <div className="absolute -inset-3 bg-gradient-to-r from-red-600/30 via-orange-500/30 to-amber-400/30 rounded-full blur-xl opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500 pointer-events-none" />
+            <NbGymLogo 
+              size="xl" 
+              className="relative z-10 drop-shadow-[0_12px_24px_rgba(255,69,0,0.45)] group-hover:drop-shadow-[0_18px_32px_rgba(255,100,0,0.65)] transform transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-1 cursor-pointer" 
+            />
           </div>
           <h1 className="text-2xl font-black text-white tracking-tight">Đăng nhập quản lý</h1>
           <p className="text-xs text-slate-400 mt-1">

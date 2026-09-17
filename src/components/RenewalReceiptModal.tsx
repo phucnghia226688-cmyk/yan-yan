@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { X, Copy, Download, Zap, CheckCircle2, Loader2, Image as ImageIcon, ShieldCheck } from 'lucide-react';
 import { toBlob, toPng } from 'html-to-image';
 import { useTenant } from '../context/TenantContext';
+import { NbGymLogo } from './NbGymLogo';
 
 export interface RenewalReceiptData {
   clientName: string;
@@ -116,9 +117,7 @@ export const RenewalReceiptModal: React.FC<RenewalReceiptModalProps> = ({
 
             {/* Brand Logo Header */}
             <div className="p-6 pb-2 text-center relative z-10">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
-                <ShieldCheck className="w-6 h-6 text-[#FF4E00]" />
-              </div>
+              <NbGymLogo size="md" className="mx-auto mb-3 drop-shadow-[0_8px_20px_rgba(255,78,0,0.5)]" />
               <h2 className="font-black text-xl text-white tracking-tight">{displayGymName}</h2>
               <p className="text-[#FF4E00] text-xs font-bold uppercase tracking-wider mt-1">Xác nhận thanh toán</p>
             </div>
