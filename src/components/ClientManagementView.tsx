@@ -299,7 +299,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
   const displayPtName = activeTenant?.ownerName || currentUser?.ownerName || 'HLV Trưởng';
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expiring' | 'expired' | 'closed'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expiring' | 'expired' | 'closed' | 'extra_service'>('all');
   const [sortOption, setSortOption] = useState<'newest' | 'oldest' | 'name_asc' | 'name_desc' | 'sessions_asc' | 'sessions_desc'>('newest');
   const [selectedClient, setSelectedClient] = useState<Client | null>(selectedClientFromNav || clients[0] || null);
   const [activeDetailTab, setActiveDetailTab] = useState<'overview' | 'info' | 'history' | 'service'>('overview');
@@ -617,6 +617,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
       const nameNormalized = removeAccents(c.name.toLowerCase());
       const matchesSearch = nameNormalized.includes(searchNormalized) || c.phone.includes(searchQuery.trim());
       if (statusFilter === 'all') return matchesSearch && c.status !== 'closed';
+      if (statusFilter === 'extra_service') return matchesSearch && !!c.hasExtraService;
       return matchesSearch && c.status === statusFilter;
     })
     .sort((a, b) => {
@@ -667,8 +668,9 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
   const handleCreateClient = (e: React.FormEvent) => {
     e.preventDefault();
     const isMonthly = formData.clientType === 'monthly';
-    const totalSess = isMonthly ? 0 : formData.totalSessions;
-    const remSess = isMonthly ? 0 : formData.totalSessions;
+    const isServiceOnly = !!formData.hasExtraService && (formData.totalSessions === 0 || !formData.totalSessions);
+    const totalSess = (isMonthly || isServiceOnly) ? 0 : formData.totalSessions;
+    const remSess = (isMonthly || isServiceOnly) ? 0 : formData.totalSessions;
 
     const formattedStart = formatDate(formData.startDate);
     const formattedEnd = formatDate(formData.endDate);
@@ -677,9 +679,11 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
     const extraTotal = hasExtra ? (formData.totalExtraServices || 0) : 0;
     const extraPrice = hasExtra ? (formData.extraServicePrice || 0) : 0;
     const extraName = hasExtra ? (formData.extraServiceName || '').trim() : '';
+    const finalPkgName = formData.packageName || (isServiceOnly ? `Chỉ dịch vụ (${extraName || 'Dịch vụ thêm'})` : 'Gói PT');
 
     const newClientPayload = {
       ...formData,
+      packageName: finalPkgName,
       hasExtraService: hasExtra,
       extraServiceName: extraName,
       totalExtraServices: extraTotal,
@@ -690,7 +694,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
       expirationDate: formattedEnd,
       totalSessions: totalSess,
       remainingSessions: remSess,
-      initialAmountVnd: formData.amountVnd,
+      initialAmountVnd: formData.amountVnd || 0,
       paymentMethod: formData.paymentMethod
     };
     addClient(newClientPayload);
@@ -1949,6 +1953,17 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                   Tất cả ({clients.filter(c => c.status !== 'closed').length})
                 </button>
                 <button
+                  onClick={() => setStatusFilter('extra_service')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                    statusFilter === 'extra_service' ? 'bg-amber-500 text-slate-950 shadow-2xs' : 'bg-amber-50 text-amber-950 border border-amber-300 hover:bg-amber-100'
+                  }`}
+                >
+                  <span>🍽️ Dịch vụ</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-black ${statusFilter === 'extra_service' ? 'bg-amber-950 text-amber-100' : 'bg-amber-200 text-amber-950'}`}>
+                    {clients.filter(c => c.hasExtraService).length}
+                  </span>
+                </button>
+                <button
                   onClick={() => setStatusFilter('active')}
                   className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all whitespace-nowrap cursor-pointer ${
                     statusFilter === 'active' ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
@@ -2383,6 +2398,14 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
               Tất cả ({clients.filter(c => c.status !== 'closed').length})
             </button>
             <button
+              onClick={() => setStatusFilter('extra_service')}
+              className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1 ${
+                statusFilter === 'extra_service' ? 'bg-amber-500 text-slate-950 font-black shadow-2xs' : 'bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100'
+              }`}
+            >
+              <span>🍽️ Dịch vụ ({clients.filter(c => c.hasExtraService).length})</span>
+            </button>
+            <button
               onClick={() => setStatusFilter('active')}
               className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
                 statusFilter === 'active' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -2760,26 +2783,28 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                   <label className="block text-xs font-black text-indigo-950 uppercase tracking-wide">
                     🏷️ Loại Hình Đăng Ký Học Viên
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <button
                       type="button"
                       onClick={() => {
                         setFormData({
                           ...formData,
                           clientType: 'session',
-                          packageName: formData.packageName.includes('Khách Tháng') ? 'Gói 12 buổi' : formData.packageName,
+                          packageName: formData.packageName.includes('Khách Tháng') || formData.packageName.includes('Chỉ dịch vụ') ? 'Gói 12 buổi' : formData.packageName,
                           totalSessions: formData.totalSessions || 12,
                           remainingSessions: formData.totalSessions || 12
                         });
                       }}
-                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-center ${
-                        formData.clientType !== 'monthly'
+                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                        formData.clientType !== 'monthly' && !(formData.hasExtraService && formData.totalSessions === 0)
                           ? 'bg-white border-indigo-600 ring-2 ring-indigo-500/20 shadow-xs text-indigo-950 font-extrabold'
                           : 'bg-white/60 border-slate-200 text-slate-600 hover:bg-white font-medium'
                       }`}
                     >
-                      <span className="text-xs font-black text-indigo-700">🏋️ Gói Tập Theo Buổi (PT 1:1)</span>
-                      <span className="text-[10px] text-slate-500 mt-0.5">Trừ dần 1 buổi mỗi lần check-in.</span>
+                      <div>
+                        <span className="text-xs font-black text-indigo-700 block">🏋️ Gói Tập PT 1:1</span>
+                        <span className="text-[10px] text-slate-500 mt-0.5 block">Trừ dần 1 buổi mỗi lần check-in tập luyện.</span>
+                      </div>
                     </button>
 
                     <button
@@ -2798,25 +2823,66 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                           endDate: endStr
                         });
                       }}
-                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-center ${
+                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
                         formData.clientType === 'monthly'
                           ? 'bg-amber-500 border-amber-600 text-white shadow-md ring-2 ring-amber-400/30 font-extrabold'
                           : 'bg-white/60 border-slate-200 text-slate-600 hover:bg-white font-medium'
                       }`}
                     >
-                      <span className="text-xs font-black text-amber-950">📅 Khách Tháng (Không Tính Buổi)</span>
-                      <span className={`text-[10px] mt-0.5 ${formData.clientType === 'monthly' ? 'text-amber-100' : 'text-slate-500'}`}>
-                        Quản lý hoàn toàn theo ngày bắt đầu & kết thúc.
-                      </span>
+                      <div>
+                        <span className={`text-xs font-black block ${formData.clientType === 'monthly' ? 'text-amber-950' : 'text-amber-700'}`}>📅 Khách Tháng</span>
+                        <span className={`text-[10px] mt-0.5 block ${formData.clientType === 'monthly' ? 'text-amber-950/80 font-semibold' : 'text-slate-500'}`}>
+                          Tập tự do theo ngày hạn hợp đồng.
+                        </span>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const todayStr = formData.startDate || getTodayDateStr();
+                        const todayDate = new Date(todayStr);
+                        todayDate.setMonth(todayDate.getMonth() + 1);
+                        const endStr = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;
+                        setFormData({
+                          ...formData,
+                          clientType: 'session',
+                          packageName: 'Chỉ dịch vụ (Meal Plan/Ăn uống)',
+                          totalSessions: 0,
+                          remainingSessions: 0,
+                          amountVnd: 0,
+                          hasExtraService: true,
+                          extraServiceName: formData.extraServiceName || 'Bữa ăn dinh dưỡng',
+                          totalExtraServices: formData.totalExtraServices || 30,
+                          remainingExtraServices: formData.totalExtraServices || 30,
+                          extraServicePrice: formData.extraServicePrice || 1500000,
+                          preferredDays: [],
+                          endDate: endStr
+                        });
+                      }}
+                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                        formData.hasExtraService && formData.totalSessions === 0 && formData.clientType !== 'monthly'
+                          ? 'bg-amber-400 border-amber-500 text-amber-950 shadow-md ring-2 ring-amber-500/30 font-extrabold'
+                          : 'bg-white/60 border-slate-200 text-slate-600 hover:bg-white font-medium'
+                      }`}
+                    >
+                      <div>
+                        <span className="text-xs font-black text-amber-950 block">🍽️ Chỉ Dịch Vụ Thêm</span>
+                        <span className="text-[10px] text-amber-900/80 mt-0.5 block font-medium">
+                          Chỉ mua Meal Plan, khăn, nước (0 buổi PT, không thu học phí PT).
+                        </span>
+                      </div>
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-600 mb-1">Gói tập (Tự điền tay tên gói/số buổi) *</label>
+                  <label className="block text-xs font-bold text-slate-600 mb-1">
+                    Gói tập / Dịch vụ {formData.hasExtraService && formData.totalSessions === 0 ? '(Tự động điền)' : '*'}
+                  </label>
                   <input
                     type="text"
-                    required
+                    required={!(formData.hasExtraService && formData.totalSessions === 0)}
                     value={formData.packageName}
                     onChange={(e) => {
                       const val = e.target.value;
@@ -2825,13 +2891,19 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                       setFormData({
                         ...formData,
                         packageName: val,
-                        ...(match && formData.clientType !== 'monthly' ? { totalSessions: sessions, remainingSessions: sessions } : {})
+                        ...(match && formData.clientType !== 'monthly' && !(formData.hasExtraService && formData.totalSessions === 0) ? { totalSessions: sessions, remainingSessions: sessions } : {})
                       });
                     }}
-                    placeholder={formData.clientType === 'monthly' ? 'VD: Khách Tháng (1 Tháng), Thẻ Tập 3 Tháng...' : 'VD: Gói 12 buổi, Gói 20 buổi...'}
+                    placeholder={
+                      formData.hasExtraService && formData.totalSessions === 0
+                        ? 'VD: Chỉ dịch vụ (Meal Plan/Ăn uống)...'
+                        : formData.clientType === 'monthly'
+                          ? 'VD: Khách Tháng (1 Tháng), Thẻ Tập 3 Tháng...'
+                          : 'VD: Gói 12 buổi, Gói 20 buổi...'
+                    }
                     className="w-full bg-slate-100 text-slate-900 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:bg-white font-extrabold"
                   />
-                  {formData.clientType !== 'monthly' ? (
+                  {formData.clientType !== 'monthly' && !(formData.hasExtraService && formData.totalSessions === 0) ? (
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       <span className="text-[10px] text-slate-400 self-center font-bold mr-0.5">Mẫu nhanh:</span>
                       {[12, 16, 20, 24, 30, 36, 48, 72, 100].map((num) => (
@@ -2857,7 +2929,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                         </button>
                       ))}
                     </div>
-                  ) : (
+                  ) : formData.clientType === 'monthly' ? (
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       <span className="text-[10px] text-slate-400 self-center font-bold mr-0.5">Mẫu nhanh:</span>
                       {[
@@ -2886,23 +2958,51 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                         </button>
                       ))}
                     </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      <span className="text-[10px] text-amber-800 self-center font-bold mr-0.5">Mẫu dịch vụ:</span>
+                      {['Meal Plan 30 suất', 'Dinh dưỡng 20 suất', 'Nước uống BCAA 30 ngày', 'Khăn & Tủ VIP 1 Tháng'].map((srv) => (
+                        <button
+                          key={srv}
+                          type="button"
+                          onClick={() => {
+                            setFormData({
+                              ...formData,
+                              packageName: `Chỉ dịch vụ: ${srv}`,
+                              extraServiceName: srv
+                            });
+                          }}
+                          className="px-2 py-0.5 text-[11px] font-bold rounded-lg bg-amber-100 text-amber-950 border border-amber-300 hover:bg-amber-200 transition-colors cursor-pointer"
+                        >
+                          {srv}
+                        </button>
+                      ))}
+                    </div>
                   )}
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-600 mb-1">
-                    {formData.clientType === 'monthly' ? 'Số buổi (Thẻ Khách Tháng)' : 'Số buổi đăng ký (Số buổi còn lại ban đầu) *'}
+                    {formData.clientType === 'monthly'
+                      ? 'Số buổi (Thẻ Khách Tháng)'
+                      : (formData.hasExtraService && formData.totalSessions === 0)
+                        ? 'Số buổi tập PT'
+                        : 'Số buổi đăng ký (Số buổi còn lại ban đầu) *'}
                   </label>
                   {formData.clientType === 'monthly' ? (
                     <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs font-bold text-amber-900 flex items-center gap-1.5">
                       <span>📅 Không tính buổi (Học viên tập tự do theo ngày hạn hợp đồng)</span>
                     </div>
+                  ) : (formData.hasExtraService && formData.totalSessions === 0) ? (
+                    <div className="p-2.5 bg-amber-50/80 border border-amber-300 rounded-xl text-xs font-extrabold text-amber-950 flex items-center gap-1.5">
+                      <span>🍽️ 0 buổi PT (Khách hàng chỉ đăng ký Dịch Vụ Thêm, quản lý theo số suất dịch vụ)</span>
+                    </div>
                   ) : (
                     <>
                       <input
                         type="number"
-                        min="1"
-                        required
+                        min="0"
+                        required={!formData.hasExtraService}
                         value={formData.totalSessions}
                         onChange={(e) => {
                           const val = Math.max(0, parseInt(e.target.value) || 0);
@@ -2957,12 +3057,11 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-emerald-900 mb-1">
-                      Số tiền thu / Học phí gói tập (VNĐ) *
+                      Số tiền thu / Học phí gói tập PT (VNĐ)
                     </label>
                     <input
                       type="text"
                       inputMode="numeric"
-                      required
                       value={formData.amountVnd ? new Intl.NumberFormat('vi-VN').format(formData.amountVnd) : ''}
                       onChange={(e) => {
                         const digitsOnly = e.target.value.replace(/\D/g, '');
@@ -2975,7 +3074,11 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                       className="w-full bg-white text-emerald-950 font-black border border-emerald-300 rounded-xl p-2.5 text-base focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-2xs"
                     />
                     <span className="text-[11px] font-bold text-emerald-700 mt-1 block">
-                      {formData.amountVnd > 0 ? `= ${formData.amountVnd.toLocaleString('vi-VN')} VNĐ` : 'Nhập 0 nếu chưa thu tiền'}
+                      {formData.amountVnd > 0
+                        ? `= ${formData.amountVnd.toLocaleString('vi-VN')} VNĐ (Tạo phiếu thu PT)`
+                        : (formData.hasExtraService && formData.totalSessions === 0)
+                          ? '0 VNĐ (Không thu học phí PT, chỉ ghi nhận doanh thu Dịch vụ thêm)'
+                          : 'Nhập 0 nếu chưa thu tiền hoặc miễn phí'}
                     </span>
                   </div>
 

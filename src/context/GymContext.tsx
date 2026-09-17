@@ -836,7 +836,8 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addClient = (newClientData: Omit<Client, 'id' | 'status' | 'bodyMetrics'> & { initialAmountVnd?: number; paymentMethod?: 'Tiền mặt' | 'Chuyển khoản' | 'Thẻ' }) => {
     const id = `cli-${Date.now()}`;
     const isMonthly = newClientData.clientType === 'monthly';
-    const remaining = isMonthly
+    const isServiceOnly = !!newClientData.hasExtraService && (newClientData.totalSessions === 0 || !newClientData.totalSessions);
+    const remaining = isMonthly || isServiceOnly
       ? 0
       : (newClientData.remainingSessions !== undefined ? newClientData.remainingSessions : newClientData.totalSessions);
     
@@ -851,6 +852,17 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const daysLeft = Math.ceil((endMs - nowMs) / (1000 * 3600 * 24));
         if (daysLeft <= 7) status = 'expiring';
       }
+    } else if (isServiceOnly) {
+      const extraRemaining = newClientData.remainingExtraServices !== undefined 
+        ? newClientData.remainingExtraServices 
+        : (newClientData.totalExtraServices || 0);
+      if (extraRemaining <= 0) {
+        status = 'expired';
+      } else if (extraRemaining <= 3) {
+        status = 'expiring';
+      } else {
+        status = 'active';
+      }
     } else {
       if (remaining <= 0) {
         status = 'expired';
@@ -862,8 +874,13 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const now = new Date();
     const formattedTimestamp = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
+    const extraServiceName = newClientData.extraServiceName || 'Dịch vụ thêm';
+    const extraCount = newClientData.totalExtraServices || 0;
+    const finalPackageName = newClientData.packageName || (isServiceOnly ? `Chỉ dịch vụ (${extraServiceName})` : 'Gói PT');
+
     const newClient: Client = {
       ...newClientData,
+      packageName: finalPackageName,
       avatarUrl: DEFAULT_AVATAR_URL,
       gender: newClientData.gender || 'Nam',
       remainingSessions: remaining,
@@ -874,8 +891,10 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         id: `hist-${Date.now()}-init`,
         timestamp: formattedTimestamp,
         summary: isMonthly
-          ? `✨ Tạo mới hồ sơ: ${newClientData.name} (${newClientData.packageName || 'Khách Tháng'} - Hạn HĐ: ${newClientData.endDate})`
-          : `✨ Tạo mới hồ sơ: ${newClientData.name} (${newClientData.packageName || 'Gói PT'} - ${remaining} buổi)`,
+          ? `✨ Tạo mới hồ sơ: ${newClientData.name} (${finalPackageName} - Hạn HĐ: ${newClientData.endDate})`
+          : isServiceOnly
+            ? `✨ Tạo mới hồ sơ Dịch vụ: ${newClientData.name} (${extraServiceName} - ${extraCount} suất)`
+            : `✨ Tạo mới hồ sơ: ${newClientData.name} (${finalPackageName} - ${remaining} buổi)`,
         actionType: 'create'
       }]
     };
@@ -886,7 +905,9 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addAuditLog(
       'ADD_CLIENT',
       newClientData.name,
-      `✨ Tạo mới hồ sơ học viên: ${newClientData.name} (${newClientData.packageName || 'Gói PT'} - ${remaining} buổi)`,
+      isServiceOnly
+        ? `✨ Tạo mới hồ sơ khách dịch vụ: ${newClientData.name} (${extraServiceName} - ${extraCount} suất)`
+        : `✨ Tạo mới hồ sơ học viên: ${newClientData.name} (${finalPackageName} - ${remaining} buổi)`,
       `SĐT: ${newClientData.phone} • Hạn HĐ: ${newClientData.endDate || 'Chưa có'}`,
       { client: newClient }
     );
@@ -894,13 +915,13 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Automatically record payment if initial amount specified or totalSessions > 0
     const finalAmount = newClientData.initialAmountVnd !== undefined 
       ? newClientData.initialAmountVnd 
-      : (newClientData.totalSessions * 500000);
+      : (isServiceOnly ? 0 : (newClientData.totalSessions * 500000));
 
     if (finalAmount > 0) {
       addPayment({
         clientId: id,
         clientName: newClientData.name,
-        packageName: newClientData.packageName,
+        packageName: finalPackageName,
         sessionsCount: newClientData.totalSessions,
         amountVnd: finalAmount,
         paymentMethod: newClientData.paymentMethod || 'Chuyển khoản',
@@ -913,8 +934,6 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // Tự động tạo phiếu thu Dịch vụ thêm nếu có đăng ký & có phí
     if (newClientData.hasExtraService && newClientData.extraServicePrice && newClientData.extraServicePrice > 0) {
-      const extraServiceName = newClientData.extraServiceName || 'Dịch vụ thêm';
-      const extraCount = newClientData.totalExtraServices || 0;
       addPayment({
         clientId: id,
         clientName: newClientData.name,
@@ -924,7 +943,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         paymentMethod: newClientData.paymentMethod || 'Chuyển khoản',
         paymentDate: newClientData.startDate || getTodayDateStr(),
         category: 'extra_service',
-        notes: `Thu phí Dịch vụ thêm (${extraServiceName} - ${extraCount} suất) - ${newClientData.name}`,
+        notes: `Thu phí dịch vụ thêm: ${extraServiceName} (${extraCount} suất) cho học viên ${newClientData.name}`,
         skipSessionUpdate: true
       });
     }

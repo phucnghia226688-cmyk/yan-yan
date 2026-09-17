@@ -147,6 +147,9 @@ export const getClientContractStatus = (client?: {
   totalSessions?: number;
   endDate?: string;
   expirationDate?: string;
+  hasExtraService?: boolean;
+  remainingExtraServices?: number;
+  totalExtraServices?: number;
 } | null): ClientContractStatusInfo => {
   if (!client) {
     return {
@@ -188,9 +191,66 @@ export const getClientContractStatus = (client?: {
   }
 
   const isMonthly = client.clientType === 'monthly';
+  const isServiceOnly = !!client.hasExtraService && (client.totalSessions === 0 || !client.totalSessions);
   const remaining = client.remainingSessions ?? 0;
   const effectiveEndDate = client.endDate || client.expirationDate;
   const diffDays = calculateContractDiffDays(effectiveEndDate);
+
+  if (isServiceOnly) {
+    const extraRemaining = client.remainingExtraServices !== undefined 
+      ? client.remainingExtraServices 
+      : (client.totalExtraServices || 0);
+    const isDateExpired = diffDays !== null && diffDays < 0;
+    const isExtraExpired = extraRemaining <= 0;
+
+    if (isDateExpired || isExtraExpired) {
+      let badgeLabel = 'Hết suất DV';
+      if (isDateExpired && isExtraExpired) badgeLabel = 'Hết hạn & Hết suất DV';
+      else if (isDateExpired) badgeLabel = 'Hết hạn DV';
+
+      return {
+        status: 'expired',
+        diffDays,
+        borderClass: 'border-l-4 border-rose-500 bg-rose-50/40',
+        badgeLabel,
+        badgeColor: 'red',
+        isOverdue: true,
+        isWarning: false,
+        isSafe: false
+      };
+    }
+
+    const isDateWarning = diffDays !== null && diffDays >= 0 && diffDays <= 5;
+    const isExtraWarning = extraRemaining > 0 && extraRemaining <= 3;
+
+    if (isDateWarning || isExtraWarning) {
+      let badgeLabel = `Còn ${extraRemaining} suất DV`;
+      if (isDateWarning && isExtraWarning) badgeLabel = `Hạn ${diffDays}n & Còn ${extraRemaining} suất`;
+      else if (isDateWarning) badgeLabel = diffDays === 0 ? 'Hết hạn hôm nay' : `Hạn còn ${diffDays} ngày`;
+
+      return {
+        status: 'expiring',
+        diffDays,
+        borderClass: 'border-l-4 border-amber-500 bg-amber-50/40',
+        badgeLabel,
+        badgeColor: 'amber',
+        isOverdue: false,
+        isWarning: true,
+        isSafe: false
+      };
+    }
+
+    return {
+      status: 'active',
+      diffDays,
+      borderClass: '',
+      badgeLabel: `Dịch vụ (${extraRemaining} suất)`,
+      badgeColor: 'green',
+      isOverdue: false,
+      isWarning: false,
+      isSafe: true
+    };
+  }
 
   // 🔴 QUÁ HẠN / HẾT HẠN HỢP ĐỒNG:
   // diffDays < 0 HOẶC số buổi còn lại <= 0 (đối với gói buổi)
