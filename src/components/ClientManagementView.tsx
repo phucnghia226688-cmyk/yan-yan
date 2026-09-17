@@ -1633,17 +1633,21 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                 {activeDetailTab === 'service' && (
                   <div className="space-y-4 animate-fade-in">
                     {/* Top Close / Return Action Bar */}
-                    <div className="flex items-center justify-between p-3 rounded-2xl bg-amber-500/10 border border-amber-300/80">
-                      <div className="flex items-center gap-2">
-                        <Utensils className="w-4 h-4 text-amber-700" />
-                        <span className="text-xs font-bold text-amber-950">
-                          Chi tiết & Lịch sử check-in {selectedClient.extraServiceName || 'Dịch vụ thêm'}
-                        </span>
+                    <div className="flex items-center justify-between p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 shadow-xs">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-amber-400/20 dark:bg-amber-400/10 border border-amber-400/40 flex items-center justify-center text-amber-900 dark:text-amber-300 shrink-0">
+                          <Utensils className="w-4 h-4 text-amber-900 dark:text-amber-300" />
+                        </div>
+                        <div>
+                          <span className="text-xs sm:text-sm font-black text-amber-950 dark:text-amber-100 block">
+                            Chi tiết & Lịch sử check-in {selectedClient.extraServiceName || 'Dịch vụ thêm'}
+                          </span>
+                        </div>
                       </div>
                       <button
                         type="button"
                         onClick={() => setActiveDetailTab('overview')}
-                        className="text-xs font-black text-amber-950 bg-amber-400 hover:bg-amber-300 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+                        className="text-xs font-black text-slate-950 bg-amber-400 hover:bg-amber-300 px-3.5 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95 shrink-0"
                       >
                         <X className="w-3.5 h-3.5" />
                         <span>Đóng tab này / Về Tổng quan</span>
@@ -1653,23 +1657,23 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                     {selectedClient.hasExtraService ? (
                       <>
                         {/* Service Status Dashboard Card */}
-                        <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-50/60 border-2 border-amber-300 shadow-sm space-y-4">
+                        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-700/80 shadow-xs space-y-4">
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div className="flex items-center gap-3">
-                              <div className="w-12 h-12 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-black shadow-md border border-amber-400">
+                              <div className="w-12 h-12 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center font-black shadow-sm border border-amber-500">
                                 <Utensils className="w-6 h-6" />
                               </div>
                               <div>
-                                <div className="flex items-center gap-2">
-                                  <h4 className="text-base font-black text-slate-900">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h4 className="text-base font-black text-slate-900 dark:text-white">
                                     {selectedClient.extraServiceName || 'Dịch vụ thêm'}
                                   </h4>
-                                  <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border ${
+                                  <span className={`text-xs font-black uppercase px-2.5 py-0.5 rounded-full border ${
                                     (selectedClient.remainingExtraServices ?? 0) <= 0
-                                      ? 'bg-rose-100 text-rose-800 border-rose-300'
+                                      ? 'bg-rose-100 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200 border-rose-300'
                                       : (selectedClient.remainingExtraServices ?? 0) <= 3
-                                      ? 'bg-amber-100 text-amber-800 border-amber-300 animate-pulse'
-                                      : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                      ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-950 dark:text-amber-200 border-amber-300 animate-pulse'
+                                      : 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-900 dark:text-emerald-200 border-emerald-300'
                                   }`}>
                                     {(selectedClient.remainingExtraServices ?? 0) <= 0
                                       ? '⛔ Đã hết suất'
@@ -1678,8 +1682,8 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                                       : '✅ Đang hoạt động'}
                                   </span>
                                 </div>
-                                <p className="text-xs text-slate-600 font-medium mt-0.5">
-                                  Đã thu phí: <strong className="text-amber-950 font-bold">{selectedClient.extraServicePrice ? selectedClient.extraServicePrice.toLocaleString('vi-VN') + ' đ' : 'Miễn phí'}</strong>
+                                <p className="text-xs text-slate-700 dark:text-slate-300 font-semibold mt-1">
+                                  Đã thu phí: <strong className="text-amber-950 dark:text-amber-300 font-black">{selectedClient.extraServicePrice ? selectedClient.extraServicePrice.toLocaleString('vi-VN') + ' đ' : 'Miễn phí'}</strong>
                                 </p>
                               </div>
                             </div>
@@ -1689,7 +1693,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                               <button
                                 type="button"
                                 onClick={() => setIsServiceCheckInModalOpen(true)}
-                                className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-md shadow-amber-200 transition-all active:scale-95 cursor-pointer"
+                                className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer"
                               >
                                 <Zap className="w-4 h-4 fill-current text-slate-950" />
                                 <span>Check-in DV Nhanh</span>
@@ -1697,33 +1701,33 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                               <button
                                 type="button"
                                 onClick={() => setIsRenewServiceModalOpen(true)}
-                                className="bg-white hover:bg-amber-100 text-amber-950 border border-amber-300 font-extrabold px-3.5 py-2.5 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 cursor-pointer"
+                                className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 font-extrabold px-3.5 py-2.5 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 cursor-pointer"
                               >
-                                <RefreshCw className="w-4 h-4 text-amber-700" />
+                                <RefreshCw className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                                 <span>Gia Hạn Thêm Suất</span>
                               </button>
                             </div>
                           </div>
 
                           {/* Visual Progress Meter */}
-                          <div className="space-y-1.5 bg-white/80 p-3.5 rounded-xl border border-amber-200/80">
+                          <div className="space-y-2 bg-slate-50 dark:bg-slate-950/40 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800">
                             <div className="flex items-center justify-between text-xs font-black">
-                              <span className="text-amber-950 flex items-center gap-1">
+                              <span className="text-slate-800 dark:text-slate-200 flex items-center gap-1">
                                 <Sparkles className="w-3.5 h-3.5 text-amber-600" />
                                 Tiến độ sử dụng dịch vụ:
                               </span>
-                              <span className="text-indigo-950 font-mono text-sm">
-                                Còn lại <span className="text-amber-700 font-black text-base">{selectedClient.remainingExtraServices ?? 0}</span> / {selectedClient.totalExtraServices ?? 0} suất
+                              <span className="text-slate-700 dark:text-slate-300 font-mono text-xs font-bold">
+                                Còn lại <span className="text-amber-900 dark:text-amber-300 font-black text-sm">{selectedClient.remainingExtraServices ?? 0}</span> / {selectedClient.totalExtraServices ?? 0} suất
                               </span>
                             </div>
-                            <div className="w-full bg-slate-200/90 h-3 rounded-full overflow-hidden p-0.5 border border-slate-300">
+                            <div className="w-full bg-slate-200 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden border border-slate-300 dark:border-slate-700">
                               <div
                                 className={`h-full rounded-full transition-all duration-500 ${
                                   (selectedClient.remainingExtraServices ?? 0) <= 0
                                     ? 'bg-rose-500'
                                     : (selectedClient.remainingExtraServices ?? 0) <= 3
                                     ? 'bg-amber-500'
-                                    : 'bg-gradient-to-r from-amber-400 to-emerald-500'
+                                    : 'bg-emerald-500'
                                 }`}
                                 style={{
                                   width: `${Math.min(100, Math.max(0, ((selectedClient.remainingExtraServices ?? 0) / Math.max(1, selectedClient.totalExtraServices ?? 1)) * 100))}%`

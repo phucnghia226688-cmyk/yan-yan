@@ -40,17 +40,31 @@ interface CheckInViewProps {
   onOpenQuickCheckIn: (client?: Client) => void;
   onGoToProgram: (clientId: string) => void;
   onSelectClientDetail?: (client: Client) => void;
+  activeMainTab?: 'training' | 'service';
+  onTabChange?: (tab: 'training' | 'service') => void;
+  hideNavigationTabs?: boolean;
 }
 
 export const CheckInView: React.FC<CheckInViewProps> = ({
   onOpenQuickCheckIn,
   onGoToProgram,
-  onSelectClientDetail
+  onSelectClientDetail,
+  activeMainTab: propActiveMainTab,
+  onTabChange,
+  hideNavigationTabs = false
 }) => {
   const { clients, checkIns, cancelCheckIn, appointments } = useGym();
   
   // Main Tab: 'training' (Check-in Học Viên) | 'service' (Checkin Dịch Vụ)
-  const [activeMainTab, setActiveMainTab] = useState<'training' | 'service'>('training');
+  const [internalActiveMainTab, setInternalActiveMainTab] = useState<'training' | 'service'>('training');
+  const activeMainTab = propActiveMainTab ?? internalActiveMainTab;
+
+  const setActiveMainTab = (tab: 'training' | 'service') => {
+    setInternalActiveMainTab(tab);
+    if (onTabChange) {
+      onTabChange(tab);
+    }
+  };
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClientFilter, setSelectedClientFilter] = useState<string>('all');
@@ -305,49 +319,51 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
         </div>
       )}
 
-      {/* TOP NAVIGATION TABS: Check-in Học Viên vs Checkin Dịch Vụ */}
-      <div className="bg-slate-900/90 backdrop-blur-md p-2 rounded-3xl border border-slate-800 shadow-xl flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setActiveMainTab('training')}
-          className={`flex-1 flex items-center justify-center gap-2.5 py-3 px-4 rounded-2xl font-extrabold text-sm transition-all cursor-pointer ${
-            activeMainTab === 'training'
-              ? 'bg-gradient-to-r from-[#4F46E5] to-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-          }`}
-        >
-          <Dumbbell className="w-4 h-4" />
-          <span>🏋️ Check-in Học Viên</span>
-          <span className={`text-[11px] px-2 py-0.5 rounded-full font-black ${
-            activeMainTab === 'training' ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'
-          }`}>
-            {trainingCheckIns.length}
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveMainTab('service')}
-          className={`flex-1 flex items-center justify-center gap-2.5 py-3 px-4 rounded-2xl font-extrabold text-sm transition-all cursor-pointer ${
-            activeMainTab === 'service'
-              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/30'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-          }`}
-        >
-          <Utensils className="w-4 h-4" />
-          <span>📋 Checkin Dịch Vụ</span>
-          <span className={`text-[11px] px-2 py-0.5 rounded-full font-black ${
-            activeMainTab === 'service' ? 'bg-slate-950/30 text-slate-950' : 'bg-amber-400/20 text-amber-300'
-          }`}>
-            {allServiceClients.length} học viên
-          </span>
-          {expiringServiceClientsCount > 0 && (
-            <span className="text-[10px] bg-rose-500 text-white px-1.5 py-0.2 rounded-full font-black animate-pulse" title="Học viên sắp hết suất">
-              !
+      {/* TOP NAVIGATION TABS: Check-in Học Viên vs Checkin Dịch Vụ (Shown only if not hidden by parent) */}
+      {!hideNavigationTabs && (
+        <div className="bg-slate-900/90 backdrop-blur-md p-2 rounded-3xl border border-slate-800 shadow-xl flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setActiveMainTab('training')}
+            className={`flex-1 flex items-center justify-center gap-2.5 py-3 px-4 rounded-2xl font-extrabold text-sm transition-all cursor-pointer ${
+              activeMainTab === 'training'
+                ? 'bg-gradient-to-r from-[#4F46E5] to-indigo-600 text-white shadow-lg shadow-indigo-500/30'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            }`}
+          >
+            <Dumbbell className="w-4 h-4" />
+            <span>🏋️ Check-in Học Viên</span>
+            <span className={`text-[11px] px-2 py-0.5 rounded-full font-black ${
+              activeMainTab === 'training' ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'
+            }`}>
+              {trainingCheckIns.length}
             </span>
-          )}
-        </button>
-      </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveMainTab('service')}
+            className={`flex-1 flex items-center justify-center gap-2.5 py-3 px-4 rounded-2xl font-extrabold text-sm transition-all cursor-pointer ${
+              activeMainTab === 'service'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/30'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            }`}
+          >
+            <Utensils className="w-4 h-4" />
+            <span>🍽️ Checkin Dịch Vụ</span>
+            <span className={`text-[11px] px-2 py-0.5 rounded-full font-black ${
+              activeMainTab === 'service' ? 'bg-slate-950/30 text-slate-950' : 'bg-amber-400/20 text-amber-300'
+            }`}>
+              {allServiceClients.length} học viên
+            </span>
+            {expiringServiceClientsCount > 0 && (
+              <span className="text-[10px] bg-rose-500 text-white px-1.5 py-0.2 rounded-full font-black animate-pulse" title="Học viên sắp hết suất">
+                !
+              </span>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* ========================================================================= */}
       {/* TAB 1: CHECK-IN HỌC VIÊN (TRAINING) */}
@@ -561,78 +577,89 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 2: CHECK-IN DỊCH VỤ THÊM (ADD-ON SERVICES) */}
+      {/* TAB 2: CHECKIN DỊCH VỤ (EXTRA SERVICES) */}
       {/* ========================================================================= */}
       {activeMainTab === 'service' && (
         <div className="space-y-6">
-          {/* Top Close / Return Action Banner */}
-          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30">
-            <div className="flex items-center gap-2">
-              <Utensils className="w-5 h-5 text-amber-400" />
+          {/* Top Service Header Banner */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-400/20 dark:bg-amber-400/10 border border-amber-400/40 flex items-center justify-center text-amber-900 dark:text-amber-300 shrink-0">
+                <Utensils className="w-5 h-5 text-amber-900 dark:text-amber-300" />
+              </div>
               <div>
-                <span className="text-xs sm:text-sm font-bold text-amber-200">
-                  Tab Quản Lý & Điểm Danh Dịch Vụ Thêm (Nước uống, Meal prep, Khăn, Spa...)
+                <span className="text-xs sm:text-sm font-black text-amber-950 dark:text-amber-100 block">
+                  Quản Lý & Điểm Danh Dịch Vụ Thêm (Nước uống, Meal prep, Khăn, Spa...)
+                </span>
+                <span className="text-[11px] font-medium text-amber-900/80 dark:text-amber-200/80">
+                  Theo dõi số suất đã sử dụng, cảnh báo sắp hết và xuất thẻ ảnh Zalo
                 </span>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setActiveMainTab('training')}
-              className="text-xs font-black text-slate-950 bg-amber-400 hover:bg-amber-300 px-3.5 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shadow-md cursor-pointer active:scale-95 shrink-0"
-            >
-              <X className="w-4 h-4" />
-              <span>Đóng Tab / Về Check-in Học Viên</span>
-            </button>
+            {!hideNavigationTabs && (
+              <button
+                type="button"
+                onClick={() => setActiveMainTab('training')}
+                className="text-xs font-black text-slate-950 bg-amber-400 hover:bg-amber-300 px-4 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer active:scale-95 shrink-0 self-start sm:self-auto"
+              >
+                <X className="w-4 h-4" />
+                <span>Đóng Tab / Về Check-in Học Viên</span>
+              </button>
+            )}
           </div>
 
           {/* Service Header & Metrics Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-            <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl flex items-center gap-3 shadow-lg">
-              <div className="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+            {/* Metric 1: Total Service Clients */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl flex items-center gap-3 shadow-xs hover:shadow-sm transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-500/20 border border-amber-200 dark:border-amber-500/30 flex items-center justify-center text-amber-700 dark:text-amber-400 shrink-0">
                 <Utensils className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs text-slate-400 font-semibold">Tổng học viên DV</p>
-                <p className="text-xl font-extrabold text-white mt-0.5">{allServiceClients.length}</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider">Tổng học viên DV</p>
+                <p className="text-2xl font-black text-slate-900 dark:text-white mt-0.5">{allServiceClients.length}</p>
               </div>
             </div>
 
-            <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl flex items-center gap-3 shadow-lg">
-              <div className="w-11 h-11 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+            {/* Metric 2: Active Service */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl flex items-center gap-3 shadow-xs hover:shadow-sm transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
                 <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs text-slate-400 font-semibold">Đang hoạt động</p>
-                <p className="text-xl font-extrabold text-emerald-400 mt-0.5">{activeServiceClientsCount}</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider">Đang hoạt động</p>
+                <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5">{activeServiceClientsCount}</p>
               </div>
             </div>
 
-            <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl flex items-center gap-3 shadow-lg">
-              <div className="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+            {/* Metric 3: Expiring Soon */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl flex items-center gap-3 shadow-xs hover:shadow-sm transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-500/20 border border-amber-200 dark:border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs text-slate-400 font-semibold">Sắp hết (≤ 3 suất)</p>
-                <p className="text-xl font-extrabold text-amber-400 mt-0.5">{expiringServiceClientsCount}</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider">Sắp hết (≤ 3 suất)</p>
+                <p className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-0.5">{expiringServiceClientsCount}</p>
               </div>
             </div>
 
-            <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl flex items-center gap-3 shadow-lg">
-              <div className="w-11 h-11 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
+            {/* Metric 4: Expired */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl flex items-center gap-3 shadow-xs hover:shadow-sm transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-500/20 border border-rose-200 dark:border-rose-500/30 flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0">
                 <AlertCircle className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs text-slate-400 font-semibold">Đã hết suất</p>
-                <p className="text-xl font-extrabold text-rose-400 mt-0.5">{expiredServiceClientsCount}</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider">Đã hết suất</p>
+                <p className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-0.5">{expiredServiceClientsCount}</p>
               </div>
             </div>
           </div>
 
           {/* Service Search & Status Filters */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mr-1">
-                <Filter className="w-3.5 h-3.5 text-amber-400" /> Bộ lọc:
+              <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5 mr-1">
+                <Filter className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" /> Bộ lọc:
               </span>
               {(['all', 'active', 'expiring', 'expired'] as const).map(tabKey => {
                 const labels: Record<string, string> = {
@@ -647,10 +674,10 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
                     key={tabKey}
                     type="button"
                     onClick={() => setServiceStatusFilter(tabKey)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
                       isActive
-                        ? 'bg-amber-400 text-slate-950 shadow-md shadow-amber-400/20'
-                        : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
+                        ? 'bg-amber-400 text-slate-950 shadow-xs'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                     }`}
                   >
                     {labels[tabKey]}
@@ -666,21 +693,21 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
                 placeholder="Tìm tên học viên, SĐT, dịch vụ..."
                 value={serviceSearch}
                 onChange={(e) => setServiceSearch(e.target.value)}
-                className="w-full bg-slate-800 text-white text-xs pl-9 pr-3 py-2 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-400 font-medium"
+                className="w-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-amber-500 font-medium"
               />
             </div>
           </div>
 
           {/* Cards Grid: Clients with Extra Services */}
           {filteredServiceClients.length === 0 ? (
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-12 text-center space-y-3">
-              <div className="w-16 h-16 rounded-2xl bg-amber-400/10 border border-amber-400/20 text-amber-400 flex items-center justify-center mx-auto">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3 shadow-xs">
+              <div className="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 flex items-center justify-center mx-auto">
                 <Utensils className="w-8 h-8" />
               </div>
-              <h4 className="text-base font-extrabold text-white">Chưa tìm thấy học viên dịch vụ thêm</h4>
-              <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+              <h4 className="text-base font-extrabold text-slate-900 dark:text-white">Chưa tìm thấy học viên dịch vụ thêm</h4>
+              <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
                 Bạn có thể kích hoạt dịch vụ thêm (Meal Plan, Đồ uống, Khăn tập...) cho học viên bất kỳ tại mục 
-                <span className="text-amber-400 font-bold"> "Quản lý học viên" ➔ Thêm mới hoặc Chỉnh sửa hồ sơ</span>.
+                <span className="text-amber-800 dark:text-amber-400 font-bold"> "Quản lý học viên" ➔ Thêm mới hoặc Chỉnh sửa hồ sơ</span>.
               </p>
             </div>
           ) : (
@@ -695,27 +722,27 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
                 const isExpiringSoon = remaining > 0 && remaining <= 3;
 
                 // Color themes based on state
-                let cardBorder = "border-slate-800 bg-slate-900/90";
-                let badgeBg = "bg-emerald-500/20 border-emerald-500/30 text-emerald-300";
-                let progressColor = "bg-emerald-400";
+                let cardBorder = "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900";
+                let badgeBg = "bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-200";
+                let progressColor = "bg-emerald-500";
                 let statusText = `✅ Đang hoạt động (${remaining} suất)`;
 
                 if (isOutOfService) {
-                  cardBorder = "border-rose-500/80 bg-rose-950/20 shadow-lg shadow-rose-950/40";
-                  badgeBg = "bg-rose-500/20 border-rose-500/40 text-rose-400";
+                  cardBorder = "border-rose-300 dark:border-rose-700/60 bg-rose-50/50 dark:bg-rose-950/20";
+                  badgeBg = "bg-rose-100/80 dark:bg-rose-950/50 border border-rose-300 dark:border-rose-700/60 text-rose-950 dark:text-rose-200";
                   progressColor = "bg-rose-500";
                   statusText = "⛔ ĐÃ HẾT DỊCH VỤ";
                 } else if (isExpiringSoon) {
-                  cardBorder = "border-amber-500/80 bg-amber-950/20 shadow-lg shadow-amber-950/40";
-                  badgeBg = "bg-amber-500/20 border-amber-500/40 text-amber-300";
-                  progressColor = "bg-amber-400";
+                  cardBorder = "border-amber-300 dark:border-amber-700/60 bg-amber-50/50 dark:bg-amber-950/20";
+                  badgeBg = "bg-amber-100/80 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-700/60 text-amber-950 dark:text-amber-200";
+                  progressColor = "bg-amber-500";
                   statusText = `⚠️ Sắp hết ${serviceName} (Còn ${remaining} suất)`;
                 }
 
                 return (
                   <div
                     key={client.id}
-                    className={`rounded-3xl border p-5 transition-all flex flex-col justify-between gap-4 ${cardBorder}`}
+                    className={`rounded-3xl border p-5 transition-all flex flex-col justify-between gap-4 shadow-xs hover:shadow-md ${cardBorder}`}
                   >
                     {/* Top Row: Avatar, Name, Status */}
                     <div className="space-y-3">
@@ -724,51 +751,51 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
                           <img
                             src={client.avatarUrl}
                             alt={client.name}
-                            className="w-12 h-12 rounded-2xl object-cover border border-slate-700 shadow-md"
+                            className="w-12 h-12 rounded-2xl object-cover border border-slate-200 dark:border-slate-700 shadow-sm"
                           />
                           <div>
                             <h4 
                               onClick={() => onSelectClientDetail && onSelectClientDetail(client)}
-                              className="font-extrabold text-white text-base hover:text-amber-400 transition-colors cursor-pointer"
+                              className="font-black text-slate-900 dark:text-white text-base hover:text-amber-600 transition-colors cursor-pointer"
                             >
                               {client.name}
                             </h4>
-                            <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
-                              <Phone className="w-3 h-3 text-slate-500" /> {client.phone}
+                            <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5 font-medium">
+                              <Phone className="w-3.5 h-3.5 text-slate-400" /> {client.phone}
                             </p>
                           </div>
                         </div>
 
-                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-lg bg-amber-400/20 text-amber-300 border border-amber-400/30 shrink-0">
+                        <span className="text-xs font-black uppercase px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700 shrink-0">
                           ⭐ {serviceName}
                         </span>
                       </div>
 
-                      {/* Status Tag */}
+                      {/* Status Tag / Warning Box */}
                       <div>
-                        <span className={`inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-xl border ${badgeBg}`}>
+                        <span className={`inline-flex items-center gap-1.5 text-xs font-extrabold px-3 py-1.5 rounded-xl ${badgeBg}`}>
                           {statusText}
                         </span>
                       </div>
 
-                      {/* Usage Progress Bar */}
-                      <div className="space-y-1.5 pt-1">
+                      {/* Usage Progress Bar & Detail Stats */}
+                      <div className="space-y-2 pt-1 bg-slate-50/80 dark:bg-slate-950/40 p-3 rounded-2xl border border-slate-200/70 dark:border-slate-800">
                         <div className="flex items-center justify-between text-xs font-bold">
-                          <span className="text-slate-400">Tiến độ sử dụng:</span>
-                          <span className="text-white">
-                            Còn <span className={`font-black ${isOutOfService ? 'text-rose-400' : isExpiringSoon ? 'text-amber-400' : 'text-emerald-400'}`}>{remaining}</span>/{total} suất
+                          <span className="text-slate-700 dark:text-slate-300 font-bold">Tiến độ sử dụng:</span>
+                          <span className="text-slate-700 dark:text-slate-300 font-bold">
+                            Còn <span className={`text-sm font-black ${isOutOfService ? 'text-rose-600 dark:text-rose-400' : isExpiringSoon ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400'}`}>{remaining}</span>/{total} suất
                           </span>
                         </div>
-                        <div className="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                        <div className="w-full h-2.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-300/80 dark:border-slate-700">
                           <div
                             className={`h-full transition-all rounded-full ${progressColor}`}
                             style={{ width: `${percent}%` }}
                           />
                         </div>
-                        <div className="flex items-center justify-between text-[10px] text-slate-400">
-                          <span>Đã dùng: {used} suất ({percent}%)</span>
+                        <div className="flex items-center justify-between text-xs text-slate-800 dark:text-slate-200 font-semibold pt-0.5">
+                          <span>Đã dùng: <strong className="text-slate-900 dark:text-white font-bold">{used}</strong> suất ({percent}%)</span>
                           {client.extraServicePrice ? (
-                            <span className="text-emerald-400 font-extrabold">
+                            <span className="text-emerald-700 dark:text-emerald-400 font-black">
                               Đã thu: {client.extraServicePrice.toLocaleString('vi-VN')} đ
                             </span>
                           ) : null}
@@ -777,7 +804,7 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80">
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                       <button
                         type="button"
                         disabled={isOutOfService}
@@ -785,10 +812,10 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
                           setSelectedServiceClient(client);
                           setIsServiceCheckInOpen(true);
                         }}
-                        className={`py-2.5 px-3 rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer ${
+                        className={`py-2.5 px-3 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95 cursor-pointer ${
                           isOutOfService
-                            ? 'bg-slate-800 text-slate-600 border border-slate-700 cursor-not-allowed'
-                            : 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-amber-500/20'
+                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 border border-slate-200 dark:border-slate-700 cursor-not-allowed'
+                            : 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-sm'
                         }`}
                       >
                         <Zap className="w-3.5 h-3.5 fill-current" />
@@ -801,9 +828,9 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
                           setRenewServiceClient(client);
                           setIsRenewServiceOpen(true);
                         }}
-                        className="py-2.5 px-3 rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 active:scale-95 cursor-pointer shadow-md"
+                        className="py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 active:scale-95 cursor-pointer shadow-2xs"
                       >
-                        <RefreshCw className="w-3.5 h-3.5 text-indigo-400" />
+                        <RefreshCw className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                         Gia hạn thêm
                       </button>
                     </div>
@@ -814,14 +841,14 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
           )}
 
           {/* Service Check-in History Table */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
               <div>
                 <div className="flex items-center gap-2">
-                  <Utensils className="w-5 h-5 text-amber-400" />
-                  <h3 className="font-bold text-white text-lg">Nhật ký check-in dịch vụ thêm</h3>
+                  <Utensils className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                  <h3 className="font-black text-slate-900 dark:text-white text-lg">Nhật ký check-in dịch vụ thêm</h3>
                 </div>
-                <p className="text-xs text-slate-400 font-medium mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
                   Lưu vết từng lần giao nhận bữa ăn / nước uống / khăn tập & xuất thẻ ảnh Zalo
                 </p>
               </div>
@@ -836,20 +863,20 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
                     setServiceLogSearch(e.target.value);
                     setServiceLogPage(1);
                   }}
-                  className="w-full bg-slate-800 text-white text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-400"
+                  className="w-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-amber-500"
                 />
               </div>
             </div>
 
             {filteredServiceLogs.length === 0 ? (
-              <div className="py-10 text-center text-slate-500 text-sm bg-slate-950/40 rounded-xl border border-dashed border-slate-800">
+              <div className="py-10 text-center text-slate-500 text-sm bg-slate-50 dark:bg-slate-950/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
                 Chưa có lịch sử check-in dịch vụ thêm nào.
               </div>
             ) : (
               <>
-                <div className="overflow-x-auto border border-slate-800 rounded-xl">
-                  <table className="w-full text-left text-xs text-slate-300">
-                    <thead className="bg-slate-800 text-slate-200 uppercase font-bold border-b border-slate-700">
+                <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-2xl">
+                  <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+                    <thead className="bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 uppercase font-black border-b border-slate-200 dark:border-slate-700">
                       <tr>
                         <th className="p-3">Thời gian</th>
                         <th className="p-3">Học viên</th>
@@ -859,39 +886,41 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
                         <th className="p-3 text-right">Thao tác</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800 bg-slate-950/40">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
                       {paginatedServiceLogs.map(log => {
                         const client = clients.find(c => c.id === log.clientId);
                         const remCount = log.extraServicesRemainingAfter !== undefined
                           ? log.extraServicesRemainingAfter
                           : log.sessionsRemainingAfter;
                         return (
-                          <tr key={log.id} className="hover:bg-slate-800/40 transition-colors">
-                            <td className="p-3 font-mono text-slate-400 whitespace-nowrap">
+                          <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                            <td className="p-3 font-mono text-slate-600 dark:text-slate-400 whitespace-nowrap font-medium">
                               {formatDateTime(log.timestamp)}
                             </td>
-                            <td className="p-3 font-bold text-white">
+                            <td className="p-3 font-black text-slate-900 dark:text-white">
                               <div 
-                                className="flex items-center gap-2 cursor-pointer hover:text-amber-400 transition-colors"
+                                className="flex items-center gap-2 cursor-pointer hover:text-amber-600 transition-colors"
                                 onClick={() => client && onSelectClientDetail && onSelectClientDetail(client)}
                               >
-                                {client && <img src={client.avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover shadow-sm" />}
+                                {client && <img src={client.avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover shadow-sm border border-slate-200 dark:border-slate-700" />}
                                 {log.clientName}
                               </div>
                             </td>
-                            <td className="p-3 font-extrabold text-amber-300">
-                              ⭐ {log.dayPlanName}
+                            <td className="p-3 font-black text-amber-900 dark:text-amber-300">
+                              <span className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 px-2 py-0.5 rounded-md inline-block">
+                                ⭐ {log.dayPlanName}
+                              </span>
                             </td>
-                            <td className="p-3 text-slate-300 italic">
+                            <td className="p-3 text-slate-600 dark:text-slate-400 italic">
                               {log.notes || '-'}
                             </td>
                             <td className="p-3 text-center">
-                              <span className={`px-2 py-0.5 rounded-full font-black text-xs ${
+                              <span className={`px-2.5 py-1 rounded-full font-black text-xs inline-flex items-center gap-1 ${
                                 remCount <= 0
-                                  ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                                  ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
                                   : remCount <= 3
-                                  ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                                  : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                  ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
+                                  : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
                               }`}>
                                 Còn {remCount} suất
                               </span>
@@ -900,7 +929,7 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
                               <div className="flex items-center justify-end gap-2">
                                 <button
                                   onClick={() => handleShowServiceReceiptForLog(log)}
-                                  className="text-xs text-amber-400 hover:text-amber-300 bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/30 px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 transition-all shadow-2xs cursor-pointer active:scale-95"
+                                  className="text-xs text-amber-900 dark:text-amber-300 hover:text-slate-950 bg-amber-100 dark:bg-amber-900/30 hover:bg-amber-200 dark:hover:bg-amber-800/50 border border-amber-300 dark:border-amber-700 px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1 transition-all shadow-2xs cursor-pointer active:scale-95"
                                   title="Xuất thẻ ảnh điểm danh dịch vụ gửi Zalo"
                                 >
                                   <Camera className="w-3.5 h-3.5" /> Thẻ check-in
@@ -911,10 +940,10 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
                                     clientName: log.clientName,
                                     serviceName: log.dayPlanName
                                   })}
-                                  className="text-xs text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 transition-all cursor-pointer"
+                                  className="text-xs text-rose-700 dark:text-rose-400 hover:text-rose-800 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 border border-rose-200 dark:border-rose-800 px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1 transition-all cursor-pointer"
                                   title="Hủy lượt check-in & hoàn lại +1 suất dịch vụ"
                                 >
-                                  <RotateCcw className="w-3.5 h-3.5 text-rose-400" /> Hủy (+1 Suất)
+                                  <RotateCcw className="w-3.5 h-3.5 text-rose-600" /> Hủy (+1 Suất)
                                 </button>
                               </div>
                             </td>
@@ -926,35 +955,35 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
                 </div>
 
                 {/* Service History Pagination */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-800 text-xs text-slate-400 font-medium">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400 font-medium">
                   <div>
-                    Hiển thị <span className="font-bold text-white">{startServiceLogIndex + 1}</span> - <span className="font-bold text-white">{Math.min(startServiceLogIndex + SERVICE_LOGS_PER_PAGE, filteredServiceLogs.length)}</span> trên tổng số <span className="font-bold text-amber-400">{filteredServiceLogs.length}</span> lượt dịch vụ
+                    Hiển thị <span className="font-bold text-slate-900 dark:text-white">{startServiceLogIndex + 1}</span> - <span className="font-bold text-slate-900 dark:text-white">{Math.min(startServiceLogIndex + SERVICE_LOGS_PER_PAGE, filteredServiceLogs.length)}</span> trên tổng số <span className="font-bold text-amber-700 dark:text-amber-400">{filteredServiceLogs.length}</span> lượt dịch vụ
                   </div>
 
                   <div className="flex items-center gap-1.5 self-center sm:self-auto">
                     <button
                       disabled={serviceLogPage === 1}
                       onClick={() => setServiceLogPage(prev => Math.max(1, prev - 1))}
-                      className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition-all flex items-center gap-1 ${
+                      className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1 ${
                         serviceLogPage === 1
-                          ? 'bg-slate-950 border-slate-800 text-slate-600 cursor-not-allowed'
-                          : 'bg-slate-800 border-slate-700 text-white hover:bg-slate-700'
+                          ? 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-400 cursor-not-allowed'
+                          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white hover:bg-slate-50'
                       }`}
                     >
                       <ChevronLeft className="w-3.5 h-3.5" /> Trang trước
                     </button>
 
-                    <div className="flex items-center gap-1 px-2 font-bold text-slate-300">
-                      Trang <span className="text-amber-400 font-black">{serviceLogPage}</span> / {totalServiceLogPages}
+                    <div className="flex items-center gap-1 px-2 font-bold text-slate-700 dark:text-slate-300">
+                      Trang <span className="text-amber-700 dark:text-amber-400 font-black">{serviceLogPage}</span> / {totalServiceLogPages}
                     </div>
 
                     <button
                       disabled={serviceLogPage === totalServiceLogPages}
                       onClick={() => setServiceLogPage(prev => Math.min(totalServiceLogPages, prev + 1))}
-                      className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition-all flex items-center gap-1 ${
+                      className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1 ${
                         serviceLogPage === totalServiceLogPages
-                          ? 'bg-slate-950 border-slate-800 text-slate-600 cursor-not-allowed'
-                          : 'bg-slate-800 border-slate-700 text-white hover:bg-slate-700'
+                          ? 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-400 cursor-not-allowed'
+                          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white hover:bg-slate-50'
                       }`}
                     >
                       Trang sau <ChevronRight className="w-3.5 h-3.5" />

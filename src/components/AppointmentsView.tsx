@@ -5,7 +5,7 @@ import {
   Clock, 
   Plus, 
   User, 
-  Users,
+  Users, 
   CheckCircle2, 
   XCircle, 
   Trash2, 
@@ -15,6 +15,7 @@ import {
   Filter,
   Check,
   Dumbbell,
+  Utensils,
   AlertCircle,
   Edit3,
   LayoutGrid,
@@ -82,6 +83,16 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
   const [filterStatus, setFilterStatus] = useState<'All' | 'Scheduled' | 'Completed' | 'Cancelled'>('All');
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   
+  // Main section tab: 'training' (Check-in) | 'service' (Dịch Vụ) | 'schedule' (Lịch Hẹn)
+  const [activeSectionTab, setActiveSectionTab] = useState<'training' | 'service' | 'schedule'>('training');
+
+  // Service clients metrics
+  const allServiceClients = clients.filter(c => c.hasExtraService);
+  const expiringServiceClientsCount = allServiceClients.filter(c => {
+    const r = c.remainingExtraServices ?? c.totalExtraServices ?? 0;
+    return r > 0 && r <= 3;
+  }).length;
+
   // Main view mode: 'day' | 'week' | 'month' (Default to 'day')
   const [mainViewMode, setMainViewMode] = useState<'day' | 'week' | 'month'>('day');
   
@@ -459,91 +470,189 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
       )}
 
       {/* Quick Report Statistics Panel */}
-      <div className="bg-slate-900/90 border border-slate-800 p-4 sm:p-5 rounded-3xl shadow-lg animate-fade-in text-white space-y-3">
-        <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-indigo-400" />
-            <h3 className="text-sm font-black text-slate-200 uppercase tracking-wider">
-              Báo Cáo Thống Kê Nhanh Trong Ngày & Tổng Quan
-            </h3>
+      <div className="bg-white border border-slate-200/90 p-4 sm:p-5 rounded-3xl shadow-sm animate-fade-in space-y-3.5">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-200/60 flex items-center justify-center text-[#4F46E5]">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                Báo Cáo Thống Kê Nhanh Trong Ngày & Tổng Quan
+              </h3>
+              <p className="text-[11px] text-slate-500 font-medium">Tự động tổng hợp số liệu lịch hẹn và điểm danh mới nhất</p>
+            </div>
           </div>
-          <span className="text-[11px] text-slate-400 font-medium bg-slate-800 px-2.5 py-1 rounded-full border border-slate-700">
-            Cập nhật thời gian thực
+          <span className="text-[11px] text-indigo-700 font-bold bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200/80 shadow-2xs">
+            ⚡ Cập nhật thời gian thực
           </span>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {/* Today Appointments */}
-          <div className="bg-slate-800/80 border border-slate-700/70 p-3.5 rounded-2xl flex flex-col justify-between">
+          <div className="bg-indigo-50/70 border border-indigo-200/90 p-4 rounded-2xl flex flex-col justify-between shadow-2xs hover:shadow-sm transition-shadow">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-400">Lịch hẹn hôm nay</span>
-              <div className="p-1.5 rounded-xl bg-indigo-500/20 text-indigo-400">
+              <span className="text-xs font-extrabold text-indigo-950 uppercase tracking-wide">Lịch hẹn hôm nay</span>
+              <div className="p-2 rounded-xl bg-indigo-600 text-white shadow-2xs">
                 <CalendarIcon className="w-4 h-4" />
               </div>
             </div>
-            <div className="mt-2">
-              <span className="text-2xl font-black text-white">{todayAppointments.length}</span>
-              <span className="text-xs text-slate-400 ml-1">buổi</span>
+            <div className="mt-2.5 flex items-baseline gap-1">
+              <span className="text-3xl font-black text-indigo-950">{todayAppointments.length}</span>
+              <span className="text-xs font-bold text-indigo-700">buổi</span>
             </div>
-            <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-400 border-t border-slate-700/50 pt-1.5">
-              <span className="text-emerald-400 font-bold">✓ {todayCompleted} xong</span>
-              <span>•</span>
-              <span className="text-amber-400 font-bold">⏳ {todayPending} chờ</span>
+            <div className="mt-2 flex items-center gap-2 text-xs border-t border-indigo-200/60 pt-2 font-bold">
+              <span className="text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-md">✓ {todayCompleted} xong</span>
+              <span className="text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-md">⏳ {todayPending} chờ</span>
             </div>
           </div>
 
           {/* Today Check-ins */}
-          <div className="bg-slate-800/80 border border-slate-700/70 p-3.5 rounded-2xl flex flex-col justify-between">
+          <div className="bg-emerald-50/70 border border-emerald-200/90 p-4 rounded-2xl flex flex-col justify-between shadow-2xs hover:shadow-sm transition-shadow">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-400">Check-in hôm nay</span>
-              <div className="p-1.5 rounded-xl bg-lime-500/20 text-lime-400">
-                <Zap className="w-4 h-4" />
+              <span className="text-xs font-extrabold text-emerald-950 uppercase tracking-wide">Check-in hôm nay</span>
+              <div className="p-2 rounded-xl bg-emerald-600 text-white shadow-2xs">
+                <Zap className="w-4 h-4 fill-white" />
               </div>
             </div>
-            <div className="mt-2">
-              <span className="text-2xl font-black text-lime-400">{todayCheckIns.length}</span>
-              <span className="text-xs text-slate-400 ml-1">lượt</span>
+            <div className="mt-2.5 flex items-baseline gap-1">
+              <span className="text-3xl font-black text-emerald-950">{todayCheckIns.length}</span>
+              <span className="text-xs font-bold text-emerald-700">lượt</span>
             </div>
-            <div className="mt-1 text-[11px] text-slate-400 border-t border-slate-700/50 pt-1.5 truncate">
-              <span>Nhật ký điểm danh trừ buổi</span>
+            <div className="mt-2 text-xs text-emerald-800 font-semibold border-t border-emerald-200/60 pt-2 truncate">
+              <span>Đã điểm danh trừ buổi</span>
             </div>
           </div>
 
           {/* Active Clients */}
-          <div className="bg-slate-800/80 border border-slate-700/70 p-3.5 rounded-2xl flex flex-col justify-between">
+          <div className="bg-sky-50/70 border border-sky-200/90 p-4 rounded-2xl flex flex-col justify-between shadow-2xs hover:shadow-sm transition-shadow">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-400">Học viên đang tập</span>
-              <div className="p-1.5 rounded-xl bg-blue-500/20 text-blue-400">
+              <span className="text-xs font-extrabold text-sky-950 uppercase tracking-wide">Học viên đang tập</span>
+              <div className="p-2 rounded-xl bg-sky-600 text-white shadow-2xs">
                 <Users className="w-4 h-4" />
               </div>
             </div>
-            <div className="mt-2">
-              <span className="text-2xl font-black text-blue-400">{activeClientsCount}</span>
-              <span className="text-xs text-slate-400 ml-1">/ {clients.filter(c => c.status !== 'closed').length} HV</span>
+            <div className="mt-2.5 flex items-baseline gap-1">
+              <span className="text-3xl font-black text-sky-950">{activeClientsCount}</span>
+              <span className="text-xs font-bold text-sky-700">/ {clients.filter(c => c.status !== 'closed').length} HV</span>
             </div>
-            <div className="mt-1 text-[11px] text-slate-400 border-t border-slate-700/50 pt-1.5 truncate">
+            <div className="mt-2 text-xs text-sky-800 font-semibold border-t border-sky-200/60 pt-2 truncate">
               <span>Còn buổi tập hoạt động</span>
             </div>
           </div>
 
           {/* Completion Rate */}
-          <div className="bg-slate-800/80 border border-slate-700/70 p-3.5 rounded-2xl flex flex-col justify-between">
+          <div className="bg-purple-50/70 border border-purple-200/90 p-4 rounded-2xl flex flex-col justify-between shadow-2xs hover:shadow-sm transition-shadow">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-400">Tỷ lệ hoàn thành</span>
-              <div className="p-1.5 rounded-xl bg-purple-500/20 text-purple-400">
+              <span className="text-xs font-extrabold text-purple-950 uppercase tracking-wide">Tỷ lệ hoàn thành</span>
+              <div className="p-2 rounded-xl bg-purple-600 text-white shadow-2xs">
                 <Activity className="w-4 h-4" />
               </div>
             </div>
-            <div className="mt-2">
-              <span className="text-2xl font-black text-purple-400">{completionRate}%</span>
+            <div className="mt-2.5 flex items-baseline gap-1">
+              <span className="text-3xl font-black text-purple-950">{completionRate}%</span>
             </div>
-            <div className="mt-1 text-[11px] text-slate-400 border-t border-slate-700/50 pt-1.5 truncate">
+            <div className="mt-2 text-xs text-purple-800 font-semibold border-t border-purple-200/60 pt-2 truncate">
               <span>{totalCompletedApts} buổi đã hoàn tất</span>
             </div>
           </div>
         </div>
       </div>
 
+      {/* Top Primary Navigation Bar: Compact 3-Tab Grid (Optimized for Mobile & Desktop) */}
+      <div className="bg-slate-900/95 backdrop-blur-md p-1.5 sm:p-2 rounded-2xl sm:rounded-3xl border border-slate-800 shadow-xl grid grid-cols-3 gap-1 sm:gap-2">
+        {/* Tab 1: Check-in */}
+        <button
+          type="button"
+          onClick={() => setActiveSectionTab('training')}
+          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-1.5 sm:px-3 rounded-xl sm:rounded-2xl font-extrabold text-xs sm:text-sm transition-all cursor-pointer ${
+            activeSectionTab === 'training'
+              ? 'bg-gradient-to-r from-[#4F46E5] to-indigo-600 text-white shadow-lg shadow-indigo-500/30'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+          }`}
+        >
+          <Dumbbell className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+          <span className="truncate">Check-in</span>
+          <span className={`text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded-full font-black ${
+            activeSectionTab === 'training' ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'
+          }`}>
+            {todayCheckIns.length}
+          </span>
+        </button>
+
+        {/* Tab 2: Dịch Vụ */}
+        <button
+          type="button"
+          onClick={() => setActiveSectionTab('service')}
+          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-1.5 sm:px-3 rounded-xl sm:rounded-2xl font-extrabold text-xs sm:text-sm transition-all cursor-pointer ${
+            activeSectionTab === 'service'
+              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/30'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+          }`}
+        >
+          <Utensils className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+          <span className="truncate">Dịch Vụ</span>
+          <span className={`text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded-full font-black ${
+            activeSectionTab === 'service' ? 'bg-slate-950/30 text-slate-950' : 'bg-amber-400/20 text-amber-300'
+          }`}>
+            {allServiceClients.length}
+          </span>
+          {expiringServiceClientsCount > 0 && (
+            <span className="text-[9px] bg-rose-500 text-white px-1 sm:px-1.5 py-0.2 rounded-full font-black animate-pulse" title="Có học viên sắp hết suất">
+              !
+            </span>
+          )}
+        </button>
+
+        {/* Tab 3: Lịch Hẹn */}
+        <button
+          type="button"
+          onClick={() => setActiveSectionTab('schedule')}
+          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-1.5 sm:px-3 rounded-xl sm:rounded-2xl font-extrabold text-xs sm:text-sm transition-all cursor-pointer ${
+            activeSectionTab === 'schedule'
+              ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/30'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+          }`}
+        >
+          <CalendarIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+          <span className="truncate">Lịch Hẹn</span>
+          <span className={`text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded-full font-black ${
+            activeSectionTab === 'schedule' ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'
+          }`}>
+            {todayAppointments.length}
+          </span>
+        </button>
+      </div>
+
+      {/* 1. CHECK-IN HỌC VIÊN VIEW */}
+      {activeSectionTab === 'training' && (
+        <div className="animate-fade-in">
+          <CheckInView
+            activeMainTab="training"
+            hideNavigationTabs={true}
+            onOpenQuickCheckIn={onOpenQuickCheckIn}
+            onGoToProgram={onGoToProgram}
+            onSelectClientDetail={onSelectClientDetail}
+          />
+        </div>
+      )}
+
+      {/* 2. CHECKIN DỊCH VỤ VIEW */}
+      {activeSectionTab === 'service' && (
+        <div className="animate-fade-in">
+          <CheckInView
+            activeMainTab="service"
+            hideNavigationTabs={true}
+            onOpenQuickCheckIn={onOpenQuickCheckIn}
+            onGoToProgram={onGoToProgram}
+            onSelectClientDetail={onSelectClientDetail}
+          />
+        </div>
+      )}
+
+      {/* 3. SCHEDULE & CALENDAR VIEW */}
+      {activeSectionTab === 'schedule' && (
+        <div className="space-y-6 animate-fade-in">
 
       {/* Header */}
       <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -1027,31 +1136,54 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
 
         {/* Quick Summary Cards for Selected Day */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="bg-indigo-50/80 border border-indigo-200 p-3.5 rounded-2xl shadow-2xs">
-            <p className="text-[11px] font-extrabold text-indigo-700 uppercase tracking-wider">Tổng Lịch Hẹn</p>
-            <p className="text-2xl font-black text-indigo-900 mt-1">{dateAppointments.length} <span className="text-xs font-bold">ca</span></p>
-          </div>
-          <div className="bg-amber-50/90 border border-amber-200 p-3.5 rounded-2xl shadow-2xs">
-            <p className="text-[11px] font-extrabold text-amber-800 uppercase tracking-wider">Chờ Tập</p>
-            <p className="text-2xl font-black text-amber-950 mt-1">
-              {dateAppointments.filter(a => a.status === 'Scheduled').length} <span className="text-xs font-bold">ca</span>
+          <div className="bg-indigo-50/80 border border-indigo-200/90 p-4 rounded-2xl shadow-2xs hover:shadow-sm transition-all">
+            <p className="text-xs font-extrabold text-indigo-900 uppercase tracking-wide flex items-center gap-1.5">
+              <CalendarIcon className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Tổng Lịch Hẹn</span>
             </p>
+            <div className="mt-2 flex items-baseline gap-1">
+              <span className="text-2xl sm:text-3xl font-black text-indigo-950">{dateAppointments.length}</span>
+              <span className="text-xs font-bold text-indigo-700">ca tập</span>
+            </div>
           </div>
-          <div className="bg-emerald-100/80 border-2 border-emerald-300 p-3.5 rounded-2xl shadow-2xs">
-            <p className="text-[11px] font-black text-emerald-900 uppercase tracking-wider flex items-center gap-1">
+
+          <div className="bg-amber-50/90 border border-amber-200/90 p-4 rounded-2xl shadow-2xs hover:shadow-sm transition-all">
+            <p className="text-xs font-extrabold text-amber-900 uppercase tracking-wide flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-amber-600" />
+              <span>🟡 Chờ Tập</span>
+            </p>
+            <div className="mt-2 flex items-baseline gap-1">
+              <span className="text-2xl sm:text-3xl font-black text-amber-950">
+                {dateAppointments.filter(a => a.status === 'Scheduled').length}
+              </span>
+              <span className="text-xs font-bold text-amber-700">ca</span>
+            </div>
+          </div>
+
+          <div className="bg-emerald-50/90 border border-emerald-200/90 p-4 rounded-2xl shadow-2xs hover:shadow-sm transition-all">
+            <p className="text-xs font-extrabold text-emerald-900 uppercase tracking-wide flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
               <span>🟢 Đã Tập (Check-in)</span>
             </p>
-            <p className="text-2xl font-black text-emerald-950 mt-1">
-              {dateAppointments.filter(a => a.status === 'Completed').length} <span className="text-xs font-bold">ca</span>
-            </p>
+            <div className="mt-2 flex items-baseline gap-1">
+              <span className="text-2xl sm:text-3xl font-black text-emerald-950">
+                {dateAppointments.filter(a => a.status === 'Completed').length}
+              </span>
+              <span className="text-xs font-bold text-emerald-700">ca</span>
+            </div>
           </div>
-          <div className="bg-rose-100/80 border-2 border-rose-300 p-3.5 rounded-2xl shadow-2xs">
-            <p className="text-[11px] font-black text-rose-900 uppercase tracking-wider flex items-center gap-1">
+
+          <div className="bg-rose-50/90 border border-rose-200/90 p-4 rounded-2xl shadow-2xs hover:shadow-sm transition-all">
+            <p className="text-xs font-extrabold text-rose-900 uppercase tracking-wide flex items-center gap-1.5">
+              <XCircle className="w-3.5 h-3.5 text-rose-600" />
               <span>🔴 Đã Hủy</span>
             </p>
-            <p className="text-2xl font-black text-rose-950 mt-1">
-              {dateAppointments.filter(a => a.status === 'Cancelled').length} <span className="text-xs font-bold">ca</span>
-            </p>
+            <div className="mt-2 flex items-baseline gap-1">
+              <span className="text-2xl sm:text-3xl font-black text-rose-950">
+                {dateAppointments.filter(a => a.status === 'Cancelled').length}
+              </span>
+              <span className="text-xs font-bold text-rose-700">ca</span>
+            </div>
           </div>
         </div>
 
@@ -1354,15 +1486,8 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
         )}
 
       </div>
-
-      {/* Integrated Check-In History Log Component */}
-      <div className="mt-8 pt-8 border-t-2 border-slate-200/80">
-        <CheckInView
-          onOpenQuickCheckIn={onOpenQuickCheckIn}
-          onGoToProgram={onGoToProgram}
-          onSelectClientDetail={onSelectClientDetail}
-        />
       </div>
+      )}
 
       {/* Add Appointment Modal */}
       {showAddModal && (
