@@ -402,7 +402,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   <Smartphone className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-black text-indigo-950 uppercase tracking-wide flex items-center gap-2">
+                  <h3 className="text-xs font-black text-indigo-950 flex items-center gap-2">
                     📱 Truy cập đa thiết bị cùng lúc (Multi-device access)
                   </h3>
                   <p className="text-[11px] text-indigo-800 font-medium mt-0.5">
@@ -778,7 +778,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   <Lock className="w-4 h-4 text-slate-600" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider">
+                  <h4 className="text-xs font-black text-slate-700">
                     Dọn sạch dữ liệu hệ thống
                   </h4>
                   <p className="text-[11px] text-slate-500 mt-0.5 font-medium">

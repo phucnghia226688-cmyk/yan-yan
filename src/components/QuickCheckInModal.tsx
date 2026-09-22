@@ -251,7 +251,7 @@ export const QuickCheckInModal: React.FC<QuickCheckInModalProps> = ({
               <Zap className="w-5 h-5 fill-white" />
             </div>
             <div>
-              <h3 className="font-extrabold text-lg text-slate-900">Check-in 1-Chạm Nhanh</h3>
+              <h3 className="font-extrabold text-lg text-slate-900">Check-in 1-chạm nhanh</h3>
               <p className="text-xs text-slate-500 font-medium">Trừ 1 buổi & lưu lịch sử tập luyện tự động</p>
             </div>
           </div>
@@ -272,15 +272,15 @@ export const QuickCheckInModal: React.FC<QuickCheckInModalProps> = ({
               {/* Card Container for Screenshot */}
               <div ref={cardRef} className="bg-white border-2 border-indigo-100 rounded-2xl p-4 shadow-lg space-y-3 relative overflow-hidden text-left">
                 {/* Badge */}
-                <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-bl-xl flex items-center gap-1 shadow-xs">
+                <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-bl-xl flex items-center gap-1 shadow-xs">
                   <CheckCircle2 className="w-3 h-3 text-white" /> Đã check-in
                 </div>
 
                 {/* Gym Header */}
                 <div className="text-center pt-1 pb-2 border-b border-slate-100">
-                  <div className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-indigo-50 border border-indigo-200/60 rounded-full text-indigo-700 text-[11px] font-black uppercase tracking-wider mb-0.5">
+                  <div className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-indigo-50 border border-indigo-200/60 rounded-full text-indigo-700 text-[11px] font-bold mb-0.5">
                     <ShieldCheck className="w-3 h-3 text-[#4F46E5]" />
-                    {displayGymName.toUpperCase()} • THẺ ĐIỂM DANH
+                    {displayGymName} • Thẻ điểm danh
                   </div>
                   <p className="text-[10px] text-slate-400 font-medium">Hệ thống ghi nhận điểm danh tự động - {displayGymName}</p>
                 </div>
@@ -293,7 +293,7 @@ export const QuickCheckInModal: React.FC<QuickCheckInModalProps> = ({
                     className="w-11 h-11 rounded-full object-cover border-2 border-indigo-500 ring-2 ring-indigo-100 shrink-0"
                   />
                   <div className="min-w-0 flex-1">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Học viên</span>
+                    <span className="text-[10px] font-medium text-slate-400">Học viên</span>
                     <h4 className="font-black text-slate-900 text-base leading-tight truncate">{successResult.clientName}</h4>
                     <p className="text-xs text-indigo-600 font-extrabold truncate mt-0.5">
                       {successResult.packageName || 'Gói PT 1:1'}
@@ -328,8 +328,8 @@ export const QuickCheckInModal: React.FC<QuickCheckInModalProps> = ({
                 {/* PROMINENT REMAINING SESSIONS OR MONTHLY DISPLAY */}
                 {activeClient?.clientType === 'monthly' ? (
                   <div className="bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 text-slate-950 rounded-2xl p-3.5 shadow-md text-center space-y-1.5 relative overflow-hidden">
-                    <span className="inline-block text-[10px] font-black uppercase tracking-wider text-slate-950 bg-white/30 border border-white/40 px-2.5 py-0.5 rounded-full">
-                      📅 THẺ THÁNG (THEO HẠN HỢP ĐỒNG)
+                    <span className="inline-block text-[10px] font-bold text-slate-950 bg-white/30 border border-white/40 px-2.5 py-0.5 rounded-full">
+                      📅 Thẻ tháng (theo hạn hợp đồng)
                     </span>
                     <div className="py-1">
                       <p className="text-xs font-bold text-amber-950">Hạn sử dụng hợp đồng đến ngày:</p>
@@ -341,13 +341,13 @@ export const QuickCheckInModal: React.FC<QuickCheckInModalProps> = ({
                   </div>
                 ) : (
                   <div className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-2xl p-3.5 shadow-md text-center space-y-1.5 relative overflow-hidden">
-                    <span className="inline-block text-[10px] font-black uppercase tracking-wider text-emerald-100 bg-black/20 px-2.5 py-0.5 rounded-full">
-                      ⚡ SỐ BUỔI CÒN LẠI TRONG GÓI
+                    <span className="inline-block text-[10px] font-bold text-emerald-100 bg-black/20 px-2.5 py-0.5 rounded-full">
+                      ⚡ Số buổi còn lại trong gói
                     </span>
 
-                    <div className="flex items-baseline justify-center gap-1">
+                    <div className="flex items-baseline justify-center gap-1.5 py-1">
                       <span className="text-3xl font-black tracking-tight text-white">{successResult.remaining}</span>
-                      <span className="text-xs font-bold text-emerald-100">/ {successResult.totalSessions} buổi</span>
+                      <span className="text-base font-bold text-emerald-100">buổi</span>
                     </div>
 
                     {/* Progress Bar */}
@@ -358,9 +358,8 @@ export const QuickCheckInModal: React.FC<QuickCheckInModalProps> = ({
                           style={{ width: `${Math.min(100, Math.round((successResult.completedSessions / Math.max(1, successResult.totalSessions)) * 100))}%` }}
                         />
                       </div>
-                      <div className="flex justify-between text-[10px] font-extrabold text-emerald-100">
-                        <span>Đã tập: {successResult.completedSessions}/{successResult.totalSessions} buổi</span>
-                        <span>Còn lại: {successResult.remaining} buổi</span>
+                      <div className="flex justify-center text-[10px] font-extrabold text-emerald-100">
+                        <span>Đã tập: {successResult.completedSessions} buổi</span>
                       </div>
                     </div>
                   </div>
@@ -422,7 +421,7 @@ export const QuickCheckInModal: React.FC<QuickCheckInModalProps> = ({
                 <button
                   onClick={() => {
                     const pct = Math.min(100, Math.max(0, Math.round((successResult.completedSessions / Math.max(1, successResult.totalSessions)) * 100)));
-                    const textToCopy = `🏋️‍♂️ ${displayGymName.toUpperCase()} - XÁC NHẬN ĐIỂM DANH\n---------------------------------\n👤 Học viên: ${successResult.clientName}\n📦 Gói tập: ${successResult.packageName || 'Gói PT'}\n📅 Ngày điểm danh: ${successResult.checkInDateStr} (${successResult.checkInTimeStr})\n💪 Bài tập: ${successResult.dayPlanName || 'Buổi tập định kỳ'}\n📊 Đã tập: ${successResult.completedSessions}/${successResult.totalSessions} buổi (${pct}%)\n⚡ SỐ BUỔI CÒN LẠI: ${successResult.remaining} BUỔI\n---------------------------------\nCảm ơn bạn đã chăm chỉ tập luyện hôm nay! 💪🔥`;
+                    const textToCopy = `🏋️‍♂️ ${displayGymName} - Xác nhận điểm danh\n---------------------------------\n👤 Học viên: ${successResult.clientName}\n📦 Gói tập: ${successResult.packageName || 'Gói PT'}\n📅 Ngày điểm danh: ${successResult.checkInDateStr} (${successResult.checkInTimeStr})\n💪 Bài tập: ${successResult.dayPlanName || 'Buổi tập định kỳ'}\n📊 Đã tập: ${successResult.completedSessions} buổi (${pct}%)\n⚡ Số buổi còn lại: ${successResult.remaining} buổi\n---------------------------------\nCảm ơn bạn đã chăm chỉ tập luyện hôm nay! 💪🔥`;
                     navigator.clipboard.writeText(textToCopy);
                     setCopiedZalo(true);
                     setTimeout(() => setCopiedZalo(false), 2500);
@@ -495,7 +494,7 @@ export const QuickCheckInModal: React.FC<QuickCheckInModalProps> = ({
               {/* Step 1: Select Client */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-slate-500">
                     1. Chọn học viên ({filteredClients.length} khách)
                   </label>
 
@@ -520,7 +519,7 @@ export const QuickCheckInModal: React.FC<QuickCheckInModalProps> = ({
                           : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
-                      Tất cả (ALL)
+                      Tất cả
                     </button>
                   </div>
                 </div>
@@ -540,7 +539,7 @@ export const QuickCheckInModal: React.FC<QuickCheckInModalProps> = ({
                   {filteredClients.length === 0 ? (
                     <div className="p-4 text-center text-xs text-slate-500 italic">
                       {modalFilterMode === 'today' 
-                        ? 'Không có học viên theo lịch tập hôm nay. Bấm "Tất Cả (ALL)" để tìm khách khác.' 
+                        ? 'Không có học viên theo lịch tập hôm nay. Bấm "Tất cả" để tìm khách khác.' 
                         : 'Không tìm thấy học viên nào.'}
                     </div>
                   ) : (
@@ -600,7 +599,7 @@ export const QuickCheckInModal: React.FC<QuickCheckInModalProps> = ({
                 <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
                   <div className="flex items-center justify-between pb-2 border-b border-slate-200/80 gap-2 flex-wrap sm:flex-nowrap">
                     <div>
-                      <span className="text-xs font-bold text-slate-400 uppercase">Đã chọn:</span>
+                      <span className="text-xs font-bold text-slate-400">Đã chọn:</span>
                       <h4 className="font-extrabold text-slate-900 text-base">{activeClient.name}</h4>
                     </div>
                     <div className="text-right shrink-0">
@@ -627,7 +626,7 @@ export const QuickCheckInModal: React.FC<QuickCheckInModalProps> = ({
                     <div className="flex items-center justify-between mb-1.5">
                       <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
                         <Calendar className="w-3.5 h-3.5 text-indigo-600" />
-                        2. Ngày & Giờ điểm danh (Hỗ trợ điểm danh bù)
+                        2. Ngày & giờ điểm danh (hỗ trợ điểm danh bù)
                       </label>
                       <span className="text-[10px] text-indigo-600 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full font-bold">
                         Chọn ngày đã qua nếu quên
@@ -713,11 +712,11 @@ export const QuickCheckInModal: React.FC<QuickCheckInModalProps> = ({
                   <div>
                     <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5 mb-1.5">
                       <Dumbbell className="w-3.5 h-3.5 text-indigo-600" />
-                      3. Bài tập / Lịch tập ngày check-in
+                      3. Bài tập / lịch tập ngày check-in
                     </label>
                     
                     <div className="flex flex-wrap gap-1.5 mb-2">
-                      {['Ngực - Tay Sau', 'Lưng - Tay Trước', 'Chân - Mông', 'Vai - Bụng', 'Cardio', 'Tập Toàn Thân'].map(preset => (
+                      {['Ngực - tay sau', 'Lưng - tay trước', 'Chân - mông', 'Vai - bụng', 'Cardio', 'Tập toàn thân'].map(preset => (
                         <button
                           key={preset}
                           type="button"
@@ -745,7 +744,7 @@ export const QuickCheckInModal: React.FC<QuickCheckInModalProps> = ({
                   {/* Notes */}
                   <div>
                     <label className="block text-xs font-bold text-slate-600 mb-1">
-                      4. Ghi chú buổi tập (Không bắt buộc)
+                      4. Ghi chú buổi tập (không bắt buộc)
                     </label>
                     <input
                       type="text"
@@ -781,7 +780,7 @@ export const QuickCheckInModal: React.FC<QuickCheckInModalProps> = ({
               }`}
             >
               <Zap className="w-4 h-4 fill-white" />
-              HOÀN THÀNH CHECK-IN
+              Hoàn thành check-in
             </button>
           </div>
         )}
@@ -816,9 +815,9 @@ export const QuickCheckInModal: React.FC<QuickCheckInModalProps> = ({
       {/* Password Confirmation Modal for Cancel Check-in */}
       <ConfirmPasswordModal
         isOpen={showCancelPasswordModal}
-        title="Xác Nhận Mật Khẩu Hủy Check-in"
+        title="Xác nhận mật khẩu hủy check-in"
         description="Bạn đang yêu cầu HỦY lượt check-in vừa thực hiện. Thao tác này sẽ cộng lại +1 buổi tập cho học viên."
-        confirmLabel="Xác Nhận Hủy Check-in"
+        confirmLabel="Xác nhận hủy check-in"
         onClose={() => setShowCancelPasswordModal(false)}
         onConfirm={() => {
           if (lastCheckInId) {

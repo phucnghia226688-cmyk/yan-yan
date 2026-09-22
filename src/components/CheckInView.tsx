@@ -463,7 +463,7 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
             <>
               <div className="overflow-x-auto border border-slate-800 rounded-xl">
                 <table className="w-full text-left text-xs text-slate-300">
-                  <thead className="bg-slate-800 text-slate-200 uppercase font-bold border-b border-slate-700">
+                  <thead className="bg-slate-800 text-slate-200 font-bold border-b border-slate-700">
                     <tr>
                       <th className="p-3">Thời gian</th>
                       <th className="p-3">Học viên</th>
@@ -616,7 +616,7 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
                 <Utensils className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider">Tổng học viên DV</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-bold">Tổng học viên DV</p>
                 <p className="text-2xl font-black text-slate-900 dark:text-white mt-0.5">{allServiceClients.length}</p>
               </div>
             </div>
@@ -627,7 +627,7 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
                 <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider">Đang hoạt động</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-bold">Đang hoạt động</p>
                 <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5">{activeServiceClientsCount}</p>
               </div>
             </div>
@@ -638,7 +638,7 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider">Sắp hết (≤ 3 suất)</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-bold">Sắp hết (≤ 3 suất)</p>
                 <p className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-0.5">{expiringServiceClientsCount}</p>
               </div>
             </div>
@@ -649,7 +649,7 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
                 <AlertCircle className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider">Đã hết suất</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-bold">Đã hết suất</p>
                 <p className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-0.5">{expiredServiceClientsCount}</p>
               </div>
             </div>
@@ -658,7 +658,7 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
           {/* Service Search & Status Filters */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5 mr-1">
+              <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mr-1">
                 <Filter className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" /> Bộ lọc:
               </span>
               {(['all', 'active', 'expiring', 'expired'] as const).map(tabKey => {
@@ -766,7 +766,7 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
                           </div>
                         </div>
 
-                        <span className="text-xs font-black uppercase px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700 shrink-0">
+                        <span className="text-xs font-black px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700 shrink-0">
                           ⭐ {serviceName}
                         </span>
                       </div>
@@ -876,7 +876,7 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
               <>
                 <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-2xl">
                   <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
-                    <thead className="bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 uppercase font-black border-b border-slate-200 dark:border-slate-700">
+                    <thead className="bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-black border-b border-slate-200 dark:border-slate-700">
                       <tr>
                         <th className="p-3">Thời gian</th>
                         <th className="p-3">Học viên</th>

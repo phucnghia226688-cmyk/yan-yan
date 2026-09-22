@@ -79,7 +79,7 @@ export const CheckInReceiptModal: React.FC<CheckInReceiptModalProps> = ({
   const progressPercent = Math.min(100, Math.max(0, Math.round((completed / total) * 100)));
 
   const handleCopyZaloText = () => {
-    const textToCopy = `🏋️‍♂️ ${displayGymName.toUpperCase()} - XÁC NHẬN ĐIỂM DANH\n---------------------------------\n👤 Học viên: ${data.clientName}\n📦 Gói tập: ${data.packageName || 'Gói PT'}\n📅 Ngày điểm danh: ${data.checkInDateStr}${data.checkInTimeStr ? ` (${data.checkInTimeStr})` : ''}\n💪 Bài tập: ${data.dayPlanName || 'Buổi tập định kỳ'}\n📊 Đã tập: ${completed}/${total} buổi (${progressPercent}%)\n⚡ SỐ BUỔI CÒN LẠI: ${remaining} BUỔI\n---------------------------------\nCảm ơn bạn đã chăm chỉ tập luyện hôm nay! 💪🔥`;
+    const textToCopy = `🏋️‍♂️ ${displayGymName} - Xác nhận điểm danh\n---------------------------------\n👤 Học viên: ${data.clientName}\n📦 Gói tập: ${data.packageName || 'Gói PT'}\n📅 Ngày điểm danh: ${data.checkInDateStr}${data.checkInTimeStr ? ` (${data.checkInTimeStr})` : ''}\n💪 Bài tập: ${data.dayPlanName || 'Buổi tập định kỳ'}\n📊 Đã tập: ${completed} buổi (${progressPercent}%)\n⚡ Số buổi còn lại: ${remaining} buổi\n---------------------------------\nCảm ơn bạn đã chăm chỉ tập luyện hôm nay! 💪🔥`;
 
     navigator.clipboard.writeText(textToCopy);
     setCopiedText(true);
@@ -130,8 +130,8 @@ export const CheckInReceiptModal: React.FC<CheckInReceiptModalProps> = ({
               {initials}
             </div>
             <div className="min-w-0">
-              <h3 className="font-extrabold text-sm text-white tracking-wide uppercase truncate max-w-[240px]">{displayGymName}</h3>
-              <p className="text-[10px] text-slate-300 font-medium">Xác Nhận & Thẻ Điểm Danh Buổi Tập</p>
+              <h3 className="font-extrabold text-sm text-white tracking-wide truncate max-w-[240px]">{displayGymName}</h3>
+              <p className="text-[10px] text-slate-300 font-medium">Xác nhận & thẻ điểm danh buổi tập</p>
             </div>
           </div>
           <button
@@ -148,15 +148,15 @@ export const CheckInReceiptModal: React.FC<CheckInReceiptModalProps> = ({
           {/* SCREENSHOT CARD CONTAINER */}
           <div ref={cardRef} className="bg-white border-2 border-indigo-100 rounded-2xl p-5 shadow-lg space-y-4 relative overflow-hidden">
             {/* Top decorative badge */}
-            <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-black uppercase px-3 py-1 rounded-bl-xl flex items-center gap-1 shadow-xs">
+            <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl flex items-center gap-1 shadow-xs">
               <CheckCircle2 className="w-3 h-3 text-white" /> Đã điểm danh
             </div>
 
             {/* Gym Sub-Header */}
             <div className="text-center pt-1 pb-3 border-b border-slate-100">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 border border-indigo-200/60 rounded-full text-indigo-700 text-xs font-black uppercase tracking-wider mb-1">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 border border-indigo-200/60 rounded-full text-indigo-700 text-xs font-bold mb-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-[#4F46E5]" />
-                Thẻ Điểm Danh Tập Luyện
+                Thẻ điểm danh tập luyện
               </div>
               <p className="text-[11px] text-slate-400 font-medium">Hệ thống ghi nhận tự động - {displayGymName}</p>
             </div>
@@ -169,7 +169,7 @@ export const CheckInReceiptModal: React.FC<CheckInReceiptModalProps> = ({
                 className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500 ring-2 ring-indigo-100 shrink-0"
               />
               <div className="min-w-0 flex-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Học viên</span>
+                <span className="text-[10px] font-medium text-slate-400">Học viên</span>
                 <h4 className="font-black text-slate-900 text-base leading-tight truncate">{data.clientName}</h4>
                 <p className="text-xs text-indigo-600 font-extrabold truncate mt-0.5">
                   {data.packageName || 'Gói PT 1:1'}
@@ -215,8 +215,8 @@ export const CheckInReceiptModal: React.FC<CheckInReceiptModalProps> = ({
               <div className="bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 text-slate-950 rounded-2xl p-4 shadow-md text-center space-y-2 relative overflow-hidden">
                 <div className="absolute top-0 right-0 transform translate-x-3 -translate-y-3 w-16 h-16 bg-white/20 rounded-full blur-xs pointer-events-none" />
                 
-                <span className="inline-block text-[11px] font-black uppercase tracking-wider text-slate-950 bg-white/30 px-3 py-0.5 rounded-full border border-white/40">
-                  📅 GÓI KHÁCH THÁNG (THEO HẠN HỢP ĐỒNG)
+                <span className="inline-block text-xs font-bold text-slate-950 bg-white/30 px-3 py-0.5 rounded-full border border-white/40">
+                  📅 Gói khách tháng (theo hạn hợp đồng)
                 </span>
 
                 <div className="py-1">
@@ -232,13 +232,13 @@ export const CheckInReceiptModal: React.FC<CheckInReceiptModalProps> = ({
               <div className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-2xl p-4 shadow-md text-center space-y-2 relative overflow-hidden">
                 <div className="absolute top-0 right-0 transform translate-x-3 -translate-y-3 w-16 h-16 bg-white/10 rounded-full blur-xs pointer-events-none" />
                 
-                <span className="inline-block text-[11px] font-black uppercase tracking-wider text-emerald-100 bg-black/20 px-3 py-0.5 rounded-full">
-                  ⚡ SỐ BUỔI CÒN LẠI TRONG GÓI
+                <span className="inline-block text-xs font-bold text-emerald-100 bg-black/20 px-3 py-0.5 rounded-full">
+                  ⚡ Số buổi còn lại trong gói
                 </span>
 
                 <div className="flex items-baseline justify-center gap-1.5 py-1">
                   <span className="text-4xl font-black tracking-tight text-white">{remaining}</span>
-                  <span className="text-sm font-bold text-emerald-100">/ {total} buổi</span>
+                  <span className="text-lg font-bold text-emerald-100">buổi</span>
                 </div>
 
                 {/* Progress Bar */}
@@ -249,9 +249,8 @@ export const CheckInReceiptModal: React.FC<CheckInReceiptModalProps> = ({
                       style={{ width: `${progressPercent}%` }}
                     />
                   </div>
-                  <div className="flex justify-between text-[10px] font-extrabold text-emerald-100">
+                  <div className="flex justify-center text-[10px] font-extrabold text-emerald-100">
                     <span>Đã hoàn thành: {completed} buổi ({progressPercent}%)</span>
-                    <span>Còn lại: {remaining} buổi</span>
                   </div>
                 </div>
               </div>

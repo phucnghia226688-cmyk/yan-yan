@@ -115,7 +115,7 @@ export const ConfirmAppointmentActionModal: React.FC<ConfirmAppointmentActionMod
               alt={clientName}
               className="w-16 h-16 rounded-full object-cover border-4 border-slate-200 shadow-md mb-2"
             />
-            <p className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">
+            <p className="text-xs font-extrabold text-slate-500">
               {config.promptText}
             </p>
             <div className="text-lg sm:text-xl font-black text-slate-900 bg-slate-50 border border-slate-200 px-4 py-2 rounded-2xl my-2 text-center w-full shadow-2xs truncate">

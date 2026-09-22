@@ -181,7 +181,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 relative z-10">
           <div>
-            <span className="text-xs font-extrabold uppercase tracking-widest text-white bg-white/20 border border-white/30 px-3 py-1 rounded-full">
+            <span className="text-xs font-bold text-white bg-white/20 border border-white/30 px-3 py-1 rounded-full">
               Quản lý của PT
             </span>
             <h2 className="text-2xl sm:text-3xl font-black text-white mt-3">
@@ -198,7 +198,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               className="flex items-center gap-1.5 bg-[#84cc16] hover:bg-[#65a30d] text-white font-extrabold px-4 py-2.5 rounded-full text-sm shadow-lg shadow-lime-900/30 transition-all hover:scale-105 active:scale-95"
             >
               <Zap className="w-4 h-4 fill-white" />
-              CHECK-IN NHANH
+              Check-in nhanh
             </button>
 
             <button
@@ -238,7 +238,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           className="bg-white border border-slate-200/80 hover:border-indigo-300 p-5 rounded-3xl shadow-sm hover:shadow-md cursor-pointer transition-all hover:-translate-y-1 group"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Học viên đang tập</span>
+            <span className="text-xs font-bold text-slate-500">Học viên đang tập</span>
             <div className="w-10 h-10 rounded-2xl bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center group-hover:scale-110 transition-transform">
               <Users className="w-5 h-5" />
             </div>
@@ -259,7 +259,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           className="bg-white border border-slate-200/80 hover:border-emerald-300 p-5 rounded-3xl shadow-sm hover:shadow-md cursor-pointer transition-all hover:-translate-y-1 group"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Doanh thu tháng {currentMonth + 1}</span>
+            <span className="text-xs font-bold text-slate-500">Doanh thu tháng {currentMonth + 1}</span>
             <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
               <TrendingUp className="w-5 h-5" />
             </div>
@@ -281,7 +281,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           className="bg-white border border-slate-200/80 hover:border-rose-300 p-5 rounded-3xl shadow-sm hover:shadow-md cursor-pointer transition-all hover:-translate-y-1 group"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Chi phí tháng {currentMonth + 1}</span>
+            <span className="text-xs font-bold text-slate-500">Chi phí tháng {currentMonth + 1}</span>
             <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center group-hover:scale-110 transition-transform">
               <Wallet className="w-5 h-5" />
             </div>
@@ -301,7 +301,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           className="bg-white border border-slate-200/80 hover:border-amber-300 p-5 rounded-3xl shadow-sm hover:shadow-md cursor-pointer transition-all hover:-translate-y-1 group"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Lợi Nhuận Tháng {currentMonth + 1}</span>
+            <span className="text-xs font-bold text-slate-500">Lợi nhuận tháng {currentMonth + 1}</span>
             <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
               <DollarSign className="w-5 h-5" />
             </div>
@@ -329,7 +329,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <div className="w-8 h-8 rounded-xl bg-indigo-50 text-[#4F46E5] flex items-center justify-center font-bold">
                 <Clock className="w-4 h-4" />
               </div>
-              <h3 className="font-black text-slate-900 text-lg">Lịch Hẹn Hôm Nay ({todaysAppointments.length})</h3>
+              <h3 className="font-black text-slate-900 text-lg">Lịch hẹn hôm nay ({todaysAppointments.length})</h3>
             </div>
             <div className="flex items-center gap-2">
               <button 
@@ -338,7 +338,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 className="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-[#4F46E5] font-extrabold text-xs border border-indigo-200 transition-all flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95"
               >
                 <PlusCircle className="w-3.5 h-3.5" />
-                <span>+ Đặt Lịch Đột Xuất</span>
+                <span>+ Đặt lịch đột xuất</span>
               </button>
               <button 
                 onClick={() => setActiveTab('clients')}
@@ -362,7 +362,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 className="mt-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border border-indigo-500/30 px-5 py-2.5 rounded-full text-xs font-black shadow-md shadow-indigo-200 transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-1.5 mx-auto"
               >
                 <PlusCircle className="w-4 h-4 text-amber-300" />
-                + Đặt Lịch Hẹn Đột Xuất (Cho khách chèn lịch)
+                + Đặt lịch hẹn đột xuất (cho khách chèn lịch)
               </button>
             </div>
           ) : (
@@ -403,8 +403,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
                     <div className="flex items-center gap-2 self-end sm:self-center">
                       {apt.status === 'Completed' ? (
-                        <span className="text-xs bg-emerald-600 text-white font-black border border-emerald-700 px-3.5 py-1.5 rounded-full flex items-center gap-1 shadow-2xs">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-100" /> ĐÃ CHECK-IN
+                        <span className="text-xs bg-emerald-600 text-white font-bold border border-emerald-700 px-3.5 py-1.5 rounded-full flex items-center gap-1 shadow-2xs">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-100" /> Đã check-in
                         </span>
                       ) : (
                         <button
@@ -414,7 +414,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           }}
                           className="bg-[#84cc16] hover:bg-[#65a30d] text-white font-extrabold px-4 py-2 rounded-full text-xs flex items-center gap-1.5 shadow-md shadow-lime-200 transition-all active:scale-95"
                         >
-                          <Zap className="w-3.5 h-3.5 fill-white" /> Check-in Ngay
+                          <Zap className="w-3.5 h-3.5 fill-white" /> Check-in ngay
                         </button>
                       )}
                     </div>
@@ -433,7 +433,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
-                <h3 className="font-extrabold text-slate-900 text-base uppercase">Cần gia hạn ({lowSessionClients.length})</h3>
+                <h3 className="font-extrabold text-slate-900 text-base">Cần gia hạn ({lowSessionClients.length})</h3>
               </div>
             </div>
 
@@ -551,7 +551,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
               {/* Select Client */}
               <div className="space-y-1.5">
-                <label className="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                   <Users className="w-3.5 h-3.5 text-indigo-600" /> Chọn học viên:
                 </label>
                 
@@ -600,8 +600,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
               {/* Time Slot & Quick Time Presets */}
               <div className="space-y-1.5">
-                <label className="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-indigo-600" /> Khung Giờ Tập:
+                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-indigo-600" /> Khung giờ tập:
                 </label>
                 <input
                   type="text"
@@ -632,8 +632,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
               {/* Day Plan / Workout Subject */}
               <div className="space-y-1.5">
-                <label className="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                  <Dumbbell className="w-3.5 h-3.5 text-indigo-600" /> Nội Dung / Bài Tập:
+                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <Dumbbell className="w-3.5 h-3.5 text-indigo-600" /> Nội dung / bài tập:
                 </label>
                 <input
                   type="text"
@@ -662,8 +662,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
               {/* Appointment Date */}
               <div className="space-y-1.5">
-                <label className="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-indigo-600" /> Ngày Tập:
+                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-indigo-600" /> Ngày tập:
                 </label>
                 <input
                   type="date"
@@ -681,21 +681,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 onClick={() => setShowEmergencyModal(false)}
                 className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-200/80 transition-all cursor-pointer"
               >
-                Hủy Bỏ
+                Hủy
               </button>
               <button
                 type="button"
                 onClick={() => handleCreateEmergencyAppointment(false)}
                 className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-1"
               >
-                <Plus className="w-4 h-4" /> Lưu Lịch Hẹn
+                <Plus className="w-4 h-4" /> Lưu lịch hẹn
               </button>
               <button
                 type="button"
                 onClick={() => handleCreateEmergencyAppointment(true)}
                 className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#84cc16] hover:bg-[#65a30d] text-white font-extrabold text-xs shadow-md shadow-lime-200 transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
               >
-                <Zap className="w-4 h-4 fill-white" /> Lưu & Check-in Ngay
+                <Zap className="w-4 h-4 fill-white" /> Lưu & check-in ngay
               </button>
             </div>
           </div>

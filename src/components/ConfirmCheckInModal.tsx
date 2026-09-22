@@ -102,7 +102,7 @@ export const ConfirmCheckInModal: React.FC<ConfirmCheckInModalProps> = ({
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Đã chọn học viên:</span>
+                <span className="text-[11px] font-bold text-slate-500">Đã chọn học viên:</span>
                 <SessionBadge remainingSessions={remainingSessions} clientType={clientType} size="sm" />
               </div>
               <h4 className="text-lg font-black text-slate-900 truncate mt-0.5">{clientName}</h4>
@@ -119,7 +119,7 @@ export const ConfirmCheckInModal: React.FC<ConfirmCheckInModalProps> = ({
           <div className="space-y-3.5 pt-1">
             {/* 2. Ngày & Giờ điểm danh */}
             <div>
-              <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+              <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-indigo-600" />
                 2. Ngày & giờ điểm danh
               </label>
@@ -134,7 +134,7 @@ export const ConfirmCheckInModal: React.FC<ConfirmCheckInModalProps> = ({
 
             {/* 3. Bài tập / Lịch tập ngày check-in */}
             <div>
-              <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+              <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1.5">
                 <Dumbbell className="w-3.5 h-3.5 text-indigo-600" />
                 3. Bài tập / lịch tập ngày check-in
               </label>
@@ -172,7 +172,7 @@ export const ConfirmCheckInModal: React.FC<ConfirmCheckInModalProps> = ({
 
             {/* 4. Ghi chú buổi tập (Không bắt buộc) */}
             <div>
-              <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+              <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1.5">
                 <FileText className="w-3.5 h-3.5 text-indigo-600" />
                 4. Ghi chú buổi tập (không bắt buộc)
               </label>
@@ -198,7 +198,7 @@ export const ConfirmCheckInModal: React.FC<ConfirmCheckInModalProps> = ({
             onClick={onClose}
             className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-200/80 transition-all cursor-pointer"
           >
-            Hủy bỏ
+            Hủy
           </button>
           <button
             type="button"
@@ -206,7 +206,7 @@ export const ConfirmCheckInModal: React.FC<ConfirmCheckInModalProps> = ({
             className="px-5 py-2.5 rounded-xl bg-[#84cc16] hover:bg-[#65a30d] text-white font-extrabold text-xs shadow-md shadow-lime-200 flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
           >
             <Zap className="w-4 h-4 fill-white" />
-            HOÀN THÀNH CHECK-IN
+            Hoàn thành check-in
           </button>
         </div>
       </div>

@@ -119,7 +119,7 @@ export const RenewalReceiptModal: React.FC<RenewalReceiptModalProps> = ({
             <div className="p-6 pb-2 text-center relative z-10">
               <NbGymLogo size="md" className="mx-auto mb-3 drop-shadow-[0_8px_20px_rgba(255,78,0,0.5)]" />
               <h2 className="font-black text-xl text-white tracking-tight">{displayGymName}</h2>
-              <p className="text-[#FF4E00] text-xs font-bold uppercase tracking-wider mt-1">Xác nhận thanh toán</p>
+              <p className="text-[#FF4E00] text-xs font-bold mt-1">Xác nhận thanh toán</p>
             </div>
 
             {/* Content Details */}
@@ -134,7 +134,7 @@ export const RenewalReceiptModal: React.FC<RenewalReceiptModalProps> = ({
               {/* Client & Package */}
               <div className="text-center space-y-1">
                 <p className="text-slate-400 text-xs font-medium">Học viên</p>
-                <p className="text-white text-lg font-black uppercase tracking-wide">{receiptData.clientName}</p>
+                <p className="text-white text-lg font-black">{receiptData.clientName}</p>
                 <div className="inline-block mt-2 bg-white/10 px-3 py-1 rounded-full border border-white/10">
                   <p className="text-white text-xs font-bold">{receiptData.packageName}</p>
                 </div>
@@ -149,11 +149,11 @@ export const RenewalReceiptModal: React.FC<RenewalReceiptModalProps> = ({
               {/* Stats Grid */}
               <div className="grid grid-cols-2 gap-3 mt-4">
                 <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                  <p className="text-slate-400 text-[10px] font-medium uppercase mb-1">Cộng thêm</p>
+                  <p className="text-slate-400 text-[10px] font-medium mb-1">Cộng thêm</p>
                   <p className="text-emerald-400 text-base font-black">+{receiptData.addedSessions} buổi</p>
                 </div>
                 <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                  <p className="text-slate-400 text-[10px] font-medium uppercase mb-1">Tổng còn lại</p>
+                  <p className="text-slate-400 text-[10px] font-medium mb-1">Tổng còn lại</p>
                   <p className="text-white text-base font-black">{receiptData.totalRemainingSessions} buổi</p>
                 </div>
               </div>
@@ -161,7 +161,7 @@ export const RenewalReceiptModal: React.FC<RenewalReceiptModalProps> = ({
               {/* Expiration Date */}
               {receiptData.newExpirationDate && (
                 <div className="bg-white/5 rounded-xl p-3 border border-white/5 text-center mt-3">
-                  <p className="text-slate-400 text-[10px] font-medium uppercase mb-1">Thời hạn hợp đồng</p>
+                  <p className="text-slate-400 text-[10px] font-medium mb-1">Thời hạn hợp đồng</p>
                   <p className="text-white text-sm font-bold">{receiptData.newExpirationDate}</p>
                 </div>
               )}

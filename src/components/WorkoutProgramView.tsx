@@ -285,7 +285,7 @@ export const WorkoutProgramView: React.FC<WorkoutProgramViewProps> = ({
       {/* Header */}
       <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-bold text-[#FF4E00] bg-orange-50 border border-orange-200 px-3 py-1 rounded-full uppercase tracking-wider">
+          <span className="text-xs font-bold text-[#FF4E00] bg-orange-50 border border-orange-200 px-3 py-1 rounded-full">
             Quản lý giáo án & tài liệu
           </span>
           <h2 className="text-2xl font-black text-slate-900 mt-2 flex items-center gap-2">
@@ -362,11 +362,11 @@ export const WorkoutProgramView: React.FC<WorkoutProgramViewProps> = ({
           <div className="bg-white border border-slate-200 p-5 rounded-3xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="bg-indigo-50 text-indigo-700 font-extrabold text-xs px-3 py-1 rounded-full border border-indigo-200 uppercase tracking-wider">
-                  Tải & Mở File PDF Setup
+                <span className="bg-indigo-50 text-indigo-700 font-extrabold text-xs px-3 py-1 rounded-full border border-indigo-200">
+                  Tải & mở file PDF giáo án
                 </span>
                 <span className="bg-emerald-50 text-emerald-700 font-extrabold text-xs px-3 py-1 rounded-full border border-emerald-200">
-                  {pdfDocuments.length} File PDF Đã Lưu
+                  {pdfDocuments.length} file PDF đã lưu
                 </span>
               </div>
               <h3 className="text-xl font-black text-slate-900 mt-2 flex items-center gap-2">
@@ -551,8 +551,8 @@ export const WorkoutProgramView: React.FC<WorkoutProgramViewProps> = ({
           {/* Select Client Selector Bar */}
       <div className="bg-white border border-slate-200 p-4 rounded-3xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3 flex-1">
-          <label className="text-xs font-extrabold text-slate-700 uppercase tracking-wider whitespace-nowrap">
-            Chọn Học Viên:
+          <label className="text-xs font-extrabold text-slate-700 whitespace-nowrap">
+            Chọn học viên:
           </label>
           <select
             value={selectedClientId}
@@ -581,8 +581,8 @@ export const WorkoutProgramView: React.FC<WorkoutProgramViewProps> = ({
         
         {/* Program Title Input */}
         <div>
-          <label className="block text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1">
-            Tên Chương Trình / Tên Giáo Án
+          <label className="block text-xs font-extrabold text-slate-500 mb-1">
+            Tên chương trình / tên giáo án
           </label>
           <input
             type="text"
@@ -634,7 +634,7 @@ export const WorkoutProgramView: React.FC<WorkoutProgramViewProps> = ({
             {/* Day Title */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/80 p-4 rounded-2xl border border-slate-200">
               <div className="flex-1">
-                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Tên Buổi Tập</label>
+                <label className="block text-[11px] font-bold text-slate-500 mb-1">Tên buổi tập</label>
                 <input
                   type="text"
                   value={currentDay.dayName}
@@ -663,16 +663,16 @@ export const WorkoutProgramView: React.FC<WorkoutProgramViewProps> = ({
             ) : (
               <div className="overflow-x-auto border border-slate-200 rounded-2xl">
                 <table className="w-full text-left text-xs text-slate-700">
-                  <thead className="bg-slate-100 text-slate-700 uppercase font-bold border-b border-slate-200">
+                  <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
                     <tr>
-                      <th className="p-3">Tên Bài Tập</th>
+                      <th className="p-3">Tên bài tập</th>
                       <th className="p-3 w-16 text-center">Set</th>
                       <th className="p-3 w-20 text-center">Reps</th>
                       <th className="p-3 w-24 text-center">Khối lượng (kg)</th>
                       <th className="p-3 w-20 text-center">Tempo</th>
                       <th className="p-3 w-16 text-center">RPE</th>
                       <th className="p-3 w-24 text-center">Nghỉ (giây)</th>
-                      <th className="p-3">Video Link</th>
+                      <th className="p-3">Link video hướng dẫn</th>
                       <th className="p-3 text-center">Xóa</th>
                     </tr>
                   </thead>
@@ -831,7 +831,7 @@ export const WorkoutProgramView: React.FC<WorkoutProgramViewProps> = ({
             <form onSubmit={handleUploadPdfSubmit} className="space-y-4">
               {/* File Selection Dropzone */}
               <div>
-                <label className="block text-xs font-extrabold text-slate-700 uppercase mb-1.5">
+                <label className="block text-xs font-extrabold text-slate-700 mb-1.5">
                   1. Chọn file PDF / giáo án từ máy tính hoặc điện thoại
                 </label>
                 <div 
@@ -885,7 +885,7 @@ export const WorkoutProgramView: React.FC<WorkoutProgramViewProps> = ({
 
               {/* Document Title */}
               <div>
-                <label className="block text-xs font-extrabold text-slate-700 uppercase mb-1">
+                <label className="block text-xs font-extrabold text-slate-700 mb-1">
                   2. Tiêu đề giáo án / tài liệu
                 </label>
                 <input
@@ -901,7 +901,7 @@ export const WorkoutProgramView: React.FC<WorkoutProgramViewProps> = ({
               {/* Category & Linked Client */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-extrabold text-slate-700 uppercase mb-1">
+                  <label className="block text-xs font-extrabold text-slate-700 mb-1">
                     3. Danh mục
                   </label>
                   <select
@@ -918,7 +918,7 @@ export const WorkoutProgramView: React.FC<WorkoutProgramViewProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-extrabold text-slate-700 uppercase mb-1">
+                  <label className="block text-xs font-extrabold text-slate-700 mb-1">
                     4. Gán cho học viên
                   </label>
                   <select
@@ -936,8 +936,8 @@ export const WorkoutProgramView: React.FC<WorkoutProgramViewProps> = ({
 
               {/* Description */}
               <div>
-                <label className="block text-xs font-extrabold text-slate-700 uppercase mb-1">
-                  5. Ghi Chú / Hướng Dẫn Kèm Theo (Tùy chọn)
+                <label className="block text-xs font-extrabold text-slate-700 mb-1">
+                  5. Ghi chú / hướng dẫn kèm theo (tùy chọn)
                 </label>
                 <textarea
                   rows={2}

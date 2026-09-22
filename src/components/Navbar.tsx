@@ -554,7 +554,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       >
                         <div className="flex items-center gap-2">
                           <GroupIcon className={`w-4 h-4 ${hasActiveChild ? 'text-indigo-600' : 'text-slate-500'}`} />
-                          <span className="text-xs uppercase tracking-wider">{group.label}</span>
+                          <span className="text-xs">{group.label}</span>
                         </div>
                         <button 
                           type="button"

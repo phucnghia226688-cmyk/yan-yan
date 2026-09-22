@@ -413,7 +413,7 @@ export const AuditLogView: React.FC = () => {
         {/* 1. Field diffs for edits/updates */}
         {diffs.length > 0 ? (
           <div className="p-3 bg-slate-50/90 border border-slate-200/90 rounded-xl space-y-2 text-xs">
-            <div className="font-black text-slate-800 flex items-center gap-1.5 text-[11px] uppercase tracking-wider">
+            <div className="font-black text-slate-800 flex items-center gap-1.5 text-[11px]">
               <Edit3 className="w-3.5 h-3.5 text-indigo-600" />
               <span>Chi tiết thông tin đã thay đổi ({diffs.length} mục):</span>
             </div>
@@ -751,7 +751,7 @@ export const AuditLogView: React.FC = () => {
 
                     <div className="space-y-1.5 flex-1">
                       <div className="flex items-center space-x-2 flex-wrap gap-y-1">
-                        <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${badge.bg}`}>
+                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md border ${badge.bg}`}>
                           {badge.label}
                         </span>
                         

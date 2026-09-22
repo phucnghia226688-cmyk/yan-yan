@@ -477,8 +477,8 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
               <TrendingUp className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
-                Báo Cáo Thống Kê Nhanh Trong Ngày & Tổng Quan
+              <h3 className="text-sm font-black text-slate-900">
+                Báo cáo thống kê nhanh trong ngày & tổng quan
               </h3>
               <p className="text-[11px] text-slate-500 font-medium">Tự động tổng hợp số liệu lịch hẹn và điểm danh mới nhất</p>
             </div>
@@ -492,7 +492,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
           {/* Today Appointments */}
           <div className="bg-indigo-50/70 border border-indigo-200/90 p-4 rounded-2xl flex flex-col justify-between shadow-2xs hover:shadow-sm transition-shadow">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold text-indigo-950 uppercase tracking-wide">Lịch hẹn hôm nay</span>
+              <span className="text-xs font-extrabold text-indigo-950">Lịch hẹn hôm nay</span>
               <div className="p-2 rounded-xl bg-indigo-600 text-white shadow-2xs">
                 <CalendarIcon className="w-4 h-4" />
               </div>
@@ -510,7 +510,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
           {/* Today Check-ins */}
           <div className="bg-emerald-50/70 border border-emerald-200/90 p-4 rounded-2xl flex flex-col justify-between shadow-2xs hover:shadow-sm transition-shadow">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold text-emerald-950 uppercase tracking-wide">Check-in hôm nay</span>
+              <span className="text-xs font-extrabold text-emerald-950">Check-in hôm nay</span>
               <div className="p-2 rounded-xl bg-emerald-600 text-white shadow-2xs">
                 <Zap className="w-4 h-4 fill-white" />
               </div>
@@ -527,7 +527,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
           {/* Active Clients */}
           <div className="bg-sky-50/70 border border-sky-200/90 p-4 rounded-2xl flex flex-col justify-between shadow-2xs hover:shadow-sm transition-shadow">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold text-sky-950 uppercase tracking-wide">Học viên đang tập</span>
+              <span className="text-xs font-extrabold text-sky-950">Học viên đang tập</span>
               <div className="p-2 rounded-xl bg-sky-600 text-white shadow-2xs">
                 <Users className="w-4 h-4" />
               </div>
@@ -544,7 +544,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
           {/* Completion Rate */}
           <div className="bg-purple-50/70 border border-purple-200/90 p-4 rounded-2xl flex flex-col justify-between shadow-2xs hover:shadow-sm transition-shadow">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold text-purple-950 uppercase tracking-wide">Tỷ lệ hoàn thành</span>
+              <span className="text-xs font-extrabold text-purple-950">Tỷ lệ hoàn thành</span>
               <div className="p-2 rounded-xl bg-purple-600 text-white shadow-2xs">
                 <Activity className="w-4 h-4" />
               </div>
@@ -657,8 +657,8 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
       {/* Header */}
       <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-bold text-[#4F46E5] bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-full uppercase tracking-wider">
-            Lịch Hẹn Huấn Luyện PT
+          <span className="text-xs font-bold text-[#4F46E5] bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-full">
+            Lịch hẹn huấn luyện PT
           </span>
           <h2 className="text-2xl font-black text-slate-900 mt-2 flex items-center gap-2">
             <CalendarIcon className="w-7 h-7 text-[#4F46E5]" />
@@ -810,7 +810,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <div>
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Chế độ xem Tuần</span>
+                <span className="text-xs font-bold text-slate-400">Chế độ xem tuần</span>
                 <h3 className="font-black text-slate-900 text-lg">
                   Tuần: {getWeekDays(selectedDate)[0].dayNum}/{getWeekDays(selectedDate)[0].monthNum} - {getWeekDays(selectedDate)[6].dayNum}/{getWeekDays(selectedDate)[6].monthNum}
                 </h3>
@@ -857,7 +857,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
                   <div>
                     <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
                       <div>
-                        <span className="text-[10px] font-black text-slate-400 block uppercase">{dayObj.dayName}</span>
+                        <span className="text-[10px] font-black text-slate-400 block">{dayObj.dayName}</span>
                         <span className={`text-sm font-black ${
                           dayObj.isToday ? 'text-[#FF4E00]' : isSelected ? 'text-[#4F46E5]' : 'text-slate-800'
                         }`}>
@@ -940,7 +940,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
           </div>
 
           {/* Weekday Labels */}
-          <div className="grid grid-cols-7 gap-1 text-center text-xs font-black text-slate-500 uppercase tracking-wider py-1">
+          <div className="grid grid-cols-7 gap-1 text-center text-xs font-black text-slate-500 py-1">
             <div className="py-1 bg-slate-50 rounded-lg">T2</div>
             <div className="py-1 bg-slate-50 rounded-lg">T3</div>
             <div className="py-1 bg-slate-50 rounded-lg">T4</div>
@@ -1036,8 +1036,8 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
         {/* Header Bar */}
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-4 border-b border-slate-100">
           <div>
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-              Lịch Tập Ngày
+            <span className="text-xs font-bold text-slate-400">
+              Lịch tập ngày
             </span>
             <h3 className="font-black text-slate-900 text-xl flex items-center gap-2 mt-0.5">
               <Clock className="w-5 h-5 text-[#4F46E5]" />
@@ -1137,9 +1137,9 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
         {/* Quick Summary Cards for Selected Day */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="bg-indigo-50/80 border border-indigo-200/90 p-4 rounded-2xl shadow-2xs hover:shadow-sm transition-all">
-            <p className="text-xs font-extrabold text-indigo-900 uppercase tracking-wide flex items-center gap-1.5">
+            <p className="text-xs font-extrabold text-indigo-900 flex items-center gap-1.5">
               <CalendarIcon className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Tổng Lịch Hẹn</span>
+              <span>Tổng lịch hẹn</span>
             </p>
             <div className="mt-2 flex items-baseline gap-1">
               <span className="text-2xl sm:text-3xl font-black text-indigo-950">{dateAppointments.length}</span>
@@ -1148,9 +1148,9 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
           </div>
 
           <div className="bg-amber-50/90 border border-amber-200/90 p-4 rounded-2xl shadow-2xs hover:shadow-sm transition-all">
-            <p className="text-xs font-extrabold text-amber-900 uppercase tracking-wide flex items-center gap-1.5">
+            <p className="text-xs font-extrabold text-amber-900 flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-amber-600" />
-              <span>🟡 Chờ Tập</span>
+              <span>🟡 Chờ tập</span>
             </p>
             <div className="mt-2 flex items-baseline gap-1">
               <span className="text-2xl sm:text-3xl font-black text-amber-950">
@@ -1161,9 +1161,9 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
           </div>
 
           <div className="bg-emerald-50/90 border border-emerald-200/90 p-4 rounded-2xl shadow-2xs hover:shadow-sm transition-all">
-            <p className="text-xs font-extrabold text-emerald-900 uppercase tracking-wide flex items-center gap-1.5">
+            <p className="text-xs font-extrabold text-emerald-900 flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-              <span>🟢 Đã Tập (Check-in)</span>
+              <span>🟢 Đã tập (check-in)</span>
             </p>
             <div className="mt-2 flex items-baseline gap-1">
               <span className="text-2xl sm:text-3xl font-black text-emerald-950">
@@ -1174,9 +1174,9 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
           </div>
 
           <div className="bg-rose-50/90 border border-rose-200/90 p-4 rounded-2xl shadow-2xs hover:shadow-sm transition-all">
-            <p className="text-xs font-extrabold text-rose-900 uppercase tracking-wide flex items-center gap-1.5">
+            <p className="text-xs font-extrabold text-rose-900 flex items-center gap-1.5">
               <XCircle className="w-3.5 h-3.5 text-rose-600" />
-              <span>🔴 Đã Hủy</span>
+              <span>🔴 Đã hủy</span>
             </p>
             <div className="mt-2 flex items-baseline gap-1">
               <span className="text-2xl sm:text-3xl font-black text-rose-950">

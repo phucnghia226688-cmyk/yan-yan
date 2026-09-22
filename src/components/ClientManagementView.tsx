@@ -7,7 +7,8 @@ import {
   getClientContractStatus,
   getSafeDateTimestamp,
   calculateContractDiffDays,
-  toInputDateStr
+  toInputDateStr,
+  getRemainingSessionsStyle
 } from '../utils/dateUtils';
 import { SessionBadge } from './SessionBadge';
 
@@ -215,7 +216,7 @@ const QuickDaysBox: React.FC<QuickDaysBoxProps> = ({
   return (
     <div className={`p-3 rounded-2xl border ${bgStyle} space-y-2`}>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-        <label className="text-xs font-black text-amber-950 uppercase tracking-wide flex items-center gap-1.5">
+        <label className="text-xs font-black text-amber-950 flex items-center gap-1.5">
           <CalendarDays className="w-4 h-4 text-amber-600 shrink-0" />
           {label}
         </label>
@@ -1080,7 +1081,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
     e.preventDefault();
     if (!contractClient) return;
 
-    const actionSummary = `⚙️ Điều chỉnh HĐ (${contractFormData.packageName}): BD: ${contractFormData.startDate} -> KT: ${contractFormData.endDate} (Còn ${contractFormData.remainingSessions}/${contractFormData.totalSessions}b) - TT: ${contractFormData.status.toUpperCase()}${contractFormData.notes ? ` [${contractFormData.notes}]` : ''}`;
+    const actionSummary = `⚙️ Điều chỉnh HĐ (${contractFormData.packageName}): BD: ${contractFormData.startDate} -> KT: ${contractFormData.endDate} (Còn ${contractFormData.remainingSessions} buổi) - TT: ${contractFormData.status.toUpperCase()}${contractFormData.notes ? ` [${contractFormData.notes}]` : ''}`;
 
     updateClient(contractClient.id, {
       packageName: contractFormData.packageName,
@@ -1138,7 +1139,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
         <div className="flex items-start gap-2 leading-relaxed flex-1">
           <span className="text-sm select-none mt-0.5">{icon}</span>
           <div className="flex-1">
-            <span className="font-extrabold text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-white border border-slate-200 mr-1.5 inline-block text-slate-700 shadow-2xs">
+            <span className="font-extrabold text-[10px] px-1.5 py-0.5 rounded-md bg-white border border-slate-200 mr-1.5 inline-block text-slate-700 shadow-2xs">
               {typeLabel}
             </span>
             <span className="font-semibold text-slate-900">{cleanSummary}</span>
@@ -1190,7 +1191,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                         </span>
                       ) : (
                         <span className="font-extrabold text-xs text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200 shadow-2xs flex items-center gap-1">
-                          📦 {selectedClient.packageName || 'Gói PT'} ({selectedClient.remainingSessions}/{selectedClient.totalSessions} buổi)
+                          📦 {selectedClient.packageName || 'Gói PT'} ({selectedClient.remainingSessions <= 0 ? 'Hết buổi' : `Còn ${selectedClient.remainingSessions} buổi`})
                         </span>
                       )}
                       {getWarningBadge(selectedClient)}
@@ -1366,17 +1367,19 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                   <div className="space-y-4">
                     <div className="flex flex-wrap items-center gap-2">
                       <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200/80 rounded-lg group hover:border-indigo-300 transition-all shadow-xs">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Gói:</span>
+                        <span className="text-[10px] font-bold text-slate-500">Gói:</span>
                         {selectedClient.clientType === 'monthly' ? (
-                          <span className="text-[11px] font-black text-amber-700">Thẻ Tháng (Đến {selectedClient.endDate || '---'})</span>
+                          <span className="text-[11px] font-black text-amber-700">Thẻ tháng (Đến {selectedClient.endDate || '---'})</span>
                         ) : (
-                          <span className="text-[11px] font-black text-emerald-600">{selectedClient.remainingSessions} / {selectedClient.totalSessions} buổi</span>
+                          <span className="text-[11px] font-black text-emerald-600">
+                            {selectedClient.remainingSessions <= 0 ? 'Hết buổi' : `Còn ${selectedClient.remainingSessions} buổi`}
+                          </span>
                         )}
                         <button onClick={() => openEditModal(selectedClient)} className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity"><Edit3 className="w-3 h-3 text-slate-400 hover:text-indigo-600" /></button>
                       </div>
 
                       <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200/80 rounded-lg group hover:border-indigo-300 transition-all shadow-xs">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Check-in:</span>
+                        <span className="text-[10px] font-bold text-slate-500">Check-in:</span>
                         <span className="text-[11px] font-black text-indigo-600">
                           {clientCheckIns.length > 0
                             ? new Date(clientCheckIns[0].timestamp).toLocaleString('vi-VN', {
@@ -1387,7 +1390,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                       </div>
 
                       <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200/80 rounded-lg group hover:border-indigo-300 transition-all shadow-xs">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">HĐ:</span>
+                        <span className="text-[10px] font-bold text-slate-500">HĐ:</span>
                         <span className="text-[11px] font-black text-slate-700 flex items-center gap-1">
                           {selectedClient.startDate} <span className="text-slate-400 text-[9px]">→</span> <span className="text-amber-700 bg-amber-50 px-1 py-0.5 rounded">{selectedClient.endDate}</span>
                         </span>
@@ -1395,9 +1398,9 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                       </div>
 
                       <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200/80 rounded-lg group hover:border-indigo-300 transition-all shadow-xs">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">TT:</span>
-                        <span className="text-[11px] font-black text-[#FF4E00] uppercase">
-                          {selectedClient.status === 'active' ? 'ĐANG TẬP' : selectedClient.status === 'expiring' ? 'SẮP HẾT HẠN' : selectedClient.status === 'expired' ? 'ĐÃ HẾT HẠN' : selectedClient.status === 'paused' ? 'BẢO LƯU' : selectedClient.status}
+                        <span className="text-[10px] font-bold text-slate-500">TT:</span>
+                        <span className="text-[11px] font-black text-[#FF4E00]">
+                          {selectedClient.status === 'active' ? 'Đang tập' : selectedClient.status === 'expiring' ? 'Sắp hết hạn' : selectedClient.status === 'expired' ? 'Đã hết hạn' : selectedClient.status === 'paused' ? 'Bảo lưu' : selectedClient.status}
                         </span>
                         <button onClick={() => openEditModal(selectedClient)} className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity"><Edit3 className="w-3 h-3 text-slate-400 hover:text-indigo-600" /></button>
                       </div>
@@ -1405,8 +1408,8 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
 
                     <div className="p-4 bg-slate-50/70 border border-slate-200 rounded-2xl space-y-4">
                       <div className="pt-1">
-                        <h5 className="text-xs font-bold text-indigo-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                          <Calendar className="w-4 h-4 text-indigo-600" /> Lịch Tập Cố Định / Linh Hoạt ({(selectedClient.preferredDays || []).length} buổi/tuần)
+                        <h5 className="text-xs font-bold text-indigo-700 mb-2 flex items-center gap-1.5">
+                          <Calendar className="w-4 h-4 text-indigo-600" /> Lịch tập cố định / linh hoạt ({(selectedClient.preferredDays || []).length} buổi/tuần)
                         </h5>
                         {(selectedClient.preferredDays || []).length === 0 ? (
                           <p className="text-xs text-slate-500 italic">Chưa cài đặt lịch tập.</p>
@@ -1426,17 +1429,17 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                         )}
                       </div>
                       <div className="pt-3 border-t border-slate-200">
-                        <h5 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                          <Zap className="w-4 h-4 text-[#FF4E00]" /> Lịch Sử Đóng Tiền & Doanh Thu
+                        <h5 className="text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5">
+                          <Zap className="w-4 h-4 text-[#FF4E00]" /> Lịch sử đóng tiền & doanh thu
                         </h5>
                         <div className="bg-white border border-slate-200/80 rounded-xl overflow-hidden shadow-xs">
                           <table className="w-full text-left border-collapse">
                             <thead>
-                              <tr className="bg-slate-50 text-slate-500 text-[10px] uppercase font-bold tracking-wider">
+                              <tr className="bg-slate-50 text-slate-500 text-[10px] font-bold">
                                 <th className="p-2 border-b border-slate-200/80 pl-3">Ngày đóng</th>
                                 <th className="p-2 border-b border-slate-200/80">Gói tập</th>
                                 <th className="p-2 border-b border-slate-200/80 text-right">Số tiền</th>
-                                <th className="p-2 border-b border-slate-200/80 pr-3 text-center">Biên Lai Zalo</th>
+                                <th className="p-2 border-b border-slate-200/80 pr-3 text-center">Biên lai Zalo</th>
                               </tr>
                             </thead>
                             <tbody className="text-[11px]">
@@ -1496,8 +1499,8 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                         </div>
                       </div>
                       <div className="pt-3 border-t border-slate-200">
-                        <h5 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                          <Clock className="w-4 h-4 text-indigo-600" /> Chi Tiết Lịch Sử Chỉnh Sửa, Gia Hạn & Thay Đổi Hồ Sơ ({(selectedClient.editHistory || []).length})
+                        <h5 className="text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5">
+                          <Clock className="w-4 h-4 text-indigo-600" /> Chi tiết lịch sử chỉnh sửa, gia hạn & thay đổi hồ sơ ({(selectedClient.editHistory || []).length})
                         </h5>
                         {(selectedClient.editHistory || []).length === 0 ? (
                           <p className="text-xs text-slate-400 font-medium italic">Chưa có lịch sử thay đổi.</p>
@@ -1517,19 +1520,19 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                     {/* Goals & Health & PT Notes */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">🎯 Mục tiêu tập luyện:</span>
+                        <span className="text-[10px] font-bold text-slate-500 block mb-1">🎯 Mục tiêu tập luyện:</span>
                         <p className="text-xs font-bold text-indigo-900 bg-white p-2 rounded-xl border border-slate-200 min-h-[44px]">
                           {selectedClient.goals || 'Chưa cập nhật mục tiêu.'}
                         </p>
                       </div>
                       <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">🩺 Tiền sử chấn thương / Bệnh lý:</span>
+                        <span className="text-[10px] font-bold text-slate-500 block mb-1">🩺 Tiền sử chấn thương / bệnh lý:</span>
                         <p className="text-xs font-semibold text-rose-700 bg-white p-2 rounded-xl border border-slate-200 min-h-[44px]">
                           {selectedClient.healthNotes || 'Không có.'}
                         </p>
                       </div>
                       <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">📝 Ghi chú của HLV / PT:</span>
+                        <span className="text-[10px] font-bold text-slate-500 block mb-1">📝 Ghi chú của HLV / PT:</span>
                         <p className="text-xs font-medium text-slate-700 bg-white p-2 rounded-xl border border-slate-200 min-h-[44px]">
                           {selectedClient.ptNotes || 'Chưa có ghi chú riêng.'}
                         </p>
@@ -1539,25 +1542,25 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                     {/* Body Metrics Section */}
                     <div className="space-y-4 pt-2">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-extrabold text-slate-900 text-base">Lịch Sử Cân Nặng & Chỉ Số Cơ Thể</h4>
+                        <h4 className="font-extrabold text-slate-900 text-base">Lịch sử cân nặng & chỉ số cơ thể</h4>
                         <button
                           type="button"
                           onClick={() => setIsMetricModalOpen(true)}
                           className="bg-[#FF4E00] hover:bg-orange-600 text-white font-bold px-4 py-1.5 rounded-full text-xs flex items-center gap-1 shadow-xs cursor-pointer"
                         >
-                          <Plus className="w-4 h-4" /> Đo Chỉ Số Mới
+                          <Plus className="w-4 h-4" /> Đo chỉ số mới
                         </button>
                       </div>
 
                       {(selectedClient.bodyMetrics || []).length === 0 ? (
                         <p className="text-xs text-slate-500 py-6 text-center border border-dashed border-slate-200 rounded-2xl">
-                          Chưa có dữ liệu đo chỉ số. Hãy bấm "+ Đo Chỉ Số Mới" để bắt đầu theo dõi.
+                          Chưa có dữ liệu đo chỉ số. Hãy bấm "+ Đo chỉ số mới" để bắt đầu theo dõi.
                         </p>
                       ) : (
                         <>
                           {/* Progress Chart */}
                           <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl h-56">
-                            <p className="text-xs font-bold text-slate-600 mb-2">Biểu đồ biến thiên Cân nặng (kg)</p>
+                            <p className="text-xs font-bold text-slate-600 mb-2">Biểu đồ biến thiên cân nặng (kg)</p>
                             <ResponsiveContainer width="100%" height="80%">
                               <LineChart data={selectedClient.bodyMetrics || []}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
@@ -1572,7 +1575,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                           {/* Metric History Table */}
                           <div className="overflow-x-auto border border-slate-200 rounded-2xl">
                             <table className="w-full text-left text-xs text-slate-700">
-                              <thead className="bg-slate-100 text-slate-700 uppercase font-bold border-b border-slate-200">
+                              <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
                                 <tr>
                                   <th className="p-3">Ngày đo</th>
                                   <th className="p-3">Cân nặng (kg)</th>
@@ -1736,7 +1739,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                                   <h4 className="text-base font-black text-slate-900 dark:text-white">
                                     {selectedClient.extraServiceName || 'Dịch vụ thêm'}
                                   </h4>
-                                  <span className={`text-xs font-black uppercase px-2.5 py-0.5 rounded-full border ${
+                                  <span className={`text-xs font-black px-2.5 py-0.5 rounded-full border ${
                                     (selectedClient.remainingExtraServices ?? 0) <= 0
                                       ? 'bg-rose-100 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200 border-rose-300'
                                       : (selectedClient.remainingExtraServices ?? 0) <= 3
@@ -1764,7 +1767,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                                 className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer"
                               >
                                 <Zap className="w-4 h-4 fill-current text-slate-950" />
-                                <span>Check-in DV Nhanh</span>
+                                <span>Check-in DV nhanh</span>
                               </button>
                               <button
                                 type="button"
@@ -1772,7 +1775,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                                 className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 font-extrabold px-3.5 py-2.5 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 cursor-pointer"
                               >
                                 <RefreshCw className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                                <span>Gia Hạn Thêm Suất</span>
+                                <span>Gia hạn thêm suất</span>
                               </button>
                             </div>
                           </div>
@@ -1808,7 +1811,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                         {/* Service Check-in History Logs for this client */}
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
-                            <h5 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                            <h5 className="text-xs font-black text-slate-800 flex items-center gap-1.5">
                               <History className="w-4 h-4 text-amber-600" />
                               Lịch sử check-in {selectedClient.extraServiceName || 'dịch vụ'} ({checkIns.filter(ci => ci.clientId === selectedClient.id && ci.type === 'extra_service').length} lượt)
                             </h5>
@@ -2168,23 +2171,23 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                     {/* Details Grid (2 Cols) */}
                     <div className="grid grid-cols-2 gap-2 my-2.5 text-xs bg-white/90 p-2.5 rounded-xl border border-slate-200/90 shadow-2xs">
                       <div>
-                        <span className="text-[10px] text-slate-500 block font-semibold uppercase tracking-wider">Gói tập</span>
+                        <span className="text-[10px] text-slate-500 block font-semibold">Gói tập</span>
                         <span className="font-bold text-slate-800 text-xs">{client.packageName || 'Gói PT'}</span>
                       </div>
                       <div>
-                        <span className="text-[10px] text-slate-500 block font-semibold uppercase tracking-wider">
-                          {client.clientType === 'monthly' ? 'Loại thẻ' : 'Số buổi (Còn/Tổng)'}
+                        <span className="text-[10px] text-slate-500 block font-semibold">
+                          {client.clientType === 'monthly' ? 'Loại thẻ' : 'Số buổi còn'}
                         </span>
                         <div className="flex flex-col items-start gap-1 mt-0.5">
-                          {client.clientType === 'monthly' ? (
-                            <span className="font-black text-amber-900 bg-amber-100/90 px-2 py-0.5 rounded-md border border-amber-300 inline-block text-xs">
-                              📅 Khách Tháng
-                            </span>
-                          ) : (
-                            <span className="font-black text-emerald-700 bg-emerald-100/90 px-2 py-0.5 rounded-md border border-emerald-200 inline-block text-xs">
-                              {client.remainingSessions} / {client.totalSessions}b
-                            </span>
-                          )}
+                          {(() => {
+                            const remStyle = getRemainingSessionsStyle(client.remainingSessions, client.clientType);
+                            return (
+                              <span className={`font-black px-2 py-0.5 rounded-md text-xs inline-flex items-center gap-1 ${remStyle.badgeClass}`}>
+                                <span>{remStyle.icon}</span>
+                                <span>{remStyle.displayText}</span>
+                              </span>
+                            );
+                          })()}
 
                           {client.hasExtraService && (
                             (() => {
@@ -2211,11 +2214,11 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                         </div>
                       </div>
                       <div>
-                        <span className="text-[10px] text-slate-500 block font-semibold uppercase tracking-wider">Đăng ký</span>
+                        <span className="text-[10px] text-slate-500 block font-semibold">Đăng ký</span>
                         <span className="font-mono text-slate-700 text-xs font-semibold">{client.startDate || '---'}</span>
                       </div>
                       <div>
-                        <span className="text-[10px] text-slate-500 block font-semibold uppercase tracking-wider">Hạn hợp đồng</span>
+                        <span className="text-[10px] text-slate-500 block font-semibold">Hạn hợp đồng</span>
                         <span className="font-mono text-slate-900 text-xs font-bold">{client.endDate || '---'}</span>
                       </div>
                     </div>
@@ -2273,14 +2276,14 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                 <col style={{ width: '20%' }} />
               </colgroup>
               <thead>
-                <tr className="bg-slate-100/90 text-slate-700 font-extrabold border-b border-slate-200 uppercase tracking-wider text-[11px] whitespace-nowrap">
+                <tr className="bg-slate-100/90 text-slate-700 font-extrabold border-b border-slate-200 text-[11px] whitespace-nowrap">
                   <th className="py-2.5 px-2 text-center border-r border-slate-200"># / Mã</th>
-                  <th className="py-2.5 px-2 border-r border-slate-200">Học Viên (Tên & SĐT)</th>
-                  <th className="py-2.5 px-2 border-r border-slate-200">Gói Tập</th>
-                  <th className="py-2.5 px-2 border-r border-slate-200 text-center">Số Buổi (Còn/Tổng)</th>
-                  <th className="py-2.5 px-2 border-r border-slate-200 text-center">Ngày ĐK & Hạn HĐ</th>
-                  <th className="py-2.5 px-2 border-r border-slate-200 text-center">Tình Trạng</th>
-                  <th className="py-2.5 px-2 text-center">Thao Tác Nhanh</th>
+                  <th className="py-2.5 px-2 border-r border-slate-200">Học viên (tên & SĐT)</th>
+                  <th className="py-2.5 px-2 border-r border-slate-200">Gói tập</th>
+                  <th className="py-2.5 px-2 border-r border-slate-200 text-center">Số buổi còn</th>
+                  <th className="py-2.5 px-2 border-r border-slate-200 text-center">Ngày ĐK & hạn HĐ</th>
+                  <th className="py-2.5 px-2 border-r border-slate-200 text-center">Tình trạng</th>
+                  <th className="py-2.5 px-2 text-center">Thao tác nhanh</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 bg-white">
@@ -2350,15 +2353,15 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                         </td>
                         <td className="py-2.5 px-2 text-center border-r border-slate-200 align-middle">
                           <div className="flex flex-col items-center justify-center gap-1.5">
-                            {client.clientType === 'monthly' ? (
-                              <span className="font-black text-amber-900 bg-amber-100 px-2 py-0.5 rounded text-[11px] border border-amber-300 inline-block shadow-2xs">
-                                Khách Tháng
-                              </span>
-                            ) : (
-                              <span className="font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[11px] border border-emerald-200 inline-block">
-                                {client.remainingSessions} / {client.totalSessions}b
-                              </span>
-                            )}
+                            {(() => {
+                              const remStyle = getRemainingSessionsStyle(client.remainingSessions, client.clientType);
+                              return (
+                                <span className={`font-black px-2.5 py-0.5 rounded text-[11px] inline-flex items-center gap-1 shadow-2xs whitespace-nowrap ${remStyle.badgeClass}`}>
+                                  <span>{remStyle.icon}</span>
+                                  <span>{remStyle.displayText}</span>
+                                </span>
+                              );
+                            })()}
 
                             {/* Thẻ Dịch Vụ Thêm (Yellow Service Badge) */}
                             {client.hasExtraService && (
@@ -2397,11 +2400,11 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                         <td className="py-2.5 px-2 text-center border-r border-slate-200 whitespace-nowrap overflow-hidden">
                           <div className="flex flex-col gap-0.5 text-center leading-tight">
                             <span className="text-[11px] text-slate-500">
-                              <span className="text-[10px] text-slate-400 font-semibold uppercase">ĐK: </span>
+                              <span className="text-[10px] text-slate-400 font-semibold">ĐK: </span>
                               <span className="font-mono">{formatDate(client.startDate)}</span>
                             </span>
                             <span className="text-[11px] font-bold text-slate-800">
-                              <span className="text-[10px] text-slate-400 font-semibold uppercase">Hạn: </span>
+                              <span className="text-[10px] text-slate-400 font-semibold">Hạn: </span>
                               <span className="font-mono">{formatDate(client.endDate)}</span>
                             </span>
                           </div>
@@ -2928,8 +2931,8 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
 
                 {/* Contract Type Selection */}
                 <div className="sm:col-span-2 bg-indigo-50/70 border border-indigo-200/80 rounded-2xl p-3.5 space-y-2">
-                  <label className="block text-xs font-black text-indigo-950 uppercase tracking-wide">
-                    🏷️ Loại Hình Đăng Ký Học Viên
+                  <label className="block text-xs font-black text-indigo-950">
+                    🏷️ Loại hình đăng ký học viên
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <button
@@ -3198,8 +3201,8 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
 
               {/* Payment / Tuition Section */}
               <div className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-3">
-                <label className="text-xs font-black text-emerald-950 uppercase tracking-wide flex items-center gap-1.5">
-                  💵 Số Tiền Học Phí & Khởi Tạo Thu Chi
+                <label className="text-xs font-black text-emerald-950 flex items-center gap-1.5">
+                  💵 Số tiền học phí & khởi tạo thu chi
                 </label>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -3267,8 +3270,8 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                       }}
                       className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 border-amber-300 cursor-pointer"
                     />
-                    <span className="text-xs font-black text-amber-950 uppercase tracking-wide flex items-center gap-1.5">
-                      ⭐ Đăng ký thêm Dịch vụ thêm (Add-on Services)
+                    <span className="text-xs font-black text-amber-950 flex items-center gap-1.5">
+                      ⭐ Đăng ký thêm dịch vụ kèm (add-on services)
                     </span>
                   </label>
                   {formData.hasExtraService && (
@@ -3371,7 +3374,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
               {/* Schedule / PT Appointment Auto-Generation Section */}
               <div className="p-4 bg-indigo-50/60 border border-indigo-100 rounded-2xl space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-black text-indigo-950 uppercase tracking-wide flex items-center gap-1.5">
+                  <label className="text-xs font-black text-indigo-950 flex items-center gap-1.5">
                     <Calendar className="w-4 h-4 text-[#4F46E5]" />
                     Lịch tập cố định (tự động tạo lịch hẹn PT)
                   </label>
@@ -3439,7 +3442,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                 {formData.preferredDays.length > 0 && (
                   <div className="pt-3 border-t border-indigo-200/70 mt-3 space-y-2">
                     <div className="flex items-center justify-between">
-                      <label className="text-[11px] font-extrabold text-indigo-950 uppercase tracking-wide flex items-center gap-1.5">
+                      <label className="text-[11px] font-extrabold text-indigo-950 flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5 text-indigo-600" />
                         Lịch tập linh hoạt (Chọn giờ riêng cho từng thứ):
                       </label>
@@ -3673,8 +3676,8 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
 
                 {/* Contract Type Selection */}
                 <div className="sm:col-span-2 bg-indigo-50/70 border border-indigo-200/80 rounded-2xl p-3 space-y-2">
-                  <label className="block text-xs font-black text-indigo-950 uppercase tracking-wide">
-                    🏷️ Loại Hình Đăng Ký Học Viên
+                  <label className="block text-xs font-black text-indigo-950">
+                    🏷️ Loại hình đăng ký học viên
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
@@ -3854,8 +3857,8 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                       }}
                       className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 border-amber-300 cursor-pointer"
                     />
-                    <span className="text-xs font-black text-amber-950 uppercase tracking-wide flex items-center gap-1.5">
-                      ⭐ Đăng ký thêm Dịch vụ thêm (Add-on Services)
+                    <span className="text-xs font-black text-amber-950 flex items-center gap-1.5">
+                      ⭐ Đăng ký thêm dịch vụ kèm (add-on services)
                     </span>
                   </label>
                   {formData.hasExtraService && (
@@ -3936,7 +3939,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
               {/* Schedule / PT Appointment Auto-Update Section */}
               <div className="p-4 bg-indigo-50/60 border border-indigo-100 rounded-2xl space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-black text-indigo-950 uppercase tracking-wide flex items-center gap-1.5">
+                  <label className="text-xs font-black text-indigo-950 flex items-center gap-1.5">
                     <Calendar className="w-4 h-4 text-[#4F46E5]" />
                     Lịch tập cố định (cập nhật lịch hẹn PT)
                   </label>
@@ -4004,7 +4007,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                 {formData.preferredDays.length > 0 && (
                   <div className="pt-3 border-t border-indigo-200/70 mt-3 space-y-2">
                     <div className="flex items-center justify-between">
-                      <label className="text-[11px] font-extrabold text-indigo-950 uppercase tracking-wide flex items-center gap-1.5">
+                      <label className="text-[11px] font-extrabold text-indigo-950 flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5 text-indigo-600" />
                         Lịch tập linh hoạt (Chọn giờ riêng cho từng thứ):
                       </label>
@@ -4099,7 +4102,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                 <div className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-slate-100 text-slate-600 text-[10px] uppercase font-bold tracking-wider">
+                      <tr className="bg-slate-100 text-slate-600 text-[10px] font-bold">
                         <th className="p-2 border-b border-slate-200 pl-3">Ngày đóng</th>
                         <th className="p-2 border-b border-slate-200">Gói tập</th>
                         <th className="p-2 border-b border-slate-200 pr-3 text-right">Số tiền</th>
@@ -4563,12 +4566,12 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                   />
                   <p className="text-[10px] text-slate-500 font-medium mt-1">
                     {renewMode === 'paid' ? (
-                      <>Số buổi mới sau gia hạn: <span className="font-extrabold text-emerald-600">{(renewClient.remainingSessions || 0) + Number(renewFormData.additionalSessions)} / {(renewClient.totalSessions || 0) + (Number(renewFormData.additionalSessions) || 0)} buổi</span></>
+                      <>Số buổi mới sau gia hạn: <span className="font-extrabold text-emerald-600">Còn {(renewClient.remainingSessions || 0) + Number(renewFormData.additionalSessions)} buổi</span></>
                     ) : (
                       Number(renewFormData.additionalSessions) > 0 ? (
-                        <>Cộng bù thêm: <span className="font-extrabold text-emerald-600">{(renewClient.remainingSessions || 0) + Number(renewFormData.additionalSessions)} / {(renewClient.totalSessions || 0) + Number(renewFormData.additionalSessions)} buổi</span></>
+                        <>Cộng bù thêm: <span className="font-extrabold text-emerald-600">Còn {(renewClient.remainingSessions || 0) + Number(renewFormData.additionalSessions)} buổi</span></>
                       ) : (
-                        <>Số buổi được giữ nguyên: <span className="font-extrabold text-emerald-600">{renewClient.remainingSessions || 0} / {renewClient.totalSessions || 0} buổi</span></>
+                        <>Số buổi được giữ nguyên: <span className="font-extrabold text-emerald-600">Còn {renewClient.remainingSessions || 0} buổi</span></>
                       )
                     )}
                   </p>
@@ -4805,7 +4808,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
               
               {/* Quick Preset Extension Buttons */}
               <div className="p-4 bg-amber-50/80 border border-amber-200/80 rounded-2xl space-y-2">
-                <p className="text-xs font-extrabold text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                <p className="text-xs font-extrabold text-amber-900 flex items-center gap-1.5">
                   <CalendarDays className="w-4 h-4 text-amber-600" />
                   Gia hạn nhanh thời hạn hết hạn HĐ:
                 </p>
@@ -4857,8 +4860,8 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
 
               {/* Package Name & Quick Select */}
               <div className="p-3.5 bg-indigo-50/70 border border-indigo-200/80 rounded-2xl space-y-2">
-                <label className="block text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
-                  📦 Tên Gói Tập Hợp Đồng:
+                <label className="block text-xs font-extrabold text-indigo-950">
+                  📦 Tên gói tập hợp đồng:
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <input

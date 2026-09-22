@@ -179,23 +179,23 @@ export const ServiceReceiptModal: React.FC<ServiceReceiptModalProps> = ({
               <div className="flex items-center gap-2">
                 <NbGymLogo size="sm" className="drop-shadow-[0_4px_10px_rgba(255,100,0,0.4)]" />
                 <div>
-                  <h4 className="font-black text-sm tracking-wide text-amber-400 uppercase">
+                  <h4 className="font-black text-sm tracking-wide text-amber-400">
                     {displayGymName}
                   </h4>
-                  <p className="text-[10px] font-bold text-slate-400 tracking-wider">
-                    DỊCH VỤ CHĂM SÓC HỌC VIÊN
+                  <p className="text-[10px] font-bold text-slate-400">
+                    Dịch vụ chăm sóc học viên
                   </p>
                 </div>
               </div>
-              <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/30">
-                Xác Thực
+              <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/30">
+                Xác thực
               </span>
             </div>
 
             {/* Ticket Title */}
             <div className="text-center mb-4">
-              <span className="text-[11px] font-black tracking-widest text-slate-400 uppercase">
-                PHIẾU CHECK-IN DỊCH VỤ
+              <span className="text-[11px] font-black tracking-wide text-slate-400">
+                Phiếu điểm danh dịch vụ
               </span>
               <div className="mt-1 inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-400/15 border border-amber-400/30 text-amber-300">
                 <Utensils className="w-4 h-4 text-amber-400" />
@@ -219,7 +219,7 @@ export const ServiceReceiptModal: React.FC<ServiceReceiptModalProps> = ({
                   </div>
                 )}
                 <div>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase">Học viên</p>
+                  <p className="text-[10px] text-slate-400 font-bold">Học viên</p>
                   <h5 className="text-base font-black text-white leading-tight">
                     {data.clientName}
                   </h5>
@@ -257,8 +257,8 @@ export const ServiceReceiptModal: React.FC<ServiceReceiptModalProps> = ({
                 ? 'bg-amber-950/40 border-amber-500/70'
                 : 'bg-emerald-950/30 border-emerald-500/50'
             }`}>
-              <p className="text-[11px] font-black uppercase tracking-wider text-slate-300">
-                SỐ SUẤT DỊCH VỤ CÒN LẠI
+              <p className="text-[11px] font-black text-slate-300">
+                Số suất dịch vụ còn lại
               </p>
               <div className="flex items-baseline justify-center gap-1.5 mt-1">
                 <span className={`text-3xl font-black ${
@@ -267,7 +267,7 @@ export const ServiceReceiptModal: React.FC<ServiceReceiptModalProps> = ({
                   {data.remainingCount}
                 </span>
                 <span className="text-sm font-bold text-slate-400">
-                  / {data.totalCount} suất
+                  suất
                 </span>
               </div>
               <p className="text-[10px] font-bold text-slate-400 mt-1">

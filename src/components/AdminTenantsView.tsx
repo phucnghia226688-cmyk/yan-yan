@@ -125,7 +125,7 @@ const TenantQuickDurationBox: React.FC<TenantQuickDurationBoxProps> = ({
   return (
     <div className="p-3.5 bg-amber-50/80 border border-amber-200/80 rounded-2xl space-y-2.5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-        <label className="text-xs font-black text-amber-950 uppercase tracking-wide flex items-center gap-1.5">
+        <label className="text-xs font-black text-amber-950 flex items-center gap-1.5">
           <Calendar className="w-4 h-4 text-amber-600 shrink-0" />
           Bảng chọn & nhập nhanh hạn dùng tài khoản
         </label>
@@ -423,7 +423,7 @@ export const AdminTenantsView: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Trang Quản Trị Hệ Thống Cho Thuê Phần Mềm (Master Admin)</h1>
-                <span className="bg-amber-400 text-indigo-950 font-bold text-xs px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow">Master Admin</span>
+                <span className="bg-amber-400 text-indigo-950 font-bold text-xs px-2.5 py-0.5 rounded-full shadow">Master Admin</span>
               </div>
               <p className="text-indigo-200 text-sm mt-1">
                 Tạo tài khoản cho các PT / Chủ phòng Gym khác thuê hàng tháng, cấp quyền và theo dõi gia hạn sử dụng.
@@ -438,7 +438,7 @@ export const AdminTenantsView: React.FC = () => {
                 className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold rounded-xl transition shadow-md"
               >
                 <ArrowRight className="w-4 h-4 rotate-180" />
-                Về Phòng Của Tôi (Gốc)
+                Về phòng của tôi (gốc)
               </button>
             )}
 
@@ -475,7 +475,7 @@ export const AdminTenantsView: React.FC = () => {
             <Building2 className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tổng Account Đang Cho Thuê</p>
+            <p className="text-xs font-semibold text-slate-500">Tổng account đang cho thuê</p>
             <p className="text-2xl font-bold text-slate-800">{totalTenants}</p>
           </div>
         </div>
@@ -485,7 +485,7 @@ export const AdminTenantsView: React.FC = () => {
             <CheckCircle className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tài Khoản Hoạt Động</p>
+            <p className="text-xs font-semibold text-slate-500">Tài khoản hoạt động</p>
             <p className="text-2xl font-bold text-emerald-600">{activeTenants}</p>
           </div>
         </div>
@@ -495,7 +495,7 @@ export const AdminTenantsView: React.FC = () => {
             <Clock className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Sắp Hết Hạn (&lt;7 Ngày)</p>
+            <p className="text-xs font-semibold text-slate-500">Sắp hết hạn (&lt;7 ngày)</p>
             <p className="text-2xl font-bold text-amber-600">{expiringSoonCount}</p>
           </div>
         </div>
@@ -505,7 +505,7 @@ export const AdminTenantsView: React.FC = () => {
             <XCircle className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tài Khoản Khóa / Tạm Dừng</p>
+            <p className="text-xs font-semibold text-slate-500">Tài khoản khóa / tạm dừng</p>
             <p className="text-2xl font-bold text-rose-600">{suspendedTenants}</p>
           </div>
         </div>
@@ -558,7 +558,7 @@ export const AdminTenantsView: React.FC = () => {
 
         {/* Status Filter Badges */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 scrollbar-none border-t border-slate-100">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0 mr-1 flex items-center gap-1">
+          <span className="text-[11px] font-bold text-slate-400 shrink-0 mr-1 flex items-center gap-1">
             <Filter className="w-3 h-3 text-indigo-500" />
             Lọc:
           </span>
@@ -814,7 +814,7 @@ export const AdminTenantsView: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
                     Tên đăng nhập (Username) *
                   </label>
                   <input
@@ -829,7 +829,7 @@ export const AdminTenantsView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
                     Mật khẩu đăng nhập *
                   </label>
                   <input
@@ -845,7 +845,7 @@ export const AdminTenantsView: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
                     Tên phòng gym / thương hiệu
                   </label>
                   <input
@@ -858,7 +858,7 @@ export const AdminTenantsView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
                     Tên chủ phòng / PT
                   </label>
                   <input
@@ -873,7 +873,7 @@ export const AdminTenantsView: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
                     Số điện thoại / Zalo
                   </label>
                   <input
@@ -886,7 +886,7 @@ export const AdminTenantsView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
                     Ngày hết hạn sử dụng
                   </label>
                   <input
@@ -908,7 +908,7 @@ export const AdminTenantsView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
                   Ghi chú hợp đồng / giá thuê (chỉ Admin thấy)
                 </label>
                 <textarea

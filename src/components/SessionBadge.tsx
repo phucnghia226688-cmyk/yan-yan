@@ -70,21 +70,16 @@ export const SessionBadge: React.FC<SessionBadgeProps> = ({
   if (statusInfo.status === 'expired') {
     let label = '🔴 Quá hạn';
     if (clientType === 'monthly') {
-      label = compact ? '🔴 Hết hạn' : '🔴 KHÁCH THÁNG (HẾT HẠN)';
+      label = compact ? '🔴 Hết hạn' : '🔴 Khách tháng (hết hạn)';
     } else if (remaining <= 0) {
-      label = compact ? '🔴 Hết buổi' : '🔴 HẾT BUỔI (GIA HẠN)';
+      label = compact ? '🔴 Hết buổi' : '🔴 Hết buổi (gia hạn)';
     } else if (diffDays !== null && diffDays < 0) {
-      label = compact ? '🔴 Hết hạn HĐ' : '🔴 HẾT HẠN HỢP ĐỒNG';
+      label = compact ? '🔴 Hết hạn HĐ' : '🔴 Hết hạn hợp đồng';
     }
 
     return (
       <span className={`inline-flex items-center gap-1 rounded-full bg-rose-600 text-white border border-rose-700 shadow-xs font-bold whitespace-nowrap animate-pulse ${sizeClasses} ${className}`}>
         <span>{label}</span>
-        {!compact && showDetails && total > 0 && clientType !== 'monthly' && (
-          <span className="text-[10px] bg-black/25 px-1.5 py-0.2 rounded font-mono font-black ml-0.5">
-            {remaining}/{total}b
-          </span>
-        )}
       </span>
     );
   }
@@ -96,38 +91,45 @@ export const SessionBadge: React.FC<SessionBadgeProps> = ({
       label = diffDays === 0
         ? (compact ? '🟡 Hết hôm nay' : '🟡 Hết hạn hôm nay')
         : (compact ? `🟡 Hạn: ${diffDays}n` : `🟡 Còn ${diffDays} ngày`);
-    } else if (remaining > 0 && remaining <= 2) {
-      label = compact ? `🟡 Còn ${remaining} buổi` : `🟡 Còn ${remaining} buổi (Sắp hết)`;
+    } else if (remaining > 0 && remaining < 2) {
+      label = compact ? `🔴 Còn ${remaining} buổi` : `🔴 Còn ${remaining} buổi (sắp hết)`;
+    } else if (remaining >= 2 && remaining < 5) {
+      label = compact ? `🟠 Còn ${remaining} buổi` : `🟠 Còn ${remaining} buổi (sắp hết)`;
     }
 
+    const badgeBg = remaining > 0 && remaining < 2 
+      ? 'bg-rose-600 text-white border-rose-700'
+      : 'bg-amber-400 text-slate-950 border-amber-500';
+
     return (
-      <span className={`inline-flex items-center gap-1 rounded-full bg-amber-400 text-slate-950 border border-amber-500 shadow-xs font-bold whitespace-nowrap animate-pulse ${sizeClasses} ${className}`}>
+      <span className={`inline-flex items-center gap-1 rounded-full ${badgeBg} border shadow-xs font-bold whitespace-nowrap animate-pulse ${sizeClasses} ${className}`}>
         <span>{label}</span>
-        {!compact && showDetails && total > 0 && clientType !== 'monthly' && (
-          <span className="text-[10px] bg-slate-950/15 px-1.5 py-0.2 rounded font-mono font-black ml-0.5">
-            {remaining}/{total}b
-          </span>
-        )}
       </span>
     );
   }
 
   // 🟢 ĐANG TẬP (ACTIVE - CÒN HẠN: diffDays > 5 VÀ (monthly HOẶC remaining > 2))
   let activeLabel = '🟢 Đang tập';
+  let activeBg = 'bg-emerald-600 text-white border-emerald-700';
+
   if (clientType === 'monthly') {
-    activeLabel = compact ? '🟢 Đang tập' : '🟢 Khách Tháng (Đang tập)';
+    activeLabel = compact ? '🟢 Đang tập' : '🟢 Khách tháng (đang tập)';
   } else {
-    activeLabel = compact ? `🟢 Còn ${remaining}b` : `🟢 Đang tập (${remaining} buổi)`;
+    if (remaining < 2) {
+      activeLabel = compact ? `🔴 Còn ${remaining} buổi` : `🔴 Còn ${remaining} buổi`;
+      activeBg = 'bg-rose-600 text-white border-rose-700';
+    } else if (remaining < 5) {
+      activeLabel = compact ? `🟠 Còn ${remaining} buổi` : `🟠 Còn ${remaining} buổi`;
+      activeBg = 'bg-amber-500 text-slate-950 border-amber-600';
+    } else {
+      activeLabel = compact ? `🟢 Còn ${remaining} buổi` : `🟢 Còn ${remaining} buổi`;
+      activeBg = 'bg-emerald-600 text-white border-emerald-700';
+    }
   }
 
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full bg-emerald-600 text-white border border-emerald-700 shadow-xs font-bold whitespace-nowrap ${sizeClasses} ${className}`}>
+    <span className={`inline-flex items-center gap-1 rounded-full ${activeBg} border shadow-xs font-bold whitespace-nowrap ${sizeClasses} ${className}`}>
       <span>{activeLabel}</span>
-      {!compact && showDetails && total > 0 && clientType !== 'monthly' && (
-        <span className="text-[10px] bg-black/20 px-1.5 py-0.2 rounded font-mono font-bold ml-0.5">
-          {remaining}/{total}b
-        </span>
-      )}
     </span>
   );
 };

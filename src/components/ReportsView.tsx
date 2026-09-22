@@ -397,9 +397,9 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ onNavigateTab }) => {
       <div className="bg-white border border-slate-200 p-5 sm:p-6 rounded-3xl shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-black text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-xs font-black text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-full flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-              BÁO CÁO &amp; PHÂN TÍCH LỢI NHUẬN
+              Báo cáo & phân tích lợi nhuận
             </span>
             
             {/* Multi-tenant identifier badge */}
@@ -577,8 +577,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ onNavigateTab }) => {
         {/* Card 1: Revenue */}
         <div className="bg-white border border-slate-200 p-5 sm:p-6 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              TỔNG DOANH THU ({periodLabel})
+            <p className="text-xs font-bold text-slate-500">
+              Tổng doanh thu ({periodLabel})
             </p>
             <div className="w-9 h-9 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <TrendingUp className="w-5 h-5" />
@@ -598,8 +598,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ onNavigateTab }) => {
         {/* Card 2: Expenses */}
         <div className="bg-white border border-slate-200 p-5 sm:p-6 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              TỔNG CHI PHÍ ({periodLabel})
+            <p className="text-xs font-bold text-slate-500">
+              Tổng chi phí ({periodLabel})
             </p>
             <div className="w-9 h-9 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center">
               <Wallet className="w-5 h-5" />
@@ -623,8 +623,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ onNavigateTab }) => {
         {/* Card 3: Net Profit */}
         <div className="bg-white border border-slate-200 p-5 sm:p-6 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              LỢI NHUẬN RÒNG ({periodLabel})
+            <p className="text-xs font-bold text-slate-500">
+              Lợi nhuận ròng ({periodLabel})
             </p>
             <div className={`w-9 h-9 rounded-2xl flex items-center justify-center ${netProfit >= 0 ? 'bg-indigo-50 text-indigo-600' : 'bg-rose-50 text-rose-600'}`}>
               <DollarSign className="w-5 h-5" />
@@ -642,8 +642,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ onNavigateTab }) => {
         {/* Card 4: Profit Margin */}
         <div className="bg-white border border-slate-200 p-5 sm:p-6 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              TỶ SUẤT LỢI NHUẬN
+            <p className="text-xs font-bold text-slate-500">
+              Tỷ suất lợi nhuận
             </p>
             <div className="w-9 h-9 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
               <Award className="w-5 h-5" />
@@ -772,16 +772,16 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ onNavigateTab }) => {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm border-collapse">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50/80 text-[11px] font-black text-slate-600 uppercase tracking-wider">
-                <th className="py-3 px-3 rounded-l-xl">THÁNG</th>
-                <th className="py-3 px-3 text-center">SỐ GD THU</th>
-                <th className="py-3 px-3 text-right">DOANH THU</th>
-                <th className="py-3 px-3 text-right">CHI PHÍ GYM</th>
-                <th className="py-3 px-3 text-right">CHI PHÍ GIA ĐÌNH</th>
-                <th className="py-3 px-3 text-right">TỔNG CHI PHÍ</th>
-                <th className="py-3 px-3 text-right">LỢI NHUẬN RÒNG</th>
-                <th className="py-3 px-3 text-center">TỶ SUẤT</th>
-                <th className="py-3 px-3 text-center rounded-r-xl">THAO TÁC</th>
+              <tr className="border-b border-slate-200 bg-slate-50/80 text-[11px] font-black text-slate-600">
+                <th className="py-3 px-3 rounded-l-xl">Tháng</th>
+                <th className="py-3 px-3 text-center">Số GD thu</th>
+                <th className="py-3 px-3 text-right">Doanh thu</th>
+                <th className="py-3 px-3 text-right">Chi phí gym</th>
+                <th className="py-3 px-3 text-right">Chi phí gia đình</th>
+                <th className="py-3 px-3 text-right">Tổng chi phí</th>
+                <th className="py-3 px-3 text-right">Lợi nhuận ròng</th>
+                <th className="py-3 px-3 text-center">Tỷ suất</th>
+                <th className="py-3 px-3 text-center rounded-r-xl">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
@@ -856,8 +856,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ onNavigateTab }) => {
             {/* High-Contrast Dark Footer Summary Row */}
             <tfoot>
               <tr className="bg-slate-900 text-white font-extrabold text-xs">
-                <td className="py-3.5 px-3 rounded-l-2xl uppercase tracking-wider text-amber-400">
-                  TỔNG CỘNG NĂM {selectedYear}
+                <td className="py-3.5 px-3 rounded-l-2xl text-amber-400">
+                  Tổng cộng năm {selectedYear}
                 </td>
                 <td className="py-3.5 px-3 text-center text-emerald-400">
                   {yearTableTotals.paymentCount} GD
@@ -920,15 +920,15 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ onNavigateTab }) => {
               {/* Quick Summary Grid */}
               <div className="grid grid-cols-3 gap-2.5 text-center">
                 <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
-                  <span className="text-[10px] font-bold text-emerald-700 uppercase">Thu vào</span>
+                  <span className="text-[10px] font-bold text-emerald-700">Thu vào</span>
                   <p className="text-sm font-black text-emerald-600 mt-0.5">{formatVnd(activeDrilldownData.revenue)}</p>
                 </div>
                 <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200">
-                  <span className="text-[10px] font-bold text-rose-700 uppercase">Chi ra</span>
+                  <span className="text-[10px] font-bold text-rose-700">Chi ra</span>
                   <p className="text-sm font-black text-rose-600 mt-0.5">{formatVnd(activeDrilldownData.totalExpense)}</p>
                 </div>
                 <div className="p-2.5 rounded-xl bg-indigo-50 border border-indigo-200">
-                  <span className="text-[10px] font-bold text-indigo-700 uppercase">Lợi nhuận ròng</span>
+                  <span className="text-[10px] font-bold text-indigo-700">Lợi nhuận ròng</span>
                   <p className="text-sm font-black text-indigo-600 mt-0.5">{formatVnd(activeDrilldownData.netProfit)}</p>
                 </div>
               </div>

@@ -94,14 +94,14 @@ export const RenewExtraServiceModal: React.FC<RenewExtraServiceModalProps> = ({
           {/* Current client info */}
           <div className="p-3.5 bg-slate-800/60 border border-slate-700/60 rounded-2xl flex items-center justify-between">
             <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase">Học viên</p>
+              <p className="text-[10px] font-bold text-slate-400">Học viên</p>
               <h4 className="text-sm font-black text-white">{client.name}</h4>
               <p className="text-xs text-amber-300 font-bold mt-0.5 flex items-center gap-1">
                 <Utensils className="w-3.5 h-3.5" /> {currentServiceName}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] font-bold text-slate-400 uppercase">Hiện còn</p>
+              <p className="text-[10px] font-bold text-slate-400">Hiện còn</p>
               <p className={`text-base font-black ${currentRemaining <= 0 ? 'text-rose-400' : 'text-amber-400'}`}>
                 {currentRemaining} suất
               </p>

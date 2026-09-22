@@ -245,19 +245,19 @@ NỘI DUNG HỢP ĐỒNG:
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-indigo-400" />
-                <h4 className="font-extrabold text-xs uppercase tracking-wide text-white">
-                  Cấu Hình Thông Tin Bên A (Đơn Vị Cung Cấp Dịch Vụ Gym/PT)
+                <h4 className="font-extrabold text-xs text-white">
+                  Cấu hình thông tin bên A (đơn vị cung cấp dịch vụ Gym/PT)
                 </h4>
               </div>
               <span className="text-[11px] text-indigo-300 italic">
-                * Khi bấm "Lưu Làm Mặc Định", thông tin này sẽ áp dụng cho tất cả hợp đồng in sau này.
+                * Khi bấm "Lưu làm mặc định", thông tin này sẽ áp dụng cho tất cả hợp đồng in sau này.
               </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
                 <label className="block text-[11px] font-bold text-indigo-300 mb-1">
-                  1. Tên Đơn Vị / Phòng Gym (Bên A)
+                  1. Tên đơn vị / phòng gym (bên A)
                 </label>
                 <input
                   type="text"
@@ -270,20 +270,20 @@ NỘI DUNG HỢP ĐỒNG:
 
               <div>
                 <label className="block text-[11px] font-bold text-indigo-300 mb-1">
-                  2. Đại Diện Ký Tên / HLV Trưởng
+                  2. Đại diện ký tên / HLV trưởng
                 </label>
                 <input
                   type="text"
                   value={representative}
                   onChange={(e) => setRepresentative(e.target.value)}
-                  placeholder="VD: Nguyễn Bỉnh (HLV Trưởng)"
+                  placeholder="VD: Nguyễn Bỉnh (HLV trưởng)"
                   className="w-full bg-indigo-900/90 text-white border border-indigo-700/80 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 font-medium"
                 />
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-indigo-300 mb-1">
-                  3. Số Điện Thoại / Hotline Đơn Vị
+                  3. Số điện thoại / hotline đơn vị
                 </label>
                 <input
                   type="text"
@@ -296,7 +296,7 @@ NỘI DUNG HỢP ĐỒNG:
 
               <div>
                 <label className="block text-[11px] font-bold text-indigo-300 mb-1">
-                  4. Địa Chỉ Trụ Sở / Phòng Tập
+                  4. Địa chỉ trụ sở / phòng tập
                 </label>
                 <input
                   type="text"
@@ -314,7 +314,7 @@ NỘI DUNG HỢP ĐỒNG:
                 onClick={() => setIsEditingPartyA(false)}
                 className="px-3.5 py-1.5 rounded-lg text-xs font-bold text-indigo-300 hover:bg-indigo-900 transition-colors cursor-pointer"
               >
-                Hủy Chỉnh Sửa
+                Hủy chỉnh sửa
               </button>
               <button
                 type="button"

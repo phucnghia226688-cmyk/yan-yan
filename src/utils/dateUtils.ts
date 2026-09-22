@@ -282,7 +282,7 @@ export const getClientContractStatus = (client?: {
 
   if (isDateWarning || isSessionWarning) {
     let badgeLabel = 'Sắp hết hạn';
-    if (isDateWarning && isSessionWarning) badgeLabel = `Hạn ${diffDays}n & Còn ${remaining}b`;
+    if (isDateWarning && isSessionWarning) badgeLabel = `Hạn ${diffDays}n & Còn ${remaining} buổi`;
     else if (isDateWarning) badgeLabel = diffDays === 0 ? 'Hết hạn hôm nay' : `Hạn còn ${diffDays} ngày`;
     else badgeLabel = `Còn ${remaining} buổi`;
 
@@ -310,6 +310,88 @@ export const getClientContractStatus = (client?: {
     isOverdue: false,
     isWarning: false,
     isSafe: true
+  };
+};
+
+export interface RemainingSessionsStyle {
+  displayText: string;
+  badgeClass: string;
+  dotColor: string;
+  textColor: string;
+  level: 'safe' | 'warning' | 'danger';
+  icon: string;
+}
+
+/**
+ * Helper phân loại trạng thái số buổi tập:
+ * - Chỉ hiển thị duy nhất số buổi còn lại
+ * - Gói tháng: "📅 Khách tháng"
+ * - Hết buổi (<= 0): "Hết buổi" (Viền Đỏ)
+ * - Còn < 2 buổi: "Còn [X] buổi" (Viền Đỏ)
+ * - Còn < 5 buổi: "Còn [X] buổi" (Viền Cam)
+ * - Còn >= 5 buổi: "Còn [X] buổi" (Xanh lá)
+ */
+export const getRemainingSessionsStyle = (
+  remainingSessions?: number,
+  clientType?: 'session' | 'monthly'
+): RemainingSessionsStyle => {
+  if (clientType === 'monthly') {
+    return {
+      displayText: '📅 Khách tháng',
+      badgeClass: 'bg-amber-100 text-amber-900 border border-amber-300',
+      dotColor: 'bg-amber-500',
+      textColor: 'text-amber-900',
+      level: 'safe',
+      icon: '📅'
+    };
+  }
+
+  const rem = remainingSessions ?? 0;
+
+  // 🔴 Viền Đỏ: Hết buổi (<= 0)
+  if (rem <= 0) {
+    return {
+      displayText: 'Hết buổi',
+      badgeClass: 'bg-rose-50 text-rose-700 border border-rose-300 ring-1 ring-rose-400',
+      dotColor: 'bg-rose-500',
+      textColor: 'text-rose-700',
+      level: 'danger',
+      icon: '🔴'
+    };
+  }
+
+  // 🔴 Viền Đỏ: Số buổi còn lại < 2 buổi (tức còn 1 buổi)
+  if (rem < 2) {
+    return {
+      displayText: `Còn ${rem} buổi`,
+      badgeClass: 'bg-rose-50 text-rose-700 border border-rose-300 ring-1 ring-rose-400',
+      dotColor: 'bg-rose-500',
+      textColor: 'text-rose-700',
+      level: 'danger',
+      icon: '🔴'
+    };
+  }
+
+  // 🟡 Viền Cam: Số buổi còn lại < 5 buổi (và >= 2 buổi)
+  if (rem < 5) {
+    return {
+      displayText: `Còn ${rem} buổi`,
+      badgeClass: 'bg-amber-50 text-amber-900 border border-amber-400 ring-1 ring-amber-400',
+      dotColor: 'bg-amber-500',
+      textColor: 'text-amber-900',
+      level: 'warning',
+      icon: '🟠'
+    };
+  }
+
+  // 🟢 Xanh lá: Số buổi còn lại >= 5 buổi
+  return {
+    displayText: `Còn ${rem} buổi`,
+    badgeClass: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    dotColor: 'bg-emerald-500',
+    textColor: 'text-emerald-700',
+    level: 'safe',
+    icon: '🟢'
   };
 };
 

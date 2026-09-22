@@ -61,16 +61,16 @@ export const FinanceView: React.FC<FinanceViewProps> = ({ initialTab = 'revenue'
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full uppercase tracking-wider">
-                QUẢN LÝ TÀI CHÍNH HỢP NHẤT
+              <span className="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full">
+                Quản lý tài chính hợp nhất
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-2 flex items-center gap-2">
               <Wallet className="w-8 h-8 text-emerald-400" />
-              Quản Lý Thu Chi
+              Quản lý thu chi
             </h1>
             <p className="text-sm text-slate-300 mt-1">
-              Theo dõi chi tiết Doanh Thu thu vào, Khoản Chi ra, Báo Cáo Thống Kê và Lợi Nhuận Ròng.
+              Theo dõi chi tiết doanh thu thu vào, khoản chi ra, báo cáo thống kê và lợi nhuận ròng.
             </p>
           </div>
 

@@ -149,12 +149,12 @@ export const ExpensesView: React.FC = () => {
       {/* Header */}
       <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 px-3 py-1 rounded-full uppercase tracking-wider">
-            Quản Lý Chi Phí Gym & Gia Đình
+          <span className="text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 px-3 py-1 rounded-full">
+            Quản lý chi phí gym & gia đình
           </span>
           <h2 className="text-2xl font-black text-slate-900 mt-2 flex items-center gap-2">
             <Wallet className="w-6 h-6 text-rose-600" />
-            Tổng Dòng Tiền Chi Ra
+            Tổng dòng tiền chi ra
           </h2>
           <p className="text-sm text-slate-500 mt-0.5 font-medium">
             Theo dõi song song chi phí vận hành phòng gym và sinh hoạt gia đình để quản lý tài chính toàn diện.
@@ -166,7 +166,7 @@ export const ExpensesView: React.FC = () => {
           className="bg-[#FF4E00] hover:bg-orange-600 text-white font-extrabold px-5 py-2.5 rounded-full text-sm shadow-md transition-all flex items-center gap-2 active:scale-95"
         >
           <PlusCircle className="w-4 h-4 fill-white text-[#FF4E00]" />
-          + Thêm Khoản Chi Mới
+          + Thêm khoản chi mới
         </button>
       </div>
 
@@ -176,8 +176,8 @@ export const ExpensesView: React.FC = () => {
         {/* Chi phí tháng này */}
         <div className="bg-white border border-slate-200 p-5 rounded-3xl shadow-sm relative overflow-hidden group hover:border-rose-300 transition-colors">
           <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/5 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
-          <div className="flex items-center gap-2 text-rose-600 text-[11px] font-black uppercase tracking-widest mb-2 relative z-10">
-            <Wallet className="w-4 h-4" /> Chi Phí Tháng Này ({currentMonth + 1}/{currentYear})
+          <div className="flex items-center gap-2 text-rose-600 text-[11px] font-black mb-2 relative z-10">
+            <Wallet className="w-4 h-4" /> Chi phí tháng này ({currentMonth + 1}/{currentYear})
           </div>
           <p className="text-2xl font-black text-slate-900 relative z-10">{formatVnd(grandTotalMonth)}</p>
           <div className="mt-3 flex items-center gap-3 relative z-10">
@@ -195,8 +195,8 @@ export const ExpensesView: React.FC = () => {
         {/* Chi phí năm nay */}
         <div className="bg-white border border-slate-200 p-5 rounded-3xl shadow-sm relative overflow-hidden group hover:border-rose-300 transition-colors">
           <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
-          <div className="flex items-center gap-2 text-amber-600 text-[11px] font-black uppercase tracking-widest mb-2 relative z-10">
-            <PieChart className="w-4 h-4" /> Chi Phí Năm Nay ({currentYear})
+          <div className="flex items-center gap-2 text-amber-600 text-[11px] font-black mb-2 relative z-10">
+            <PieChart className="w-4 h-4" /> Chi phí năm nay ({currentYear})
           </div>
           <p className="text-2xl font-black text-slate-900 relative z-10">{formatVnd(grandTotalYear)}</p>
           <div className="mt-3 flex items-center gap-3 relative z-10">
@@ -214,8 +214,8 @@ export const ExpensesView: React.FC = () => {
         {/* Tổng lũy kế */}
         <div className="bg-white border border-slate-200 p-5 rounded-3xl shadow-sm relative overflow-hidden group hover:border-rose-300 transition-colors">
           <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
-          <div className="flex items-center gap-2 text-[#4F46E5] text-[11px] font-black uppercase tracking-widest mb-2 relative z-10">
-            <FileSpreadsheet className="w-4 h-4" /> Tích Lũy Toàn Bộ Chi
+          <div className="flex items-center gap-2 text-[#4F46E5] text-[11px] font-black mb-2 relative z-10">
+            <FileSpreadsheet className="w-4 h-4" /> Tích lũy toàn bộ chi
           </div>
           <p className="text-2xl font-black text-slate-900 relative z-10">{formatVnd(grandTotalAll)}</p>
           <div className="mt-3 flex items-center gap-3 relative z-10">
@@ -229,7 +229,6 @@ export const ExpensesView: React.FC = () => {
             </div>
           </div>
         </div>
-
       </div>
 
       {/* Expenses Table & Filter Tabs */}
@@ -389,7 +388,7 @@ export const ExpensesView: React.FC = () => {
         ) : (
           <div className="overflow-x-auto border border-slate-200 rounded-2xl">
             <table className="w-full text-left text-xs text-slate-700">
-              <thead className="bg-slate-100 text-slate-700 uppercase font-bold border-b border-slate-200">
+              <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
                 <tr>
                   <th className="p-3">Ngày chi</th>
                   <th className="p-3">Phân loại</th>

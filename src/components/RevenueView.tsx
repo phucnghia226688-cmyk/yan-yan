@@ -181,7 +181,7 @@ export const RevenueView: React.FC = () => {
       {/* Header */}
       <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full uppercase tracking-wider">
+          <span className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
             Quản lý doanh thu
           </span>
           <h2 className="text-2xl font-black text-slate-900 mt-2 flex items-center gap-2">
@@ -205,17 +205,17 @@ export const RevenueView: React.FC = () => {
       {/* Revenue Totals Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm">
-          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Doanh thu tháng ({currentMonth + 1}/{currentYear})</p>
+          <p className="text-xs text-slate-500 font-bold">Doanh thu tháng ({currentMonth + 1}/{currentYear})</p>
           <p className="text-2xl font-black text-emerald-600 mt-2">{formatVnd(totalRevenueMonth)}</p>
         </div>
 
         <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm">
-          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Doanh thu năm {currentYear}</p>
+          <p className="text-xs text-slate-500 font-bold">Doanh thu năm {currentYear}</p>
           <p className="text-2xl font-black text-[#FF4E00] mt-2">{formatVnd(totalRevenueYear)}</p>
         </div>
 
         <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm">
-          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Tích lũy toàn bộ</p>
+          <p className="text-xs text-slate-500 font-bold">Tích lũy toàn bộ</p>
           <p className="text-2xl font-black text-[#4F46E5] mt-2">{formatVnd(totalRevenueAll)}</p>
         </div>
       </div>
@@ -278,7 +278,7 @@ export const RevenueView: React.FC = () => {
         ) : (
           <div className="overflow-x-auto border border-slate-200 rounded-2xl">
             <table className="w-full text-left text-xs text-slate-700">
-              <thead className="bg-slate-100 text-slate-700 uppercase font-bold border-b border-slate-200">
+              <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
                 <tr>
                   <th className="p-3">Ngày thanh toán</th>
                   <th className="p-3">Học viên</th>
