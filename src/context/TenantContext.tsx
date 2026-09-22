@@ -323,8 +323,28 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const logout = async () => {
     try { await signOut(auth); } catch (e) {}
-    localStorage.clear();
+    
+    // Preserve Remember Me credentials if active
+    const savedUser = localStorage.getItem('nbfit_tenant_saved_username');
+    const savedPass = localStorage.getItem('nbfit_tenant_saved_password');
+    const rememberMe = localStorage.getItem('nbfit_tenant_remember_me');
+
+    // Clear session-specific storage items
+    localStorage.removeItem(STORAGE_USER_SESSION_KEY);
+    localStorage.removeItem('nb_gym_auth');
+    localStorage.removeItem('nb_gym_user');
+    localStorage.removeItem('nb_gym_session_id');
+    localStorage.removeItem('nb_gym_auth_timestamp');
+    localStorage.setItem('nb_gym_explicit_logout', 'true');
     sessionStorage.clear();
+
+    // Re-persist Remember Me credentials so user can 1-touch login
+    if (rememberMe === 'true') {
+      if (savedUser) localStorage.setItem('nbfit_tenant_saved_username', savedUser);
+      if (savedPass) localStorage.setItem('nbfit_tenant_saved_password', savedPass);
+      localStorage.setItem('nbfit_tenant_remember_me', 'true');
+    }
+
     setCurrentUser(null);
     setActiveTenantIdState('master-admin');
   };

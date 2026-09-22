@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Lock, User, ShieldCheck, KeyRound, AlertCircle, Sparkles, LogIn, Eye, EyeOff, Phone } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Lock, User, ShieldCheck, KeyRound, AlertCircle, Sparkles, LogIn, Eye, EyeOff, Phone, CheckSquare } from 'lucide-react';
 import { NbGymLogo } from './NbGymLogo';
 import { useTenant } from '../context/TenantContext';
 
@@ -9,11 +9,76 @@ interface LoginViewProps {
 
 export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
   const { login } = useTenant();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+
+  // 1. Initial State from localStorage for Tenant-safe persistence
+  const [rememberMe, setRememberMe] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('nbfit_tenant_remember_me');
+      return saved !== null ? saved === 'true' : true; // Default is checked (true)
+    } catch {
+      return true;
+    }
+  });
+
+  const [username, setUsername] = useState<string>(() => {
+    try {
+      const isRemembered = localStorage.getItem('nbfit_tenant_remember_me');
+      if (isRemembered !== 'false') {
+        return localStorage.getItem('nbfit_tenant_saved_username') || '';
+      }
+      return '';
+    } catch {
+      return '';
+    }
+  });
+
+  const [password, setPassword] = useState<string>(() => {
+    try {
+      const isRemembered = localStorage.getItem('nbfit_tenant_remember_me');
+      if (isRemembered !== 'false') {
+        return localStorage.getItem('nbfit_tenant_saved_password') || '';
+      }
+      return '';
+    } catch {
+      return '';
+    }
+  });
+
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Auto-fill on mount / page refresh if rememberMe was previously active
+  useEffect(() => {
+    try {
+      const savedRemember = localStorage.getItem('nbfit_tenant_remember_me');
+      if (savedRemember === null || savedRemember === 'true') {
+        const savedUser = localStorage.getItem('nbfit_tenant_saved_username');
+        const savedPass = localStorage.getItem('nbfit_tenant_saved_password');
+        if (savedUser) setUsername(savedUser);
+        if (savedPass) setPassword(savedPass);
+        setRememberMe(true);
+      }
+    } catch (e) {
+      console.warn("Lỗi kiểm tra thông tin ghi nhớ đăng nhập:", e);
+    }
+  }, []);
+
+  // Handle toggling rememberMe checkbox
+  const handleRememberMeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const isChecked = e.target.checked;
+    setRememberMe(isChecked);
+    if (!isChecked) {
+      // Prompt requirement: If unchecked, immediately clean up saved keys from localStorage
+      try {
+        localStorage.removeItem('nbfit_tenant_saved_username');
+        localStorage.removeItem('nbfit_tenant_saved_password');
+        localStorage.removeItem('nbfit_tenant_remember_me');
+      } catch (err) {
+        console.warn("Lỗi dọn sạch thông tin ghi nhớ:", err);
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,6 +88,21 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
     try {
       const res = await login(username, password);
       if (res.success) {
+        // Persist or clean up based on "Ghi nhớ" state
+        try {
+          if (rememberMe) {
+            localStorage.setItem('nbfit_tenant_saved_username', username.trim());
+            localStorage.setItem('nbfit_tenant_saved_password', password);
+            localStorage.setItem('nbfit_tenant_remember_me', 'true');
+          } else {
+            localStorage.removeItem('nbfit_tenant_saved_username');
+            localStorage.removeItem('nbfit_tenant_saved_password');
+            localStorage.removeItem('nbfit_tenant_remember_me');
+          }
+        } catch (storageErr) {
+          console.warn("Lỗi lưu trữ thông tin đăng nhập:", storageErr);
+        }
+
         onLoginSuccess();
       } else {
         setError(res.message || 'Tài khoản hoặc mật khẩu không chính xác!');
@@ -83,10 +163,10 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
         )}
 
         {/* Form Inputs */}
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} method="post" action="#" className="space-y-4">
           {/* ID Username Input */}
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1.5">
+            <label htmlFor="username" className="block text-xs font-bold text-slate-300 mb-1.5">
               Tài khoản (ID):
             </label>
             <div className="relative">
@@ -94,6 +174,9 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
                 <User className="w-4 h-4" />
               </div>
               <input
+                id="username"
+                name="username"
+                autoComplete="username"
                 type="text"
                 required
                 value={username}
@@ -113,7 +196,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
 
           {/* Password Input */}
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1.5">
+            <label htmlFor="password" className="block text-xs font-bold text-slate-300 mb-1.5">
               Mật khẩu (Password):
             </label>
             <div className="relative">
@@ -121,6 +204,9 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
                 <KeyRound className="w-4 h-4" />
               </div>
               <input
+                id="password"
+                name="password"
+                autoComplete="current-password"
                 type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
@@ -143,6 +229,31 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+          </div>
+
+          {/* Remember Me Checkbox */}
+          <div className="flex items-center justify-between pt-1 pb-1">
+            <label 
+              htmlFor="rememberMe" 
+              className="inline-flex items-center gap-2.5 cursor-pointer select-none group"
+            >
+              <input
+                type="checkbox"
+                id="rememberMe"
+                name="rememberMe"
+                checked={rememberMe}
+                onChange={handleRememberMeChange}
+                className="w-4 h-4 rounded border-slate-600 bg-slate-900/90 text-rose-500 focus:ring-rose-500/40 focus:ring-offset-0 focus:ring-2 cursor-pointer transition-all accent-rose-500"
+              />
+              <span className="text-xs font-semibold text-slate-300 group-hover:text-white transition-colors">
+                Ghi nhớ đăng nhập trên thiết bị này
+              </span>
+            </label>
+            {rememberMe && (
+              <span className="text-[10px] font-bold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20 hidden sm:inline-block">
+                Tự động điền
+              </span>
+            )}
           </div>
 
           {/* Submit Button */}
