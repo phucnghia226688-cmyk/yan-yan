@@ -1,5 +1,5 @@
 import { getTodayDateStr } from './utils/dateUtils';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from './lib/firebase';

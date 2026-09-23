@@ -181,7 +181,11 @@ const TenantQuickDurationBox: React.FC<TenantQuickDurationBoxProps> = ({
   );
 };
 
-export const AdminTenantsView: React.FC = () => {
+interface AdminTenantsViewProps {
+  onViewTenant?: (tenantId: string) => void;
+}
+
+export const AdminTenantsView: React.FC<AdminTenantsViewProps> = ({ onViewTenant }) => {
   const { 
     tenants, 
     createTenant, 
@@ -190,6 +194,8 @@ export const AdminTenantsView: React.FC = () => {
     deleteTenant, 
     activeTenantId, 
     setActiveTenantId,
+    viewingTenantId,
+    returnToMasterAdmin,
     currentUser
   } = useTenant();
 
@@ -432,10 +438,10 @@ export const AdminTenantsView: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            {activeTenantId !== 'default' && (
+            {viewingTenantId && (
               <button
-                onClick={() => setActiveTenantId('default')}
-                className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold rounded-xl transition shadow-md"
+                onClick={() => returnToMasterAdmin()}
+                className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold rounded-xl transition shadow-md cursor-pointer"
               >
                 <ArrowRight className="w-4 h-4 rotate-180" />
                 Về phòng của tôi (gốc)
@@ -453,14 +459,14 @@ export const AdminTenantsView: React.FC = () => {
         </div>
 
         {/* Currently viewing another tenant indicator */}
-        {activeTenantId !== 'default' && (
+        {viewingTenantId && (
           <div className="mt-4 p-3 bg-amber-500/10 border border-amber-400/30 rounded-xl text-amber-200 text-sm flex items-center justify-between">
             <span>
-              🔍 Bạn đang xem & kiểm tra dữ liệu của phòng ID: <strong className="text-amber-300">{activeTenantId}</strong>
+              🔍 Bạn đang xem & kiểm tra dữ liệu của phòng: <strong className="text-amber-300">{tenants.find(t => t.tenantId === viewingTenantId)?.gymName || viewingTenantId}</strong>
             </span>
             <button 
-              onClick={() => setActiveTenantId('default')}
-              className="underline text-amber-300 hover:text-white font-semibold"
+              onClick={() => returnToMasterAdmin()}
+              className="underline text-amber-300 hover:text-white font-semibold cursor-pointer"
             >
               Quay lại chế độ Master
             </button>
@@ -639,7 +645,7 @@ export const AdminTenantsView: React.FC = () => {
           <div className="divide-y divide-slate-100">
             {filteredTenants.map((tenant) => {
               const isExpired = tenant.expireDate < todayStr;
-              const isCurrentActiveTenant = activeTenantId === tenant.tenantId;
+              const isCurrentActiveTenant = viewingTenantId === tenant.tenantId;
 
               return (
                 <div 
@@ -709,8 +715,13 @@ export const AdminTenantsView: React.FC = () => {
                   <div className="flex flex-wrap items-center gap-2 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100">
                     {/* View tenant data */}
                     <button
-                      onClick={() => setActiveTenantId(tenant.tenantId)}
-                      className="px-3 py-1.5 text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg transition flex items-center gap-1.5"
+                      onClick={() => {
+                        setActiveTenantId(tenant.tenantId);
+                        if (onViewTenant) {
+                          onViewTenant(tenant.tenantId);
+                        }
+                      }}
+                      className="px-3 py-1.5 text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg transition flex items-center gap-1.5 cursor-pointer"
                       title="Chuyển sang xem dữ liệu học viên, doanh thu của phòng này"
                     >
                       <Eye className="w-3.5 h-3.5" /> Xem Dữ Liệu

@@ -48,6 +48,7 @@ interface NavbarProps {
   onSelectClientDetail?: (client: Client) => void;
   onSelectClient?: (client: Client) => void;
   onLogout?: () => void;
+  onReturnToMasterAdmin?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -57,7 +58,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenSettings,
   onSelectClientDetail,
   onSelectClient,
-  onLogout
+  onLogout,
+  onReturnToMasterAdmin
 }) => {
   const { clients, payments, expenses, auditLogs, resetData, isCloudSynced, isSyncingCloud, manualSync, themeMode, toggleThemeMode } = useGym();
 
@@ -95,7 +97,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     link.click();
     document.body.removeChild(link);
   };
-  const { currentUser, isMasterAdmin, activeTenantId, setActiveTenantId, tenants } = useTenant();
+  const { currentUser, isMasterAdmin, activeTenantId, setActiveTenantId, viewingTenantId, returnToMasterAdmin, tenants } = useTenant();
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
 
@@ -238,16 +240,23 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-40 bg-white text-slate-800 border-b border-slate-200 shadow-sm w-full max-w-full overflow-hidden">
-      {/* Active tenant inspection banner (Master Admin ONLY) */}
-      {isMasterAdmin && activeTenantId !== 'default' && (
-        <div className="bg-amber-500 text-slate-950 font-bold px-4 py-1.5 text-xs flex items-center justify-between shadow-sm">
+      {/* Active tenant inspection banner (Master Admin ONLY when actively viewing a client's room) */}
+      {isMasterAdmin && viewingTenantId && (
+        <div className="bg-amber-500 text-slate-950 font-bold px-4 py-2 text-xs flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-2">
-            <Building2 className="w-4 h-4" />
-            <span>Đang ở chế độ xem & kiểm tra dữ liệu phòng: <strong className="underline">{tenants.find(t => t.tenantId === activeTenantId)?.gymName || activeTenantId}</strong></span>
+            <Building2 className="w-4 h-4 shrink-0" />
+            <span>Đang xem dữ liệu của phòng: <strong className="underline">{tenants.find(t => t.tenantId === viewingTenantId)?.gymName || viewingTenantId}</strong></span>
           </div>
           <button
-            onClick={() => setActiveTenantId('default')}
-            className="bg-slate-950 text-white px-3 py-0.5 rounded-full text-[11px] font-bold hover:bg-slate-800 transition"
+            onClick={() => {
+              returnToMasterAdmin();
+              if (onReturnToMasterAdmin) {
+                onReturnToMasterAdmin();
+              } else {
+                setActiveTab('admin_tenants');
+              }
+            }}
+            className="bg-slate-950 text-white px-3.5 py-1 rounded-full text-xs font-bold hover:bg-slate-800 transition cursor-pointer shadow-sm"
           >
             Trở về Master Admin
           </button>

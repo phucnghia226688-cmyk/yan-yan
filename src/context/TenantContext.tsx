@@ -15,7 +15,11 @@ const secondaryAuth = getAuth(secondaryApp);
 interface TenantContextType {
   currentUser: TenantAccount | null;
   activeTenantId: string;
-  setActiveTenantId: (id: string) => void;
+  setActiveTenantId: (id: string | null) => void;
+  viewingTenantId: string | null;
+  setViewingTenantId: (id: string | null) => void;
+  viewTenant: (tenantId: string) => void;
+  returnToMasterAdmin: () => void;
   tenants: TenantAccount[];
   login: (username: string, pass: string) => Promise<{ success: boolean; message?: string; user?: TenantAccount }>;
   logout: () => void;
@@ -60,26 +64,44 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const isMasterAdmin = currentUser?.role === 'admin' || currentUser?.username?.toLowerCase() === 'admin' || currentUser?.tenantId === 'master-admin';
 
-  const [activeTenantId, setActiveTenantIdState] = useState<string>(() => {
-    return currentUser?.tenantId || (isMasterAdmin ? 'master-admin' : 'default');
-  });
+  // viewingTenantId is strictly null by default (Root Master mode or normal tenant)
+  // NEVER restore or persist viewingTenantId in localStorage so that F5/login always starts at root
+  const [viewingTenantId, setViewingTenantId] = useState<string | null>(null);
+
+  const rootTenantId = currentUser?.tenantId || (isMasterAdmin ? 'master-admin' : 'default');
+  const activeTenantId = (isMasterAdmin && viewingTenantId) ? viewingTenantId : rootTenantId;
 
   const isAutoReauthingRef = useRef<boolean>(false);
 
-  const setActiveTenantId = (id: string) => {
+  const setActiveTenantId = (id: string | null) => {
     if (isMasterAdmin) {
-      setActiveTenantIdState(id);
-    } else if (currentUser) {
-      setActiveTenantIdState(currentUser.tenantId);
+      if (!id || id === 'default' || id === 'master-admin' || id === currentUser?.tenantId) {
+        setViewingTenantId(null);
+      } else {
+        setViewingTenantId(id);
+      }
+    } else {
+      setViewingTenantId(null);
     }
+  };
+
+  const viewTenant = (tenantId: string) => {
+    if (isMasterAdmin) {
+      if (!tenantId || tenantId === 'default' || tenantId === 'master-admin' || tenantId === currentUser?.tenantId) {
+        setViewingTenantId(null);
+      } else {
+        setViewingTenantId(tenantId);
+      }
+    }
+  };
+
+  const returnToMasterAdmin = () => {
+    setViewingTenantId(null);
   };
 
   // Synchronize session state to localStorage
   useEffect(() => {
     if (currentUser) {
-      if (!isMasterAdmin) {
-        setActiveTenantIdState(currentUser.tenantId);
-      }
       localStorage.setItem(STORAGE_USER_SESSION_KEY, JSON.stringify(currentUser));
       localStorage.setItem('nb_gym_auth', 'true');
       localStorage.setItem('nb_gym_user', currentUser.username);
@@ -316,7 +338,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     localStorage.removeItem('nb_gym_explicit_logout');
 
     setCurrentUser(account);
-    setActiveTenantIdState(account.tenantId);
+    setViewingTenantId(null);
 
     return { success: true, user: account };
   };
@@ -346,7 +368,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
 
     setCurrentUser(null);
-    setActiveTenantIdState('master-admin');
+    setViewingTenantId(null);
   };
 
   const createTenant = async (data: {
@@ -457,6 +479,10 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       currentUser,
       activeTenantId,
       setActiveTenantId,
+      viewingTenantId,
+      setViewingTenantId,
+      viewTenant,
+      returnToMasterAdmin,
       tenants,
       login,
       logout,
