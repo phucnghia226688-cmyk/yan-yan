@@ -252,8 +252,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               returnToMasterAdmin();
               if (onReturnToMasterAdmin) {
                 onReturnToMasterAdmin();
-              } else {
-                setActiveTab('admin_tenants');
               }
             }}
             className="bg-slate-950 text-white px-3.5 py-1 rounded-full text-xs font-bold hover:bg-slate-800 transition cursor-pointer shadow-sm"
