@@ -135,21 +135,18 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Helper to safely load stored local data or auto-backup snapshot scoped by tenant
   const loadStoredData = <T extends { tenantId?: string }>(storageKey: string, colName: string, fallback: T[]): T[] => {
-    const targetTenant = (currentUser && currentUser.role !== 'admin' && currentUser.username.toLowerCase() !== 'admin')
-      ? (currentUser.tenantId || 'default')
-      : (activeTenantId || 'default');
+    const targetTenant = (currentUser && !isMasterAdmin)
+      ? (currentUser.tenantId || 'master-admin')
+      : (activeTenantId || 'master-admin');
 
     const matchesTenant = (itemT?: string) => {
-      const it = itemT || 'default';
-      if (targetTenant === 'master-admin' || targetTenant === 'default') {
-        return it === 'master-admin' || it === 'default';
-      }
+      const it = itemT || 'master-admin';
       return it === targetTenant;
     };
 
     try {
       const tenantScopedKey = `${storageKey}_${targetTenant}`;
-      const saved = localStorage.getItem(tenantScopedKey) || localStorage.getItem(storageKey);
+      const saved = localStorage.getItem(tenantScopedKey) || (targetTenant === 'master-admin' ? localStorage.getItem(storageKey) : null);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -158,7 +155,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       }
       const autoBackup = localStorage.getItem('nb_gym_auto_backup_latest');
-      if (autoBackup) {
+      if (autoBackup && targetTenant === 'master-admin') {
         const parsedBackup = JSON.parse(autoBackup);
         if (parsedBackup && Array.isArray(parsedBackup[colName]) && parsedBackup[colName].length > 0) {
           const tenantFiltered = parsedBackup[colName].filter((item: any) => matchesTenant(item.tenantId));
@@ -168,8 +165,8 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch (e) {
       console.warn(`Error reading local storage for ${colName}:`, e);
     }
-    // Only use initial fallback if targetTenant is default (master admin)
-    if (targetTenant === 'default' || targetTenant === 'master-admin') {
+    // Only use initial fallback if targetTenant is master admin
+    if (targetTenant === 'master-admin' || targetTenant === 'default') {
       return fallback;
     }
     return [];
@@ -208,10 +205,10 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setThemeModeState(mode);
   };
 
-  // Ensure currentTenant never resolves to 'tenant_unknown' for default tenant setups
+  // Ensure currentTenant resolves to the exact active tenant (defaults to 'master-admin' for Master Admin)
   const currentTenant = (currentUser && !isMasterAdmin)
-    ? (currentUser.tenantId || 'default')
-    : (activeTenantId || 'default');
+    ? (currentUser.tenantId || 'master-admin')
+    : (activeTenantId || 'master-admin');
 
   // Cloud persistence helpers
   const saveToCloud = async (colName: string, item: any) => {
@@ -291,15 +288,9 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           try {
             let q: Query;
             if (colName === 'auditLogs') {
-              if (isMasterAdmin && currentTenant === 'master-admin') {
-                q = query(collection(db, colName), orderBy('timestamp', 'desc'), limit(100));
-              } else {
-                q = query(collection(db, colName), where('tenantId', '==', currentTenant), limit(100));
-              }
+              q = query(collection(db, colName), where('tenantId', '==', currentTenant), limit(100));
             } else {
-              q = (isMasterAdmin && currentTenant === 'master-admin') 
-                ? collection(db, colName) 
-                : query(collection(db, colName), where('tenantId', '==', currentTenant));
+              q = query(collection(db, colName), where('tenantId', '==', currentTenant));
             }
 
             const unsub = onSnapshot(
@@ -308,13 +299,11 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 setIsCloudSynced(true);
                 let items = snapshot.docs.map(d => ({ ...(d.data() as T), id: d.id }));
 
-                // Filter by tenantId
-                if (!isMasterAdmin || currentTenant !== 'master-admin') {
-                  items = items.filter(item => {
-                    const itemTenant = item.tenantId || 'default';
-                    return itemTenant === currentTenant;
-                  });
-                }
+                // Strictly filter by tenantId in memory as defense-in-depth
+                items = items.filter(item => {
+                  const itemTenant = item.tenantId || (currentTenant === 'master-admin' ? 'master-admin' : currentTenant);
+                  return itemTenant === currentTenant;
+                });
 
                 if (items.length === 0) {
                   // If Firestore is empty for this collection & tenant, upload any unsynced local data to Cloud
@@ -322,11 +311,11 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     hasAttemptedInitialPush = true;
                     try {
                       const tenantScopedKey = `${storageKey}_${currentTenant}`;
-                      const savedLocal = localStorage.getItem(tenantScopedKey) || localStorage.getItem(storageKey);
+                      const savedLocal = localStorage.getItem(tenantScopedKey) || (currentTenant === 'master-admin' ? localStorage.getItem(storageKey) : null);
                       if (savedLocal) {
                         const parsedLocal = JSON.parse(savedLocal);
                         if (Array.isArray(parsedLocal) && parsedLocal.length > 0) {
-                          const localFiltered = parsedLocal.filter(item => (item.tenantId || 'default') === currentTenant);
+                          const localFiltered = parsedLocal.filter(item => (item.tenantId || 'master-admin') === currentTenant);
                           if (localFiltered.length > 0) {
                             console.log(`Pushing ${localFiltered.length} local ${colName} items to Firestore Cloud...`);
                             localFiltered.forEach(localItem => {
@@ -372,7 +361,9 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                   // Update local cache immediately to prevent stale offline data drift
                   const tenantScopedKey = `${storageKey}_${currentTenant}`;
                   localStorage.setItem(tenantScopedKey, JSON.stringify(items));
-                  localStorage.setItem(storageKey, JSON.stringify(items));
+                  if (currentTenant === 'master-admin') {
+                    localStorage.setItem(storageKey, JSON.stringify(items));
+                  }
                 }
               },
               (err: any) => {
@@ -405,11 +396,11 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
                 try {
                   const tenantScopedKey = `${storageKey}_${currentTenant}`;
-                  const savedLocal = localStorage.getItem(tenantScopedKey) || localStorage.getItem(storageKey);
+                  const savedLocal = localStorage.getItem(tenantScopedKey) || (currentTenant === 'master-admin' ? localStorage.getItem(storageKey) : null);
                   if (savedLocal) {
                     const parsedLocal = JSON.parse(savedLocal);
                     if (Array.isArray(parsedLocal) && parsedLocal.length > 0) {
-                      const filtered = parsedLocal.filter(item => (item.tenantId || 'default') === currentTenant);
+                      const filtered = parsedLocal.filter(item => (item.tenantId || 'master-admin') === currentTenant);
                       if (filtered.length > 0) {
                         setter(filtered);
                       }
@@ -474,9 +465,21 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, [currentTenant, isMasterAdmin, currentUser?.username, currentUser?.password]);
 
-  // Continuous Automatic Local Backup Snapshot whenever data is modified
+  // Immediately swap active state to target tenant cache upon switching tenants (zero delay UI)
   useEffect(() => {
-    if (clients.length > 0 || payments.length > 0 || checkIns.length > 0) {
+    setClients(loadStoredData(STORAGE_KEYS.CLIENTS, 'clients', INITIAL_CLIENTS));
+    setPrograms(loadStoredData(STORAGE_KEYS.PROGRAMS, 'programs', INITIAL_PROGRAMS));
+    setCheckIns(loadStoredData(STORAGE_KEYS.CHECKINS, 'checkIns', INITIAL_CHECKINS));
+    setPayments(loadStoredData(STORAGE_KEYS.PAYMENTS, 'payments', INITIAL_PAYMENTS));
+    setExpenses(loadStoredData(STORAGE_KEYS.EXPENSES, 'expenses', INITIAL_EXPENSES));
+    setAppointments(loadStoredData(STORAGE_KEYS.APPOINTMENTS, 'appointments', INITIAL_APPOINTMENTS));
+    setAuditLogs(loadStoredData(STORAGE_KEYS.AUDIT_LOGS, 'auditLogs', INITIAL_AUDIT_LOGS));
+    setPdfDocuments(loadStoredData(STORAGE_KEYS.PDF_DOCS, 'pdfDocuments', INITIAL_PDF_DOCS));
+  }, [currentTenant]);
+
+  // Continuous Automatic Local Backup Snapshot whenever data is modified (Master Admin only)
+  useEffect(() => {
+    if (currentTenant === 'master-admin' && (clients.length > 0 || payments.length > 0 || checkIns.length > 0)) {
       const backupSnapshot = {
         updatedAt: new Date().toISOString(),
         clients,
@@ -490,47 +493,63 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
       localStorage.setItem('nb_gym_auto_backup_latest', JSON.stringify(backupSnapshot));
     }
-  }, [clients, programs, checkIns, payments, expenses, appointments, auditLogs, pdfDocuments]);
+  }, [clients, programs, checkIns, payments, expenses, appointments, auditLogs, pdfDocuments, currentTenant]);
 
   // Local backup persistence scoped per tenant
   useEffect(() => {
     localStorage.setItem(`${STORAGE_KEYS.CLIENTS}_${currentTenant}`, JSON.stringify(clients));
-    localStorage.setItem(STORAGE_KEYS.CLIENTS, JSON.stringify(clients));
+    if (currentTenant === 'master-admin') {
+      localStorage.setItem(STORAGE_KEYS.CLIENTS, JSON.stringify(clients));
+    }
   }, [clients, currentTenant]);
 
   useEffect(() => {
     localStorage.setItem(`${STORAGE_KEYS.PROGRAMS}_${currentTenant}`, JSON.stringify(programs));
-    localStorage.setItem(STORAGE_KEYS.PROGRAMS, JSON.stringify(programs));
+    if (currentTenant === 'master-admin') {
+      localStorage.setItem(STORAGE_KEYS.PROGRAMS, JSON.stringify(programs));
+    }
   }, [programs, currentTenant]);
 
   useEffect(() => {
     localStorage.setItem(`${STORAGE_KEYS.CHECKINS}_${currentTenant}`, JSON.stringify(checkIns));
-    localStorage.setItem(STORAGE_KEYS.CHECKINS, JSON.stringify(checkIns));
+    if (currentTenant === 'master-admin') {
+      localStorage.setItem(STORAGE_KEYS.CHECKINS, JSON.stringify(checkIns));
+    }
   }, [checkIns, currentTenant]);
 
   useEffect(() => {
     localStorage.setItem(`${STORAGE_KEYS.PAYMENTS}_${currentTenant}`, JSON.stringify(payments));
-    localStorage.setItem(STORAGE_KEYS.PAYMENTS, JSON.stringify(payments));
+    if (currentTenant === 'master-admin') {
+      localStorage.setItem(STORAGE_KEYS.PAYMENTS, JSON.stringify(payments));
+    }
   }, [payments, currentTenant]);
 
   useEffect(() => {
     localStorage.setItem(`${STORAGE_KEYS.EXPENSES}_${currentTenant}`, JSON.stringify(expenses));
-    localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(expenses));
+    if (currentTenant === 'master-admin') {
+      localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(expenses));
+    }
   }, [expenses, currentTenant]);
 
   useEffect(() => {
     localStorage.setItem(`${STORAGE_KEYS.APPOINTMENTS}_${currentTenant}`, JSON.stringify(appointments));
-    localStorage.setItem(STORAGE_KEYS.APPOINTMENTS, JSON.stringify(appointments));
+    if (currentTenant === 'master-admin') {
+      localStorage.setItem(STORAGE_KEYS.APPOINTMENTS, JSON.stringify(appointments));
+    }
   }, [appointments, currentTenant]);
 
   useEffect(() => {
     localStorage.setItem(`${STORAGE_KEYS.AUDIT_LOGS}_${currentTenant}`, JSON.stringify(auditLogs));
-    localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, JSON.stringify(auditLogs));
+    if (currentTenant === 'master-admin') {
+      localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, JSON.stringify(auditLogs));
+    }
   }, [auditLogs, currentTenant]);
 
   useEffect(() => {
     localStorage.setItem(`${STORAGE_KEYS.PDF_DOCS}_${currentTenant}`, JSON.stringify(pdfDocuments));
-    localStorage.setItem(STORAGE_KEYS.PDF_DOCS, JSON.stringify(pdfDocuments));
+    if (currentTenant === 'master-admin') {
+      localStorage.setItem(STORAGE_KEYS.PDF_DOCS, JSON.stringify(pdfDocuments));
+    }
   }, [pdfDocuments, currentTenant]);
 
   const addAuditLog = (
@@ -2064,15 +2083,18 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const syncAllToCloud = async () => {
     try {
       const tId = currentTenant;
-      const isMaster = isMasterAdmin && (tId === 'master-admin' || tId === 'default');
-      const tenantClients = clients.filter(c => (c.tenantId || 'default') === tId || isMaster);
-      const tenantPrograms = programs.filter(p => (p.tenantId || 'default') === tId || isMaster);
-      const tenantCheckIns = checkIns.filter(ci => (ci.tenantId || 'default') === tId || isMaster);
-      const tenantPayments = payments.filter(p => (p.tenantId || 'default') === tId || isMaster);
-      const tenantExpenses = expenses.filter(e => (e.tenantId || 'default') === tId || isMaster);
-      const tenantAppointments = appointments.filter(a => (a.tenantId || 'default') === tId || isMaster);
-      const tenantAuditLogs = auditLogs.filter(al => (al.tenantId || 'default') === tId || isMaster);
-      const tenantPdfDocs = pdfDocuments.filter(d => (d.tenantId || 'default') === tId || isMaster);
+      const matchesT = (itemT?: string) => {
+        const itemTenant = itemT || 'master-admin';
+        return itemTenant === tId;
+      };
+      const tenantClients = clients.filter(c => matchesT(c.tenantId));
+      const tenantPrograms = programs.filter(p => matchesT(p.tenantId));
+      const tenantCheckIns = checkIns.filter(ci => matchesT(ci.tenantId));
+      const tenantPayments = payments.filter(p => matchesT(p.tenantId));
+      const tenantExpenses = expenses.filter(e => matchesT(e.tenantId));
+      const tenantAppointments = appointments.filter(a => matchesT(a.tenantId));
+      const tenantAuditLogs = auditLogs.filter(al => matchesT(al.tenantId));
+      const tenantPdfDocs = pdfDocuments.filter(d => matchesT(d.tenantId));
 
       tenantClients.forEach(c => saveToCloud('clients', c));
       tenantPrograms.forEach(p => saveToCloud('programs', p));
