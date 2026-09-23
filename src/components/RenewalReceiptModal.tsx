@@ -134,7 +134,7 @@ export const RenewalReceiptModal: React.FC<RenewalReceiptModalProps> = ({
               {/* Client & Package */}
               <div className="text-center space-y-1">
                 <p className="text-slate-400 text-xs font-medium">Học viên</p>
-                <p className="text-white text-lg font-black">{receiptData.clientName}</p>
+                <p className="text-white text-lg font-black whitespace-normal break-words leading-snug">{receiptData.clientName}</p>
                 <div className="inline-block mt-2 bg-white/10 px-3 py-1 rounded-full border border-white/10">
                   <p className="text-white text-xs font-bold">{receiptData.packageName}</p>
                 </div>

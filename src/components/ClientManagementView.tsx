@@ -1173,9 +1173,9 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                     alt={selectedClient.name} 
                     className="w-16 h-16 rounded-2xl object-cover border-2 border-[#4F46E5] shadow-md"
                   />
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-2xl font-black text-slate-900">{selectedClient.name}</h3>
+                      <h3 className="text-2xl font-black text-slate-900 whitespace-normal break-words leading-tight">{selectedClient.name}</h3>
                       {selectedClient.trainingType === 'ca_nhom' ? (
                         <span className="font-extrabold text-xs text-purple-900 bg-purple-100 px-2.5 py-1 rounded-lg border border-purple-300 shadow-2xs flex items-center gap-1">
                           <Users className="w-3.5 h-3.5 text-purple-600 fill-purple-200" /> Ca Nhóm
@@ -2129,15 +2129,15 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                   >
                     {/* Top Row: Avatar + Name + Badges + Status */}
                     <div className="flex items-start justify-between gap-2 pb-2.5 border-b border-slate-200/80">
-                      <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
                         <img
                           src={client.avatarUrl}
                           alt={client.name}
                           className="w-10 h-10 rounded-full object-cover border-2 border-indigo-200 shrink-0 shadow-2xs"
                         />
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-black text-slate-900 text-sm truncate">{client.name}</span>
+                            <span className="font-black text-slate-900 text-sm whitespace-normal break-words leading-snug">{client.name}</span>
                             {client.trainingType === 'ca_nhom' ? (
                               <span className="text-[10px] bg-purple-100 text-purple-900 border border-purple-300 font-extrabold px-1.5 py-0.2 rounded-full flex items-center gap-0.5 shrink-0">
                                 <Users className="w-2.5 h-2.5 text-purple-600 fill-purple-200" /> Ca Nhóm
@@ -2264,16 +2264,16 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
           </div>
 
           {/* Clean Desktop Table View (Dành cho máy tính / máy tính bảng) */}
-          <div className="hidden md:block w-full overflow-hidden rounded-2xl border border-slate-200/90 shadow-2xs bg-white">
-            <table className="w-full table-fixed border-collapse text-xs">
+          <div className="hidden md:block w-full overflow-x-auto rounded-2xl border border-slate-200/90 shadow-2xs bg-white">
+            <table className="w-full table-fixed border-collapse text-xs min-w-[880px]">
               <colgroup>
-                <col style={{ width: '7%' }} />
-                <col style={{ width: '18%' }} />
-                <col style={{ width: '11%' }} />
+                <col style={{ width: '6%' }} />
+                <col style={{ width: '22%', minWidth: '190px' }} />
+                <col style={{ width: '12%' }} />
                 <col style={{ width: '13%' }} />
-                <col style={{ width: '15%' }} />
-                <col style={{ width: '16%' }} />
-                <col style={{ width: '20%' }} />
+                <col style={{ width: '14%' }} />
+                <col style={{ width: '14%' }} />
+                <col style={{ width: '19%' }} />
               </colgroup>
               <thead>
                 <tr className="bg-slate-100/90 text-slate-700 font-extrabold border-b border-slate-200 text-[11px] whitespace-nowrap">
@@ -2310,18 +2310,18 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                           isSelected ? 'bg-indigo-50/80 font-medium' : ''
                         }`}
                       >
-                        <td className="py-2.5 px-2 text-center border-r border-slate-200 overflow-hidden align-middle">
+                        <td className="py-2.5 px-2 text-center border-r border-slate-200 align-middle">
                           <div className="flex flex-col items-center justify-center leading-tight">
                             <span className="text-[10px] font-bold text-slate-400">#{idx + 1}</span>
                             <span className="font-mono font-bold text-slate-700 text-[11px] truncate max-w-full" title={codeHV}>{codeHV}</span>
                           </div>
                         </td>
-                        <td className="py-2.5 px-2 border-r border-slate-200 overflow-hidden align-middle">
-                          <div className="flex items-center gap-2 min-w-0">
+                        <td className="py-2.5 px-2.5 border-r border-slate-200 align-middle">
+                          <div className="flex items-center gap-2.5 min-w-0">
                             <img src={client.avatarUrl} alt={client.name} className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0" />
                             <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-1 min-w-0">
-                                <span className="font-black text-indigo-950 hover:text-indigo-600 text-xs sm:text-[13px] truncate leading-tight" title={client.name}>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-black text-indigo-950 hover:text-indigo-600 text-xs sm:text-[13px] leading-snug whitespace-normal break-words" title={client.name}>
                                   {client.name}
                                 </span>
                                 {client.trainingType === 'ca_nhom' ? (
@@ -2334,9 +2334,11 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                                   </span>
                                 )}
                               </div>
-                              <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1 mt-0.5 truncate">
-                                <Phone className="w-2.5 h-2.5 text-slate-400 shrink-0" />
-                                <span className="truncate">{client.phone}</span>
+                              <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                <span className="flex items-center gap-1 shrink-0">
+                                  <Phone className="w-2.5 h-2.5 text-slate-400 shrink-0" />
+                                  <span>{client.phone}</span>
+                                </span>
                                 {client.gender && (
                                   <span className="text-[9px] bg-slate-100 text-slate-600 px-1 rounded border border-slate-200 shrink-0">
                                     {client.gender}
@@ -2346,7 +2348,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                             </div>
                           </div>
                         </td>
-                        <td className="py-2.5 px-2 font-semibold text-slate-800 border-r border-slate-200 overflow-hidden align-middle">
+                        <td className="py-2.5 px-2 font-semibold text-slate-800 border-r border-slate-200 align-middle">
                           <div className="truncate text-xs font-semibold text-slate-800" title={client.packageName || 'Gói PT'}>
                             {client.packageName || 'Gói PT'}
                           </div>
@@ -2592,26 +2594,28 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                           : 'bg-slate-100/80 border-slate-300 hover:bg-white hover:border-indigo-300 shadow-2xs'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
                       <img 
                         src={client.avatarUrl} 
                         alt={client.name} 
                         className="w-10 h-10 rounded-full object-cover border-2 border-indigo-200 shrink-0 shadow-2xs" 
                       />
-                      <div>
-                        <h4 className="font-bold text-slate-900 text-sm flex items-center gap-1.5 flex-wrap">
-                          {client.name}
-                          {client.trainingType === 'ca_nhom' ? (
-                            <span className="text-[10px] bg-purple-100 text-purple-900 border border-purple-300 font-extrabold px-1.5 py-0.2 rounded-full flex items-center gap-0.5 shrink-0 shadow-2xs">
-                              <Users className="w-2.5 h-2.5 text-purple-600 fill-purple-200" /> Ca Nhóm
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-bold text-slate-900 text-sm whitespace-normal break-words leading-snug">
+                          <span className="inline">{client.name}</span>
+                          <span className="inline-flex items-center gap-1.5 flex-wrap ml-1.5 align-middle">
+                            {client.trainingType === 'ca_nhom' ? (
+                              <span className="text-[10px] bg-purple-100 text-purple-900 border border-purple-300 font-extrabold px-1.5 py-0.2 rounded-full flex items-center gap-0.5 shrink-0 shadow-2xs">
+                                <Users className="w-2.5 h-2.5 text-purple-600 fill-purple-200" /> Ca Nhóm
+                              </span>
+                            ) : (
+                              <span className="text-[10px] bg-sky-50 text-sky-800 border border-sky-200 font-bold px-1.5 py-0.2 rounded-full flex items-center gap-0.5 shrink-0">
+                                <User className="w-2.5 h-2.5 text-sky-600" /> 1/1
+                              </span>
+                            )}
+                            <span className="text-[10px] text-slate-500 font-semibold bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200">
+                              {client.gender === 'Nữ' ? 'Nữ' : 'Nam'}
                             </span>
-                          ) : (
-                            <span className="text-[10px] bg-sky-50 text-sky-800 border border-sky-200 font-bold px-1.5 py-0.2 rounded-full flex items-center gap-0.5 shrink-0">
-                              <User className="w-2.5 h-2.5 text-sky-600" /> 1/1
-                            </span>
-                          )}
-                          <span className="text-[10px] text-slate-500 font-semibold bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200">
-                            {client.gender === 'Nữ' ? 'Nữ' : 'Nam'}
                           </span>
                         </h4>
                         <p className="text-xs text-slate-500 flex items-center gap-1.5 flex-wrap mt-0.5">

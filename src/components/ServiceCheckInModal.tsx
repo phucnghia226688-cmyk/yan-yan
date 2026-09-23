@@ -130,9 +130,9 @@ export const ServiceCheckInModal: React.FC<ServiceCheckInModalProps> = ({
                   {client.name.charAt(0)}
                 </div>
               )}
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-base font-black text-white">{client.name}</h4>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <h4 className="text-base font-black text-white whitespace-normal break-words leading-snug">{client.name}</h4>
                   <span className={`text-xs font-black px-2.5 py-0.5 rounded-full ${
                     isOutOfService
                       ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'

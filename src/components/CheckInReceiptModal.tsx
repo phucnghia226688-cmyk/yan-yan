@@ -170,7 +170,7 @@ export const CheckInReceiptModal: React.FC<CheckInReceiptModalProps> = ({
               />
               <div className="min-w-0 flex-1">
                 <span className="text-[10px] font-medium text-slate-400">Học viên</span>
-                <h4 className="font-black text-slate-900 text-base leading-tight truncate">{data.clientName}</h4>
+                <h4 className="font-black text-slate-900 text-base leading-snug whitespace-normal break-words">{data.clientName}</h4>
                 <p className="text-xs text-indigo-600 font-extrabold truncate mt-0.5">
                   {data.packageName || 'Gói PT 1:1'}
                 </p>

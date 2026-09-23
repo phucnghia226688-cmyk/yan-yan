@@ -486,9 +486,9 @@ export const WorkoutProgramView: React.FC<WorkoutProgramViewProps> = ({
                       )}
 
                       {/* Target Client info */}
-                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                        <span className="text-slate-500 font-medium">Phân loại học viên:</span>
-                        <span className="font-bold text-indigo-900 bg-indigo-50/80 px-2.5 py-0.5 rounded-md border border-indigo-100">
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] gap-2">
+                        <span className="text-slate-500 font-medium shrink-0">Phân loại học viên:</span>
+                        <span className="font-bold text-indigo-900 bg-indigo-50/80 px-2.5 py-0.5 rounded-md border border-indigo-100 whitespace-normal break-words leading-snug text-right">
                           {doc.clientId === 'GENERAL' || !doc.clientId
                             ? 'Dùng chung cho tất cả'
                             : (linkedClient ? `Học viên: ${linkedClient.name}` : 'Học viên cá nhân')}

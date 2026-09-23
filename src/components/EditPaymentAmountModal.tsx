@@ -107,9 +107,9 @@ export const EditPaymentAmountModal: React.FC<EditPaymentAmountModalProps> = ({
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {/* Payment Info Card */}
           <div className="p-3.5 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-1.5 text-xs">
-            <div className="flex justify-between items-center">
-              <span className="text-slate-500 font-semibold">Học viên:</span>
-              <span className="font-extrabold text-slate-900">{payment.clientName}</span>
+            <div className="flex justify-between items-start gap-2">
+              <span className="text-slate-500 font-semibold shrink-0">Học viên:</span>
+              <span className="font-extrabold text-slate-900 text-right whitespace-normal break-words leading-snug">{payment.clientName}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-slate-500 font-semibold">Gói tập:</span>

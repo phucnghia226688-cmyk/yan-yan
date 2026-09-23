@@ -218,9 +218,9 @@ export const ServiceReceiptModal: React.FC<ServiceReceiptModalProps> = ({
                     {data.clientName.charAt(0)}
                   </div>
                 )}
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-[10px] text-slate-400 font-bold">Học viên</p>
-                  <h5 className="text-base font-black text-white leading-tight">
+                  <h5 className="text-base font-black text-white leading-snug whitespace-normal break-words">
                     {data.clientName}
                   </h5>
                   <p className="text-[11px] text-slate-400 font-semibold mt-0.5">

@@ -487,8 +487,8 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
                               onClick={() => client && onSelectClientDetail && onSelectClientDetail(client)}
                               title="Bấm để xem hồ sơ học viên"
                             >
-                              {client && <img src={client.avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover shadow-sm" />}
-                              {log.clientName}
+                              {client && <img src={client.avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover shadow-sm shrink-0" />}
+                              <span className="whitespace-normal break-words leading-snug">{log.clientName}</span>
                             </div>
                           </td>
                           <td className="p-3 font-medium text-amber-300">
@@ -747,21 +747,21 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
                     {/* Top Row: Avatar, Name, Status */}
                     <div className="space-y-3">
                       <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
                           <img
                             src={client.avatarUrl}
                             alt={client.name}
-                            className="w-12 h-12 rounded-2xl object-cover border border-slate-200 dark:border-slate-700 shadow-sm"
+                            className="w-12 h-12 rounded-2xl object-cover border border-slate-200 dark:border-slate-700 shadow-sm shrink-0"
                           />
-                          <div>
+                          <div className="min-w-0 flex-1">
                             <h4 
                               onClick={() => onSelectClientDetail && onSelectClientDetail(client)}
-                              className="font-black text-slate-900 dark:text-white text-base hover:text-amber-600 transition-colors cursor-pointer"
+                              className="font-black text-slate-900 dark:text-white text-base hover:text-amber-600 transition-colors cursor-pointer whitespace-normal break-words leading-snug"
                             >
                               {client.name}
                             </h4>
                             <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5 font-medium">
-                              <Phone className="w-3.5 h-3.5 text-slate-400" /> {client.phone}
+                              <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {client.phone}
                             </p>
                           </div>
                         </div>
@@ -902,8 +902,8 @@ export const CheckInView: React.FC<CheckInViewProps> = ({
                                 className="flex items-center gap-2 cursor-pointer hover:text-amber-600 transition-colors"
                                 onClick={() => client && onSelectClientDetail && onSelectClientDetail(client)}
                               >
-                                {client && <img src={client.avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover shadow-sm border border-slate-200 dark:border-slate-700" />}
-                                {log.clientName}
+                                {client && <img src={client.avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover shadow-sm border border-slate-200 dark:border-slate-700 shrink-0" />}
+                                <span className="whitespace-normal break-words leading-snug">{log.clientName}</span>
                               </div>
                             </td>
                             <td className="p-3 font-black text-amber-900 dark:text-amber-300">

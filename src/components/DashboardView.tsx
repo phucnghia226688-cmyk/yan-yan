@@ -447,15 +447,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     className="p-3 bg-red-50/80 border border-red-100 rounded-2xl flex items-center justify-between"
                   >
                     <div 
-                      className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" 
+                      className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity min-w-0 flex-1 mr-2" 
                       onClick={() => onSelectClientDetail(client)}
                       title="Bấm để xem hồ sơ học viên"
                     >
-                      <img src={client.avatarUrl} alt={client.name} className="w-9 h-9 rounded-full object-cover border border-red-200" />
-                      <div>
+                      <img src={client.avatarUrl} alt={client.name} className="w-9 h-9 rounded-full object-cover border border-red-200 shrink-0" />
+                      <div className="min-w-0 flex-1">
                         <p 
                           onClick={() => onSelectClientDetail(client)}
-                          className="text-xs font-bold text-slate-900 hover:text-red-600 cursor-pointer"
+                          className="text-xs font-bold text-slate-900 hover:text-red-600 cursor-pointer whitespace-normal break-words leading-snug"
                         >
                           {client.name}
                         </p>
@@ -493,13 +493,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 {birthdayClients.map(client => (
                   <div key={client.id} className="p-3 bg-slate-50 rounded-2xl flex items-center justify-between border border-slate-100">
                     <div 
-                      className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                      className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity min-w-0 flex-1 mr-2"
                       onClick={() => onSelectClientDetail(client)}
                       title="Bấm để xem hồ sơ học viên"
                     >
-                      <img src={client.avatarUrl} alt={client.name} className="w-9 h-9 rounded-full object-cover" />
-                      <div>
-                        <p className="text-xs font-bold text-slate-900 hover:text-[#4F46E5]">{client.name}</p>
+                      <img src={client.avatarUrl} alt={client.name} className="w-9 h-9 rounded-full object-cover shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-slate-900 hover:text-[#4F46E5] whitespace-normal break-words leading-snug">{client.name}</p>
                         <p className="text-[11px] text-amber-600 font-semibold">🎂 Ngày sinh: {formatDate(client.dob)}</p>
                       </div>
                     </div>

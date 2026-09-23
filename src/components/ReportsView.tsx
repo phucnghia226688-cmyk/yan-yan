@@ -945,8 +945,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ onNavigateTab }) => {
                   ) : (
                     activeDrilldownData.payments.map((p) => (
                       <div key={p.id} className="p-2 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
-                        <div>
-                          <p className="font-bold text-slate-900">{p.clientName}</p>
+                        <div className="min-w-0 flex-1 mr-2">
+                          <p className="font-bold text-slate-900 whitespace-normal break-words leading-snug">{p.clientName}</p>
                           <p className="text-[10px] text-slate-500">{p.packageName} &bull; {p.paymentDate}</p>
                         </div>
                         <span className="font-black text-emerald-600">+{formatVnd(p.amountVnd)}</span>

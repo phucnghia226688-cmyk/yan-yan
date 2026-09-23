@@ -1246,8 +1246,8 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
                         alt={apt.clientName}
                         className="w-12 h-12 rounded-2xl object-cover border-2 border-white shadow-xs"
                       />
-                      <div>
-                        <h4 className="font-extrabold text-slate-900 text-base leading-tight flex items-center gap-1.5 flex-wrap">
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-extrabold text-slate-900 text-base leading-snug whitespace-normal break-words flex items-center gap-1.5 flex-wrap">
                           {apt.clientName}
                           {client?.trainingType === 'ca_nhom' ? (
                             <span className="text-[10px] font-extrabold bg-purple-100 text-purple-900 border border-purple-300 px-2 py-0.5 rounded-full flex items-center gap-0.5 shadow-2xs">
@@ -1388,9 +1388,9 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
                         alt={apt.clientName}
                         className="w-11 h-11 rounded-2xl object-cover border border-slate-200"
                       />
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="font-extrabold text-slate-900 text-base">{apt.clientName}</h4>
+                          <h4 className="font-extrabold text-slate-900 text-base whitespace-normal break-words leading-snug">{apt.clientName}</h4>
                           {client?.trainingType === 'ca_nhom' ? (
                             <span className="text-[10px] font-extrabold bg-purple-100 text-purple-900 border border-purple-300 px-2 py-0.5 rounded-full flex items-center gap-0.5">
                               <Users className="w-2.5 h-2.5 text-purple-600" /> Ca Nhóm

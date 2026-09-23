@@ -294,7 +294,7 @@ export const RevenueView: React.FC = () => {
                 {filteredPayments.map(p => (
                   <tr key={p.id} className="hover:bg-slate-50 transition-colors">
                     <td className="p-3 font-mono text-slate-500 whitespace-nowrap font-medium">{formatDate(p.paymentDate)}</td>
-                    <td className="p-3 font-extrabold text-slate-900">{p.clientName}</td>
+                    <td className="p-3 font-extrabold text-slate-900 whitespace-normal break-words leading-snug">{p.clientName}</td>
                     <td className="p-3 font-bold text-[#4F46E5]">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span>{p.packageName}</span>

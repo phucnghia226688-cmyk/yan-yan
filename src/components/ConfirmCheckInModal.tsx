@@ -105,7 +105,7 @@ export const ConfirmCheckInModal: React.FC<ConfirmCheckInModalProps> = ({
                 <span className="text-[11px] font-bold text-slate-500">Đã chọn học viên:</span>
                 <SessionBadge remainingSessions={remainingSessions} clientType={clientType} size="sm" />
               </div>
-              <h4 className="text-lg font-black text-slate-900 truncate mt-0.5">{clientName}</h4>
+              <h4 className="text-lg font-black text-slate-900 whitespace-normal break-words leading-snug mt-0.5">{clientName}</h4>
               {packageName && (
                 <p className="text-xs font-semibold text-slate-600 flex items-center gap-1 mt-0.5">
                   <UserCheck className="w-3.5 h-3.5 text-indigo-500 shrink-0" />

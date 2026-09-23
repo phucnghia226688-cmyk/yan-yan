@@ -392,22 +392,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                       onClick={() => handleSelectSearchResult(client)}
                       className="p-2.5 hover:bg-slate-50 cursor-pointer flex items-center justify-between transition-colors"
                     >
-                      <div className="flex items-center gap-2 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
                         <img 
                           src={client.avatarUrl} 
                           alt={client.name} 
                           className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0" 
                         />
-                        <div className="min-w-0">
-                          <p className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-1 truncate">
-                            {client.name}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-1.5 flex-wrap whitespace-normal break-words leading-snug">
+                            <span>{client.name}</span>
                             {client.remainingSessions <= 3 && (
                               <span className="text-[9px] bg-red-50 text-red-600 border border-red-200 px-1 py-0.2 rounded-full font-semibold shrink-0">
                                 {client.remainingSessions}b
                               </span>
                             )}
                           </p>
-                          <p className="text-[11px] text-slate-500 flex items-center gap-1 truncate">
+                          <p className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
                             <Phone className="w-3 h-3 text-slate-400 shrink-0" /> {client.phone}
                           </p>
                         </div>

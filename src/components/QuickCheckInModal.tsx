@@ -294,7 +294,7 @@ export const QuickCheckInModal: React.FC<QuickCheckInModalProps> = ({
                   />
                   <div className="min-w-0 flex-1">
                     <span className="text-[10px] font-medium text-slate-400">Học viên</span>
-                    <h4 className="font-black text-slate-900 text-base leading-tight truncate">{successResult.clientName}</h4>
+                    <h4 className="font-black text-slate-900 text-base leading-snug whitespace-normal break-words">{successResult.clientName}</h4>
                     <p className="text-xs text-indigo-600 font-extrabold truncate mt-0.5">
                       {successResult.packageName || 'Gói PT 1:1'}
                     </p>
@@ -563,19 +563,19 @@ export const QuickCheckInModal: React.FC<QuickCheckInModalProps> = ({
                               : 'hover:bg-slate-100/60'
                           }`}
                         >
-                          <div className="flex items-center gap-2.5">
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
                             <img 
                               src={client.avatarUrl} 
                               alt={client.name} 
-                              className={`w-8 h-8 rounded-full object-cover border ${
+                              className={`w-8 h-8 rounded-full object-cover border shrink-0 ${
                                 isCheckedIn ? 'border-emerald-400 ring-2 ring-emerald-200' : 'border-slate-200'
                               }`} 
                             />
-                            <div>
-                              <div className="flex items-center gap-1.5">
-                                <p className="text-sm font-bold text-slate-900">{client.name}</p>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <p className="text-sm font-bold text-slate-900 whitespace-normal break-words leading-snug">{client.name}</p>
                                 {isCheckedIn && (
-                                  <span className="text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.2 rounded-full shadow-2xs">
+                                  <span className="text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.2 rounded-full shadow-2xs shrink-0">
                                     ✓ Đã check
                                   </span>
                                 )}
