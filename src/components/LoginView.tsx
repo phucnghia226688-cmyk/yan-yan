@@ -276,7 +276,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
         {/* Info Box / Security Note */}
         <div className="mt-8 pt-6 border-t border-slate-700/60 text-center text-xs text-slate-400 flex items-center justify-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-          <span>Hệ thống bảo mật được nâng cấp</span>
+          <span>Bản cập nhật 23/09/2029</span>
         </div>
       </div>
     </div>
