@@ -47,6 +47,10 @@ const TenantContext = createContext<TenantContextType | undefined>(undefined);
 export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<TenantAccount | null>(() => {
     try {
+      const explicitLogout = localStorage.getItem('nb_gym_explicit_logout');
+      if (explicitLogout === 'true') {
+        return null;
+      }
       const saved = localStorage.getItem(STORAGE_USER_SESSION_KEY);
       return saved ? JSON.parse(saved) : null;
     } catch {
@@ -72,6 +76,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const activeTenantId = (isMasterAdmin && viewingTenantId) ? viewingTenantId : rootTenantId;
 
   const isAutoReauthingRef = useRef<boolean>(false);
+  const unsubSnapshotRef = useRef<(() => void) | null>(null);
 
   const setActiveTenantId = (id: string | null) => {
     if (isMasterAdmin) {
@@ -112,8 +117,22 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Validate session against cloud on mount & auto-reconnect Firebase Auth across devices
   useEffect(() => {
     if (!db) return;
-    let unsubSnapshot: (() => void) | undefined;
+    
     const unsubAuth = auth.onAuthStateChanged(async user => {
+      const explicitLogout = localStorage.getItem('nb_gym_explicit_logout') === 'true';
+      const hasSavedSession = Boolean(localStorage.getItem(STORAGE_USER_SESSION_KEY));
+
+      if (explicitLogout || !hasSavedSession) {
+        if (unsubSnapshotRef.current) {
+          unsubSnapshotRef.current();
+          unsubSnapshotRef.current = null;
+        }
+        if (user) {
+          auth.signOut().catch(() => {});
+        }
+        return;
+      }
+
       if (user) {
         try {
           const email = user.email || '';
@@ -137,8 +156,13 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
              }
           }
 
+          if (unsubSnapshotRef.current) {
+            unsubSnapshotRef.current();
+            unsubSnapshotRef.current = null;
+          }
+
           if (isAdmin) {
-            unsubSnapshot = onSnapshot(collection(db, 'tenant_accounts'), (snapshot) => {
+            unsubSnapshotRef.current = onSnapshot(collection(db, 'tenant_accounts'), (snapshot) => {
               if (snapshot.empty) {
                 // If master admin collection empty, ensure master admin exists
                 const defaultAdmin: TenantAccount = {
@@ -156,7 +180,6 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                   notes: 'Tài khoản Quản trị viên Master'
                 };
                 setTenants([defaultAdmin]);
-                setCurrentUser(prev => prev || defaultAdmin);
               } else {
                 const list = snapshot.docs.map(d => d.data() as TenantAccount);
                 setTenants(list);
@@ -174,18 +197,15 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                       return updatedSelf;
                     }
                     return prev;
-                  } else {
-                    // Initialize self if not previously loaded
-                    const self = list.find(t => t.role === 'admin' || t.username?.toLowerCase() === 'admin');
-                    return self || null;
                   }
+                  return null;
                 });
               }
             }, (err) => {
               console.warn("Tenant onSnapshot error, falling back to local cache:", err);
             });
           } else if (tenantId !== 'default') {
-            unsubSnapshot = onSnapshot(doc(db, 'tenant_accounts', tenantId), (docSnap) => {
+            unsubSnapshotRef.current = onSnapshot(doc(db, 'tenant_accounts', tenantId), (docSnap) => {
                if (docSnap.exists()) {
                   const t = docSnap.data() as TenantAccount;
                   setTenants([t]);
@@ -200,7 +220,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                       }
                       return t;
                     }
-                    return t;
+                    return null;
                   });
                }
             }, (err) => {
@@ -211,11 +231,15 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           console.error("Tenant sync init error:", e);
         }
       } else {
-        if (unsubSnapshot) unsubSnapshot();
+        if (unsubSnapshotRef.current) {
+          unsubSnapshotRef.current();
+          unsubSnapshotRef.current = null;
+        }
 
         // If auth user is null but we have active currentUser in storage (e.g. reopened phone browser)
+        const explicitLogout = localStorage.getItem('nb_gym_explicit_logout') === 'true';
         const savedSession = localStorage.getItem(STORAGE_USER_SESSION_KEY);
-        if (savedSession && !isAutoReauthingRef.current) {
+        if (!explicitLogout && savedSession && !isAutoReauthingRef.current) {
           try {
             const parsed = JSON.parse(savedSession) as TenantAccount;
             if (parsed?.username && parsed?.password) {
@@ -243,7 +267,10 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     return () => {
       unsubAuth();
-      if (unsubSnapshot) unsubSnapshot();
+      if (unsubSnapshotRef.current) {
+        unsubSnapshotRef.current();
+        unsubSnapshotRef.current = null;
+      }
     };
   }, []);
 
@@ -344,31 +371,42 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const logout = async () => {
-    try { await signOut(auth); } catch (e) {}
-    
-    // Preserve Remember Me credentials if active
-    const savedUser = localStorage.getItem('nbfit_tenant_saved_username');
-    const savedPass = localStorage.getItem('nbfit_tenant_saved_password');
-    const rememberMe = localStorage.getItem('nbfit_tenant_remember_me');
+    // 1. Immediately detach any active tenant snapshots
+    if (unsubSnapshotRef.current) {
+      unsubSnapshotRef.current();
+      unsubSnapshotRef.current = null;
+    }
 
-    // Clear session-specific storage items
+    // 2. Set explicit logout flag so onAuthStateChanged will never auto-login
+    localStorage.setItem('nb_gym_explicit_logout', 'true');
     localStorage.removeItem(STORAGE_USER_SESSION_KEY);
     localStorage.removeItem('nb_gym_auth');
     localStorage.removeItem('nb_gym_user');
     localStorage.removeItem('nb_gym_session_id');
     localStorage.removeItem('nb_gym_auth_timestamp');
-    localStorage.setItem('nb_gym_explicit_logout', 'true');
     sessionStorage.clear();
 
-    // Re-persist Remember Me credentials so user can 1-touch login
+    // 3. Preserve Remember Me credentials if active
+    const savedUser = localStorage.getItem('nbfit_tenant_saved_username');
+    const savedPass = localStorage.getItem('nbfit_tenant_saved_password');
+    const rememberMe = localStorage.getItem('nbfit_tenant_remember_me');
+
     if (rememberMe === 'true') {
       if (savedUser) localStorage.setItem('nbfit_tenant_saved_username', savedUser);
       if (savedPass) localStorage.setItem('nbfit_tenant_saved_password', savedPass);
       localStorage.setItem('nbfit_tenant_remember_me', 'true');
     }
 
+    // 4. Reset React state immediately so Login screen appears
     setCurrentUser(null);
     setViewingTenantId(null);
+
+    // 5. Sign out of Firebase Auth asynchronously
+    try { 
+      await signOut(auth); 
+    } catch (e) {
+      console.warn("SignOut error:", e);
+    }
   };
 
   const createTenant = async (data: {

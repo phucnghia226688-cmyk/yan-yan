@@ -128,7 +128,9 @@ let isFirestoreQuotaExceeded = false;
 
 export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { activeTenantId, currentUser, isMasterAdmin, logout } = useTenant();
-  const [isCloudSynced, setIsCloudSynced] = useState<boolean>(false);
+  const [isCloudSynced, setIsCloudSynced] = useState<boolean>(() => {
+    return typeof navigator !== 'undefined' ? navigator.onLine : true;
+  });
   const [isSyncingCloud, setIsSyncingCloud] = useState<boolean>(false);
 
   // Helper to safely load stored local data or auto-backup snapshot scoped by tenant
@@ -265,6 +267,12 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     let unsubscribers: (() => void)[] = [];
 
+    // Immediately attempt connection if user is logged in with credentials but Firebase Auth instance was resetting
+    if (!auth.currentUser && currentUser?.username && currentUser?.password) {
+      const userEmail = currentUser.username.includes('@') ? currentUser.username.toLowerCase() : `${currentUser.username.toLowerCase()}@nbgym.com`;
+      signInWithEmailAndPassword(auth, userEmail, currentUser.password).catch(() => {});
+    }
+
     const unsubAuth = onAuthStateChanged(auth, async (user) => {
       if (user && !user.isAnonymous && currentTenant) {
 
@@ -370,16 +378,20 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               (err: any) => {
                 const isQuota = err?.code === 'resource-exhausted' || err?.message?.includes('Quota') || err?.message?.includes('resource-exhausted');
                 const isPermissionDenied = err?.code === 'permission-denied' || err?.message?.includes('Missing or insufficient permissions');
+                const isOffline = (typeof navigator !== 'undefined' && !navigator.onLine) || err?.code === 'unavailable' || err?.message?.includes('offline');
 
                 if (isQuota) {
                   isFirestoreQuotaExceeded = true;
                   console.warn(`Firestore quota limit reached for ${colName}. Switching to local storage cache.`);
                 } else if (isPermissionDenied) {
                   console.warn(`Permission denied for ${colName}, attempting auth refresh without clearing local data`);
+                  setIsCloudSynced(false);
                   if (!auth.currentUser && currentUser?.username && currentUser?.password) {
                     const userEmail = currentUser.username.includes('@') ? currentUser.username.toLowerCase() : `${currentUser.username.toLowerCase()}@nbgym.com`;
                     signInWithEmailAndPassword(auth, userEmail, currentUser.password).catch(() => {});
                   }
+                } else if (isOffline) {
+                  setIsCloudSynced(false);
                 } else {
                   console.warn(`Firestore sync warning for ${colName}:`, err);
                   if (!isFirestoreQuotaExceeded && retryCount < 3) {
@@ -390,7 +402,6 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     }, Math.min(30000, 3000 * Math.pow(2, retryCount)));
                   }
                 }
-                setIsCloudSynced(false);
 
                 try {
                   const tenantScopedKey = `${storageKey}_${currentTenant}`;
@@ -424,7 +435,9 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         attachSync('auditLogs', STORAGE_KEYS.AUDIT_LOGS, setAuditLogs);
         attachSync('pdfDocuments', STORAGE_KEYS.PDF_DOCS, setPdfDocuments);
       } else {
-        setIsCloudSynced(false);
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+          setIsCloudSynced(false);
+        }
       }
     });
 

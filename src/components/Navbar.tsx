@@ -284,15 +284,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                       await manualSync();
                     }}
                     disabled={isSyncingCloud}
-                    className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs whitespace-nowrap cursor-pointer transition-all hover:scale-105 active:scale-95 ${
-                      isCloudSynced 
-                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100' 
-                        : 'bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 animate-pulse'
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs whitespace-nowrap cursor-pointer transition-all hover:scale-105 active:scale-95 ${
+                      isSyncingCloud
+                        ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                        : isCloudSynced 
+                          ? 'bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100' 
+                          : 'bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100'
                     }`}
-                    title="Bấm vào để đồng bộ ngay lập tức dữ liệu giữa Điện thoại và Máy tính qua Firebase Cloud"
+                    title={isCloudSynced ? 'Đang kết nối Realtime 2 chiều qua Firebase Cloud. Bấm để làm mới ngay.' : 'Mất kết nối mạng hoặc Cloud. Bấm để thử kết nối lại.'}
                   >
-                    <span className={`w-1.5 h-1.5 rounded-full ${isCloudSynced ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></span>
-                    <span>{isSyncingCloud ? 'Đang đồng bộ...' : (isCloudSynced ? 'Đồng bộ Realtime' : 'Bấm để kết nối lại')}</span>
+                    <span className={`w-1.5 h-1.5 rounded-full ${isSyncingCloud ? 'bg-indigo-500 animate-spin' : isCloudSynced ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></span>
+                    <span>{isSyncingCloud ? 'Đang đồng bộ...' : (isCloudSynced ? 'Đồng bộ Realtime' : 'Mất kết nối • Bấm thử lại')}</span>
                     <RefreshCw className={`w-2.5 h-2.5 ml-0.5 ${isSyncingCloud ? 'animate-spin' : ''}`} />
                   </button>
                 </h1>
