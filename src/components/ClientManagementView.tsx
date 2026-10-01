@@ -768,8 +768,9 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
     e.preventDefault();
     if (!selectedClient) return;
     const isMonthly = formData.clientType === 'monthly';
-    const finalTotal = isMonthly ? 0 : (formData.totalSessions || 0);
-    const finalRem = isMonthly ? 0 : (formData.remainingSessions || 0);
+    const finalRem = isMonthly ? 0 : (formData.remainingSessions !== undefined && !isNaN(formData.remainingSessions) ? Number(formData.remainingSessions) : 0);
+    const prevTotal = selectedClient.totalSessions !== undefined && !isNaN(selectedClient.totalSessions) ? Number(selectedClient.totalSessions) : 0;
+    const finalTotal = isMonthly ? 0 : Math.max(prevTotal, finalRem, formData.totalSessions || 0);
     const formattedStart = formatDate(formData.startDate);
     const formattedEnd = formatDate(formData.endDate);
 
@@ -3729,46 +3730,29 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                 </div>
 
                 {formData.clientType !== 'monthly' ? (
-                  <>
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="block text-xs font-bold text-slate-600">Số buổi còn lại</label>
-                      </div>
-                      <input
-                        type="number"
-                        min="0"
-                        value={formData.remainingSessions}
-                        onChange={(e) => {
-                          const rem = parseInt(e.target.value) || 0;
-                          setFormData({ 
-                            ...formData, 
-                            remainingSessions: rem
-                          });
-                        }}
-                        className="w-full bg-slate-100 text-slate-800 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:bg-white font-extrabold text-[#4F46E5]"
-                      />
+                  <div className="sm:col-span-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold text-slate-600">Số buổi còn lại</label>
+                      <span className="text-[11px] font-medium text-slate-400">
+                        Số buổi thực tế học viên còn có thể tập
+                      </span>
                     </div>
-
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="block text-xs font-bold text-slate-600">Tổng số buổi gói tập</label>
-                        <button
-                          type="button"
-                          onClick={() => setFormData({ ...formData, totalSessions: formData.remainingSessions })}
-                          className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 hover:underline"
-                        >
-                          Đặt = {formData.remainingSessions} buổi
-                        </button>
-                      </div>
-                      <input
-                        type="number"
-                        min="1"
-                        value={formData.totalSessions}
-                        onChange={(e) => setFormData({ ...formData, totalSessions: parseInt(e.target.value) || 0 })}
-                        className="w-full bg-slate-100 text-slate-900 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:bg-white font-extrabold"
-                      />
-                    </div>
-                  </>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.remainingSessions}
+                      onChange={(e) => {
+                        const rem = parseInt(e.target.value) || 0;
+                        setFormData(prev => ({ 
+                          ...prev, 
+                          remainingSessions: rem,
+                          totalSessions: Math.max(prev.totalSessions || 0, rem)
+                        }));
+                      }}
+                      placeholder="Nhập số buổi còn lại..."
+                      className="w-full bg-slate-100 text-slate-800 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:bg-white font-extrabold text-[#4F46E5]"
+                    />
+                  </div>
                 ) : (
                   <div className="sm:col-span-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs font-bold text-amber-900">
                     📅 Thẻ Khách Tháng: Không tính số buổi. Trạng thái hoạt động dựa hoàn toàn vào Ngày Bắt Đầu & Hạn Hợp Đồng bên dưới.
