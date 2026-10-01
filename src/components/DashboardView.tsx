@@ -1,6 +1,6 @@
-import { getTodayDateStr, getVNDate, formatDate } from '../utils/dateUtils';
+import { getTodayDateStr, getVNDate, formatDate, calculateContractDiffDays } from '../utils/dateUtils';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Users, 
   TrendingUp, 
@@ -42,7 +42,45 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   setActiveTab
 }) => {
   const { clients, payments, expenses, appointments, updateAppointmentStatus, addAppointment } = useGym();
-  const { isMasterAdmin } = useTenant();
+  const { currentUser, isMasterAdmin, viewingTenantId } = useTenant();
+
+  // Strict tenant resolution:
+  const currentTenant = (isMasterAdmin && viewingTenantId)
+    ? viewingTenantId
+    : (currentUser?.tenantId || (isMasterAdmin ? 'master-admin' : 'default'));
+
+  // Strictly tenant-scoped entities
+  const tenantScopedClients = useMemo(() => {
+    return (clients || []).filter(c => {
+      const cTenant = c.tenantId || 'master-admin';
+      const expectedTenant = currentTenant || 'master-admin';
+      return cTenant === expectedTenant;
+    });
+  }, [clients, currentTenant]);
+
+  const tenantScopedPayments = useMemo(() => {
+    return (payments || []).filter(p => {
+      const pTenant = p.tenantId || 'master-admin';
+      const expectedTenant = currentTenant || 'master-admin';
+      return pTenant === expectedTenant;
+    });
+  }, [payments, currentTenant]);
+
+  const tenantScopedExpenses = useMemo(() => {
+    return (expenses || []).filter(e => {
+      const eTenant = e.tenantId || 'master-admin';
+      const expectedTenant = currentTenant || 'master-admin';
+      return eTenant === expectedTenant;
+    });
+  }, [expenses, currentTenant]);
+
+  const tenantScopedAppointments = useMemo(() => {
+    return (appointments || []).filter(a => {
+      const aTenant = (a as any).tenantId || 'master-admin';
+      const expectedTenant = currentTenant || 'master-admin';
+      return aTenant === expectedTenant;
+    });
+  }, [appointments, currentTenant]);
 
   // Toast notification state
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -76,15 +114,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     setEmergencyDayPlan('Lịch hẹn đột xuất / Chèn lịch');
     if (preselectedClient) {
       setEmergencyClientId(preselectedClient.id);
-    } else if (clients.length > 0) {
-      setEmergencyClientId(clients[0].id);
+    } else if (tenantScopedClients.length > 0) {
+      setEmergencyClientId(tenantScopedClients[0].id);
     }
     setEmergencyClientSearch('');
     setShowEmergencyModal(true);
   };
 
   const handleCreateEmergencyAppointment = (andCheckIn: boolean = false) => {
-    const client = clients.find(c => c.id === emergencyClientId);
+    const client = tenantScopedClients.find(c => c.id === emergencyClientId);
     if (!client) {
       showToast('❌ Vui lòng chọn học viên');
       return;
@@ -110,57 +148,135 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     setShowEmergencyModal(false);
   };
 
-  // 1. Total active clients
-  const activeClients = clients.filter(c => c.status === 'active' || c.status === 'expiring');
+  // 1. Total active clients (excluding closed contracts)
+  const activeClients = useMemo(() => {
+    return tenantScopedClients.filter(c => 
+      c.status !== 'closed' && 
+      (c as any).status !== 'archived' && 
+      (c as any).isContractClosed !== true &&
+      (c.status === 'active' || c.status === 'expiring' || c.status === 'expired')
+    );
+  }, [tenantScopedClients]);
 
   // 2. Monthly Revenue
-  const monthlyRevenue = payments
-    .filter(p => {
-      const pDate = new Date(p.paymentDate);
-      return pDate.getMonth() === currentMonth && pDate.getFullYear() === currentYear;
-    })
-    .reduce((sum, p) => sum + p.amountVnd, 0);
+  const monthlyRevenue = useMemo(() => {
+    return tenantScopedPayments
+      .filter(p => {
+        const pDate = new Date(p.paymentDate);
+        return pDate.getMonth() === currentMonth && pDate.getFullYear() === currentYear;
+      })
+      .reduce((sum, p) => sum + p.amountVnd, 0);
+  }, [tenantScopedPayments, currentMonth, currentYear]);
 
   // 3. Monthly Expenses
-  const monthlyExpenses = expenses
-    .filter(e => {
-      const eDate = new Date(e.date);
-      return eDate.getMonth() === currentMonth && eDate.getFullYear() === currentYear;
-    })
-    .reduce((sum, e) => sum + e.amountVnd, 0);
+  const monthlyExpenses = useMemo(() => {
+    return tenantScopedExpenses
+      .filter(e => {
+        const eDate = new Date(e.date);
+        return eDate.getMonth() === currentMonth && eDate.getFullYear() === currentYear;
+      })
+      .reduce((sum, e) => sum + e.amountVnd, 0);
+  }, [tenantScopedExpenses, currentMonth, currentYear]);
 
   // 4. Monthly Profit
   const monthlyProfit = monthlyRevenue - monthlyExpenses;
 
   // 5. Today's appointments (deduplicated)
   const seenTodayKeys = new Set<string>();
-  const todaysAppointments = appointments.filter(a => {
-    if (!a || a.date !== todayStr) return false;
-    const key = a.id || `${a.clientId}_${a.date}_${a.time}_${a.status}`;
-    if (seenTodayKeys.has(key)) return false;
-    seenTodayKeys.add(key);
-    return true;
-  });
+  const todaysAppointments = useMemo(() => {
+    return tenantScopedAppointments.filter(a => {
+      if (!a || a.date !== todayStr) return false;
+      const key = a.id || `${a.clientId}_${a.date}_${a.time}_${a.status}`;
+      if (seenTodayKeys.has(key)) return false;
+      seenTodayKeys.add(key);
+      return true;
+    });
+  }, [tenantScopedAppointments, todayStr]);
 
-  // 6. Clients running low on sessions (<= 3 sessions)
-  const lowSessionClients = clients.filter(c => c.remainingSessions > 0 && c.remainingSessions <= 3);
+  // 6. Renewal Alert Clients ("Cần gia hạn"):
+  // - BẮT BUỘC LOẠI BỎ TRIỆT ĐỂ HỌC VIÊN ĐÃ ĐÓNG HỢP ĐỒNG (closed, archived, isContractClosed)
+  // - CHỈ HIỂN THỊ HỌC VIÊN ĐANG HOẠT ĐỘNG (status !== 'closed')
+  // - VÀ THỎA MÃN 1 TRONG 2 ĐIỀU KIỆN:
+  //    * Số buổi tập còn lại ít (remainingSessions <= 5)
+  //    * HOẶC hạn hợp đồng sắp hết / đã quá hạn (diffDays <= 5)
+  const renewalClients = useMemo(() => {
+    return tenantScopedClients.filter(c => {
+      // Loại bỏ hoàn toàn hợp đồng đã đóng / thanh lý / lưu trữ
+      if (
+        c.status === 'closed' ||
+        (c as any).status === 'archived' ||
+        (c as any).isContractClosed === true
+      ) {
+        return false;
+      }
+
+      // Điều kiện 1: Số buổi còn lại ít (<= 5 buổi)
+      const hasLowSessions = c.remainingSessions <= 5;
+
+      // Điều kiện 2: Hạn hợp đồng sắp hết (<= 5 ngày) hoặc đã quá hạn
+      let hasExpiringOrOverdueContract = false;
+      if (c.endDate) {
+        const diffDays = calculateContractDiffDays(c.endDate);
+        if (diffDays !== null && diffDays <= 5) {
+          hasExpiringOrOverdueContract = true;
+        }
+      }
+
+      return hasLowSessions || hasExpiringOrOverdueContract;
+    });
+  }, [tenantScopedClients]);
+
+  // Helper: Hiển thị nhãn cảnh báo chi tiết theo từng lý do cần gia hạn
+  const getRenewalStatusLabel = (client: Client) => {
+    const diffDays = client.endDate ? calculateContractDiffDays(client.endDate) : null;
+    
+    // Hợp đồng đã quá hạn
+    if (diffDays !== null && diffDays < 0) {
+      return {
+        text: `⚠️ Quá hạn HĐ ${Math.abs(diffDays)} ngày • Còn ${client.remainingSessions} buổi`,
+        textColor: 'text-rose-600'
+      };
+    }
+    // Hết hạn hôm nay
+    if (diffDays !== null && diffDays === 0) {
+      return {
+        text: `⏳ Hết hạn HĐ hôm nay • Còn ${client.remainingSessions} buổi`,
+        textColor: 'text-amber-600'
+      };
+    }
+    // Hết hạn trong vòng 5 ngày tới
+    if (diffDays !== null && diffDays <= 5) {
+      return {
+        text: `⏳ Còn ${diffDays} ngày hết HĐ • Còn ${client.remainingSessions} buổi`,
+        textColor: 'text-amber-600'
+      };
+    }
+    // Sắp hết số buổi tập
+    return {
+      text: `🔴 Còn ${client.remainingSessions} buổi tập`,
+      textColor: 'text-red-600'
+    };
+  };
 
   // 7. Clients with upcoming contract expiration (<= 7 days or endDate <= 7 days from today)
-  const expiringContractClients = clients.filter(c => {
-    if (!c.endDate) return false;
-    const end = new Date(c.endDate);
-    const diffTime = end.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays >= 0 && diffDays <= 7;
-  });
+  const expiringContractClients = useMemo(() => {
+    return tenantScopedClients.filter(c => {
+      if (c.status === 'closed' || (c as any).isContractClosed) return false;
+      if (!c.endDate) return false;
+      const diffDays = calculateContractDiffDays(c.endDate);
+      return diffDays !== null && diffDays >= 0 && diffDays <= 7;
+    });
+  }, [tenantScopedClients]);
 
   // 8. Birthdays today / this week
-  const birthdayClients = clients.filter(c => {
-    if (!c.dob) return false;
-    const dob = new Date(c.dob);
-    // compare month and day
-    return dob.getMonth() === currentMonth && Math.abs(dob.getDate() - today.getDate()) <= 3;
-  });
+  const birthdayClients = useMemo(() => {
+    return tenantScopedClients.filter(c => {
+      if (c.status === 'closed' || (c as any).isContractClosed) return false;
+      if (!c.dob) return false;
+      const dob = new Date(c.dob);
+      return dob.getMonth() === currentMonth && Math.abs(dob.getDate() - today.getDate()) <= 3;
+    });
+  }, [tenantScopedClients, currentMonth, today]);
 
   const formatVnd = (num: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num);
@@ -188,7 +304,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               Xin chào PT, Chúc bạn một ngày huấn luyện năng lượng! 🏋️
             </h2>
             <p className="text-pink-100 text-sm mt-1.5 font-medium">
-              Đang quản lý <span className="text-amber-300 font-extrabold underline">{clients.filter(c => c.status !== 'closed').length} học viên</span>. Hoàn thành 1 buổi tập chỉ với 3 lần chạm.
+              Đang quản lý <span className="text-amber-300 font-extrabold underline">{tenantScopedClients.filter(c => c.status !== 'closed').length} học viên</span>. Hoàn thành 1 buổi tập chỉ với 3 lần chạm.
             </p>
           </div>
 
@@ -245,10 +361,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <span className="text-3xl font-black text-slate-900">{activeClients.length}</span>
-            <span className="text-xs font-semibold text-slate-500">/ tổng {clients.filter(c => c.status !== 'closed').length} khách</span>
+            <span className="text-xs font-semibold text-slate-500">/ tổng {tenantScopedClients.filter(c => c.status !== 'closed').length} khách</span>
           </div>
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span>🔴 Khách sắp hết buổi: <strong className="text-red-600 font-extrabold">{lowSessionClients.length}</strong></span>
+            <span>🔴 Cần gia hạn: <strong className="text-red-600 font-extrabold">{renewalClients.length}</strong></span>
             <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#4F46E5] transition-colors" />
           </div>
         </div>
@@ -433,48 +549,58 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
-                <h3 className="font-extrabold text-slate-900 text-base">Cần gia hạn ({lowSessionClients.length})</h3>
+                <h3 className="font-extrabold text-slate-900 text-base">Cần gia hạn ({renewalClients.length})</h3>
               </div>
             </div>
 
-            {lowSessionClients.length === 0 ? (
-              <p className="text-xs text-slate-500 py-3 text-center font-medium">Tất cả học viên đều còn đủ số buổi tập! 👍</p>
+            {renewalClients.length === 0 ? (
+              <p className="text-xs text-slate-500 py-3 text-center font-medium">Tất cả học viên đều còn đủ số buổi và hạn hợp đồng! 👍</p>
             ) : (
               <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
-                {lowSessionClients.map(client => (
-                  <div 
-                    key={client.id}
-                    className="p-3 bg-red-50/80 border border-red-100 rounded-2xl flex items-center justify-between"
-                  >
-                    <div 
-                      className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity min-w-0 flex-1 mr-2" 
-                      onClick={() => onSelectClientDetail(client)}
-                      title="Bấm để xem hồ sơ học viên"
-                    >
-                      <img src={client.avatarUrl} alt={client.name} className="w-9 h-9 rounded-full object-cover border border-red-200 shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <p 
-                          onClick={() => onSelectClientDetail(client)}
-                          className="text-xs font-bold text-slate-900 hover:text-red-600 cursor-pointer whitespace-normal break-words leading-snug"
-                        >
-                          {client.name}
-                        </p>
-                        <p className="text-[11px] text-red-600 font-extrabold">
-                          🔴 Còn {client.remainingSessions} buổi
-                        </p>
-                      </div>
-                    </div>
+                {renewalClients.map(client => {
+                  const statusInfo = getRenewalStatusLabel(client);
+                  const cleanPhone = client.phone ? client.phone.replace(/\D/g, '') : '';
+                  const zaloLink = cleanPhone ? `https://zalo.me/${cleanPhone.replace(/^0/, '84')}` : '#';
 
-                    <a 
-                      href={`https://zalo.me/${client.phone.replace(/^0/, '84')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[11px] bg-red-500 hover:bg-red-600 text-white font-bold px-3 py-1.5 rounded-full transition-all flex items-center gap-1 shadow-xs"
+                  return (
+                    <div 
+                      key={client.id}
+                      className="p-3 bg-red-50/80 border border-red-100 rounded-2xl flex items-center justify-between"
                     >
-                      <MessageCircle className="w-3 h-3" /> Zalo
-                    </a>
-                  </div>
-                ))}
+                      <div 
+                        className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity min-w-0 flex-1 mr-2" 
+                        onClick={() => onSelectClientDetail(client)}
+                        title="Bấm để xem hồ sơ học viên"
+                      >
+                        <img 
+                          src={client.avatarUrl || DEFAULT_AVATAR_URL} 
+                          alt={client.name} 
+                          className="w-9 h-9 rounded-full object-cover border border-red-200 shrink-0" 
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p 
+                            onClick={() => onSelectClientDetail(client)}
+                            className="text-xs font-bold text-slate-900 hover:text-red-600 cursor-pointer whitespace-normal break-words leading-snug"
+                          >
+                            {client.name}
+                          </p>
+                          <p className={`text-[11px] font-extrabold ${statusInfo.textColor}`}>
+                            {statusInfo.text}
+                          </p>
+                        </div>
+                      </div>
+
+                      <a 
+                        href={zaloLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[11px] bg-red-500 hover:bg-red-600 text-white font-bold px-3 py-1.5 rounded-full transition-all flex items-center gap-1 shadow-xs shrink-0 cursor-pointer active:scale-95"
+                      >
+                        <MessageCircle className="w-3 h-3" /> Zalo
+                      </a>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -568,8 +694,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </div>
 
                 <div className="max-h-40 overflow-y-auto space-y-1.5 pr-1 border border-slate-200 rounded-2xl p-2 bg-slate-50/50">
-                  {clients
-                    .filter(c => c.name.toLowerCase().includes(emergencyClientSearch.toLowerCase()) || c.phone.includes(emergencyClientSearch))
+                  {tenantScopedClients
+                    .filter(c => c.status !== 'closed' && (c.name.toLowerCase().includes(emergencyClientSearch.toLowerCase()) || c.phone.includes(emergencyClientSearch)))
                     .map(c => {
                       const isSelected = c.id === emergencyClientId;
                       return (
