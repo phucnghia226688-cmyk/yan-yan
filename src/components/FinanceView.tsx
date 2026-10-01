@@ -15,12 +15,16 @@ export const FinanceView: React.FC<FinanceViewProps> = ({ initialTab = 'revenue'
     initialTab === 'expenses' ? 'expenses' : initialTab === 'reports' ? 'reports' : 'revenue'
   );
   const { payments, expenses, clients, cleanupOrphanedRecords } = useGym();
-  const { currentUser, isMasterAdmin } = useTenant();
+  const { currentUser, isMasterAdmin, viewingTenantId } = useTenant();
+
+  const currentTenant = (isMasterAdmin && viewingTenantId)
+    ? viewingTenantId
+    : (currentUser?.tenantId || (isMasterAdmin ? 'master-admin' : 'default'));
 
   // Auto trigger orphan record cleanup on Finance view load
   useEffect(() => {
     cleanupOrphanedRecords();
-  }, [currentUser?.tenantId]);
+  }, [currentTenant]);
 
   useEffect(() => {
     if (initialTab) {
@@ -32,10 +36,9 @@ export const FinanceView: React.FC<FinanceViewProps> = ({ initialTab = 'revenue'
   const validClientIds = React.useMemo(() => new Set((clients || []).map(c => c.id)), [clients]);
 
   const tenantScopedPayments = (payments || []).filter(p => {
-    if (!isMasterAdmin) {
-      const pTenant = p.tenantId || 'default';
-      if (pTenant !== (currentUser?.tenantId || 'default')) return false;
-    }
+    const pTenant = p.tenantId || 'master-admin';
+    const targetTenant = currentTenant || 'master-admin';
+    if (pTenant !== targetTenant) return false;
     // Exclude orphaned payments belonging to deleted clients
     if (p.clientId && p.clientId.trim() !== '') {
       if (clients.length > 0 && !validClientIds.has(p.clientId)) return false;
@@ -44,9 +47,9 @@ export const FinanceView: React.FC<FinanceViewProps> = ({ initialTab = 'revenue'
   });
 
   const tenantScopedExpenses = (expenses || []).filter(e => {
-    if (isMasterAdmin) return true;
-    const eTenant = e.tenantId || 'default';
-    return eTenant === (currentUser?.tenantId || 'default');
+    const eTenant = e.tenantId || 'master-admin';
+    const targetTenant = currentTenant || 'master-admin';
+    return eTenant === targetTenant;
   });
 
   // Summary Calculations
