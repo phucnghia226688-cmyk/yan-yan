@@ -174,6 +174,7 @@ export interface CheckInLog {
   clientId: string;
   clientName: string;
   timestamp: string; // ISO String
+  checkedInAt?: string;
   dayPlanName: string;
   sessionsRemainingAfter: number;
   notes?: string;

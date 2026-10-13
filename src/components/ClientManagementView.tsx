@@ -13,7 +13,7 @@ import {
 import { SessionBadge } from './SessionBadge';
 
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ConfirmPasswordModal } from './ConfirmPasswordModal';
 import { PrintContractModal, ContractData } from './PrintContractModal';
 import { 
@@ -40,6 +40,7 @@ import {
   ClipboardList, 
   Clock, 
   Heart,
+  ChevronLeft,
   ChevronRight,
   ExternalLink,
   RotateCcw,
@@ -452,6 +453,16 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
   // Past Check-in Receipt Modal State
   const [pastReceiptModalData, setPastReceiptModalData] = useState<CheckInReceiptData | null>(null);
   const [isPastReceiptModalOpen, setIsPastReceiptModalOpen] = useState<boolean>(false);
+
+  // Check-In History Pagination (10 sessions per page)
+  const CHECK_INS_PER_PAGE = 10;
+  const [historyCurrentPage, setHistoryCurrentPage] = useState<number>(1);
+  const historyTopRef = useRef<HTMLDivElement>(null);
+
+  // Auto reset to page 1 when switching client
+  useEffect(() => {
+    setHistoryCurrentPage(1);
+  }, [selectedClient?.id]);
 
   const handleShowReceiptForLog = (log: CheckInLog) => {
     const logDate = new Date(log.timestamp);
@@ -1153,9 +1164,30 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
     );
   };
 
-  const clientCheckIns = selectedClient
-    ? checkIns.filter(ci => ci.clientId === selectedClient.id)
-    : [];
+  const clientCheckIns = useMemo(() => {
+    if (!selectedClient) return [];
+    return [...checkIns]
+      .filter(ci => ci.clientId === selectedClient.id)
+      .sort((a, b) => {
+        const timeA = new Date(a.checkedInAt || a.timestamp || 0).getTime();
+        const timeB = new Date(b.checkedInAt || b.timestamp || 0).getTime();
+        return timeB - timeA;
+      });
+  }, [selectedClient, checkIns]);
+
+  const totalHistoryPages = Math.max(1, Math.ceil(clientCheckIns.length / CHECK_INS_PER_PAGE));
+  const validHistoryPage = Math.min(historyCurrentPage, totalHistoryPages);
+
+  const paginatedCheckIns = useMemo(() => {
+    const startIndex = (validHistoryPage - 1) * CHECK_INS_PER_PAGE;
+    return clientCheckIns.slice(startIndex, startIndex + CHECK_INS_PER_PAGE);
+  }, [clientCheckIns, validHistoryPage]);
+
+  const handleHistoryPageChange = (newPage: number) => {
+    const targetPage = Math.max(1, Math.min(totalHistoryPages, newPage));
+    setHistoryCurrentPage(targetPage);
+    historyTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   const clientProgram = selectedClient
     ? programs.find(p => p.clientId === selectedClient.id || p.id === selectedClient.workoutProgramId)
@@ -1650,7 +1682,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                 {/* TAB 3: CHECK-IN HISTORY */}
                 {activeDetailTab === 'history' && (
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between">
+                    <div ref={historyTopRef} className="flex items-center justify-between">
                       <h4 className="font-extrabold text-slate-900 text-base">Lịch Sử Buổi Tập Đã Đi</h4>
                       <span className="text-xs text-slate-500 font-semibold">Tổng cộng {clientCheckIns.length} lần check-in</span>
                     </div>
@@ -1660,43 +1692,111 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({
                         Chưa có lịch sử tập luyện.
                       </p>
                     ) : (
-                      <div className="space-y-2">
-                        {clientCheckIns.map(ci => (
-                          <div key={ci.id} className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-bold text-slate-900">{ci.dayPlanName}</p>
-                              <p className="text-xs text-slate-500 mt-0.5 font-medium">
-                                🕒 {new Date(ci.timestamp).toLocaleString('vi-VN')}
-                              </p>
-                              {ci.notes && <p className="text-xs text-indigo-600 font-medium italic mt-1">"{ci.notes}"</p>}
+                      <>
+                        <div className="space-y-2">
+                          {paginatedCheckIns.map(ci => (
+                            <div key={ci.id} className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between">
+                              <div>
+                                <p className="text-sm font-bold text-slate-900">{ci.dayPlanName}</p>
+                                <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                                  🕒 {new Date(ci.checkedInAt || ci.timestamp).toLocaleString('vi-VN')}
+                                </p>
+                                {ci.notes && <p className="text-xs text-indigo-600 font-medium italic mt-1">"{ci.notes}"</p>}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <SessionBadge
+                                  remainingSessions={ci.sessionsRemainingAfter}
+                                  clientType={selectedClient?.clientType}
+                                  size="sm"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditCheckInTarget(ci);
+                                    setEditCheckInPlanName(ci.dayPlanName || '');
+                                  }}
+                                  className="text-xs text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-1 rounded-full font-bold flex items-center transition-colors shadow-xs cursor-pointer"
+                                  title="Sửa tên bài tập / Note tạ"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setCancelCheckInTarget({ id: ci.id, clientName: selectedClient?.name || '' })}
+                                  className="text-xs text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-1 rounded-full font-bold flex items-center gap-1 transition-colors shadow-xs cursor-pointer"
+                                  title="Hủy lượt check-in này (+1 Buổi)"
+                                >
+                                  <RotateCcw className="w-3.5 h-3.5 text-rose-600" /> Hủy Check-in (+1 Buổi)
+                                </button>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <SessionBadge
-                                remainingSessions={ci.sessionsRemainingAfter}
-                                clientType={selectedClient?.clientType}
-                                size="sm"
-                              />
-                              <button
-                                onClick={() => {
-                                  setEditCheckInTarget(ci);
-                                  setEditCheckInPlanName(ci.dayPlanName || '');
-                                }}
-                                className="text-xs text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2 py-1 rounded-full font-bold flex items-center transition-colors shadow-xs cursor-pointer"
-                                title="Sửa tên bài tập"
-                              >
-                                <Edit3 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={() => setCancelCheckInTarget({ id: ci.id, clientName: selectedClient?.name || '' })}
-                                className="text-xs text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-1 rounded-full font-bold flex items-center gap-1 transition-colors shadow-xs cursor-pointer"
-                                title="Hủy lượt check-in này"
-                              >
-                                <RotateCcw className="w-3.5 h-3.5 text-rose-600" /> Hủy Check-in (+1 Buổi)
-                              </button>
-                            </div>
+                          ))}
+                        </div>
+
+                        {/* Pagination Bar */}
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-xs mt-3">
+                          <div className="text-xs text-slate-500 font-medium">
+                            Hiển thị <strong className="text-slate-900 font-extrabold">{clientCheckIns.length === 0 ? 0 : (validHistoryPage - 1) * CHECK_INS_PER_PAGE + 1} - {Math.min(validHistoryPage * CHECK_INS_PER_PAGE, clientCheckIns.length)}</strong> trên tổng số <strong className="text-slate-900 font-extrabold">{clientCheckIns.length}</strong> lần check-in
                           </div>
-                        ))}
-                      </div>
+
+                          {totalHistoryPages > 1 && (
+                            <div className="flex items-center space-x-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleHistoryPageChange(validHistoryPage - 1)}
+                                disabled={validHistoryPage === 1}
+                                className="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-transparent transition text-xs font-bold flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed"
+                              >
+                                <ChevronLeft className="w-3.5 h-3.5" />
+                                <span>Trước</span>
+                              </button>
+
+                              {/* Page Numbers */}
+                              <div className="flex items-center space-x-1 px-1">
+                                {Array.from({ length: totalHistoryPages }, (_, i) => i + 1)
+                                  .filter(p => p === 1 || p === totalHistoryPages || Math.abs(p - validHistoryPage) <= 2)
+                                  .reduce<(number | string)[]>((acc, page, idx, arr) => {
+                                    if (idx > 0 && (page as number) - (arr[idx - 1] as number) > 1) {
+                                      acc.push('...');
+                                    }
+                                    acc.push(page);
+                                    return acc;
+                                  }, [])
+                                  .map((item, idx) => {
+                                    if (item === '...') {
+                                      return <span key={`dots-${idx}`} className="px-1 text-xs text-slate-400 font-bold">...</span>;
+                                    }
+                                    const p = item as number;
+                                    return (
+                                      <button
+                                        type="button"
+                                        key={p}
+                                        onClick={() => handleHistoryPageChange(p)}
+                                        className={`w-8 h-8 rounded-xl text-xs font-black transition cursor-pointer ${
+                                          p === validHistoryPage
+                                            ? 'bg-[#4F46E5] text-white shadow-xs'
+                                            : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'
+                                        }`}
+                                      >
+                                        {p}
+                                      </button>
+                                    );
+                                  })}
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => handleHistoryPageChange(validHistoryPage + 1)}
+                                disabled={validHistoryPage === totalHistoryPages}
+                                className="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-transparent transition text-xs font-bold flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed"
+                              >
+                                <span>Sau</span>
+                                <ChevronRight className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </>
                     )}
                   </div>
                 )}
